@@ -1,0 +1,214 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    /* Use the provided background */
+    background: rgb(238,174,202);
+    background: radial-gradient(circle, rgba(238,174,202,1) 0%, rgba(148,187,233,1) 100%);
+}
+html {
+    scroll-behavior: smooth;
+}
+
+
+/* Frosted Glass Navbar */
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: rgba(255, 255, 255, 0.3);  /* Make it transparent */
+    backdrop-filter: blur(10px);               /* Apply blur effect for frosted look */
+    border: 1px solid rgba(200, 200, 200, 0.5);
+    border-radius: 30px;
+    padding: 10px 20px;
+    margin: 20px;
+}
+
+/* Navbar Content Layout */
+.navbar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Logo Styles in Navbar */
+.logo a:hover {
+    opacity: 50%;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo img {
+    height: 80px;
+    margin-right: 10px;
+}
+
+.logo span {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Navigation Links in Navbar */
+.nav-links a {
+    text-decoration: none;
+    color: black;    /* Darker color for better visibility */
+    margin-left: 20px;
+}
+
+.nav-links a:hover {
+    color: rgba(200, 200, 200, 0.5);    /* Lighter color on hover */
+}
+
+/* Buttons in Navbar */
+.btn {
+    padding: 8px 15px;
+    color: white;
+    background-color: transparent; /*Remove background from button*/
+    border: 2px solid rgba(200, 200, 200, 0.5);
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: aliceblue;
+    color: black;
+}
+
+/* Main Content Area */
+.content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 160px);
+}
+
+/* Blurred Container for Welcome Page Content */
+.blurred-container {
+    background-color: rgba(128, 0, 128, 0.2);
+    backdrop-filter: blur(15px);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Footer Styles */
+footer {
+    background-color: rgba(255, 255, 255, 0.3);  /* Make it transparent */
+    backdrop-filter: blur(10px);               /* Apply blur effect for frosted look */
+    border: 1px solid rgba(200, 200, 200, 0.5);
+    border-radius: 30px;
+    padding: 10px 20px;
+    margin: 20px;
+}
+
+footer a {
+    color: #007BFF;
+}
+
+footer a:hover {
+    color: #0056b3;
+}
+
+/* Features Section */
+.features {
+    padding: 20px;
+    text-align: center;
+}
+
+.features h2 {
+    font-size: 2em;
+    /*margin-bottom: 20px;*/
+}
+
+/* Card Container */
+.card-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    
+}
+
+/* Flip Card Styles */
+.flip-card {
+    background-color: transparent;
+    width: 600px;
+    height: 400px;
+    perspective: 1000px; /* Required for the 3D flip effect */
+}
+
+.flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 1.2s;
+    transform-style: preserve-3d; /* Required for 3D transforms */
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+}
+
+.flip-card-inner.flipped {
+    transform: rotateY(180deg);
+}
+
+.flip-card-inner.flipped {
+    transform: rotateY(180deg);
+}
+
+.flip-card-front, .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden; /* Hide the back side initially */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 15px;
+    padding: 20px;
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+}
+
+.flip-card-front {
+    background-color: rgba(255, 255, 255, 0.3);  /* Make it transparent */
+    backdrop-filter: blur(10px);               /* Apply blur effect for frosted look */
+    border: 1px solid rgba(200, 200, 200, 0.5);
+    border-radius: 10px;
+    padding: 10px 20px;
+}
+
+.flip-card-back {
+    background-color: rgba(255, 255, 255, 0.3);  /* Make it transparent */
+    backdrop-filter: blur(10px);               /* Apply blur effect for frosted look */
+    border: 1px solid rgba(200, 200, 200, 0.5);
+    border-radius: 10px;
+    padding: 10px 20px;
+    transform: rotateY(180deg); /* Rotate the back side to face the correct direction */
+}
+
+/* Fixed Arrow */
+.scroll-down-arrow {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+.scroll-down-arrow img {
+    width: 20px;
+    height: auto;
+    background-color: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(200, 200, 200, 0.5);
+    border-radius: 250px;
+    padding: 10px 20px;
+    margin-top: 50px;
+}
