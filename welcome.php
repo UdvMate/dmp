@@ -98,7 +98,7 @@ if (isset($_GET['logout'])) {
 
     <!-- Footer -->
     <footer>
-        <p>&copy; 2025 Flashcard.ai | <a href="documentation.html">Documentation</a></p>
+        <p>&copy; 2025 Flashcard.ai | <a href="https://docs.google.com/document/d/1rvKo156DPou6UD3AZTfpJEa7ZuKD_uafZSG2bJSty6A/edit?usp=sharing">Documentation</a></p>
     </footer>
 
     <a class="scroll-down-arrow">
