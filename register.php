@@ -34,6 +34,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <!-- Bootstrap -->    
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
     <h1>Register</h1>
@@ -41,17 +49,48 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <p style="color:red"><?= htmlspecialchars($error) ?></p>
     <?php endif; ?>
     
-    <form method="POST" action="">
-        <label for="username">Username:</label><br>
-        <input type="text" id="username" name="username" required><br><br>
+    <div class="myForm">
+            <h2>Registration</h2>
+            <br>
+            <form action="" method="POST">
+                <div class="row">
+                    <div class="col-1"></div>
+                    <div class="col-10">
+                        <div class="form-floating mb-3">
+                            <input type="username" class="form-control" name="form_username" id="username"
+                                placeholder="Your username" />
+                            <label for="floatingInput">Username</label>
+                        </div>
+                        <div class="form-floating mb-3 ">
+                            <input type="password" class="form-control" name="password" id="password"
+                                placeholder="Your password" />
+                            <label for="" class="form-label">Password</label>
+                        </div>
+                        <div class="form-floating mb-3 ">
+                            <input type="password" class="form-control" name="passwordConfirm" id="passwordConfirm"
+                                placeholder="Your password again" />
+                            <label for="" class="form-label">Password confirm</label>
 
-        <label for="email">Email:</label><br>
-        <input type="email" id="email" name="email" required><br><br>
+                        </div>
+                        <div class="form-floating mb-3 ">
+                            <input type="text" class="form-control" name="email" id="email" placeholder="Your E-mail" />
+                            <label for="" class="form-label">E-mail</label>
+                        </div>
+                        <br>
+                        <div class="mb-3 text-center">
+                            <button role="button" class="button-27" name="submit" id="submit">Register</button>
 
-        <label for="password">Password:</label><br>
-        <input type="password" id="password" name="password" required><br><br>
+                        </div>
+                    </div>
+                    <div class="col-1"></div>
 
-        <button type="submit">Register</button>
-    </form>
+                </div>
+
+            </form>
+        </div>
+
+
+
+    </div>
 </body>
 </html>
