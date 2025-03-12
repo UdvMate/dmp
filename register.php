@@ -41,16 +41,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
     <!-- Bootstrap -->    
+
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/registerstyle.css">
 </head>
 <body>
-    <h1>Register</h1>
+    <div class="dp">
+    <div class="login-container">
+    <h1>Registration</h1>
     <?php if (!empty($error)): ?>
         <p style="color:red"><?= htmlspecialchars($error) ?></p>
     <?php endif; ?>
     
     <div class="myForm">
-            <h2>Registration</h2>
+            
             <br>
             <form action="" method="POST">
                 <div class="row">
@@ -58,27 +62,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="col-10">
                         <div class="form-floating mb-3">
                             <input type="username" class="form-control" name="form_username" id="username"
-                                placeholder="Your username" />
+                                placeholder="Your username" required/>
                             <label for="floatingInput">Username</label>
                         </div>
                         <div class="form-floating mb-3 ">
                             <input type="password" class="form-control" name="password" id="password"
-                                placeholder="Your password" />
+                                placeholder="Your password" required/>
                             <label for="" class="form-label">Password</label>
                         </div>
                         <div class="form-floating mb-3 ">
                             <input type="password" class="form-control" name="passwordConfirm" id="passwordConfirm"
-                                placeholder="Your password again" />
+                                placeholder="Your password again" required/>
                             <label for="" class="form-label">Password confirm</label>
 
                         </div>
                         <div class="form-floating mb-3 ">
-                            <input type="text" class="form-control" name="email" id="email" placeholder="Your E-mail" />
+                            <input type="text" class="form-control" name="email" id="email" placeholder="Your E-mail" required/>
                             <label for="" class="form-label">E-mail</label>
                         </div>
                         <br>
                         <div class="mb-3 text-center">
-                            <button role="button" class="button-27" name="submit" id="submit">Register</button>
+                            <button role="button" class="button-27" name="submit" id="submit" required>Register</button>
 
                         </div>
                     </div>
@@ -88,9 +92,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             </form>
         </div>
-
-
-
     </div>
+    </div>
+    
+    </div>
+    
 </body>
 </html>
