@@ -1,3 +1,7 @@
+h1{
+  padding-bottom: 50px;
+}
+
 .dp{
     display: flex;
   justify-content: center;
@@ -18,10 +22,9 @@
     border-radius: 8px;
     background-color: rgba(255, 255, 255, 0.2);
     box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
-    text-align: center;
-    
-    
+    text-align: center;        
   }
+  
 
   /* REGISTER GOMB */
 .button-27 {
@@ -72,13 +75,16 @@
     border-radius: 10px;
     width: 600px;
     margin-right: 50px;
-   background-color: rgba(255, 255, 255, 0.8);  /* Make it transparent */
+   background-color: rgba(255, 255, 255, 0.5);  /* Make it transparent */
     backdrop-filter: blur(10px); 
     
   }
   
   .form-floating input:focus {
-    background-color: rgba(255, 255, 255, 0.8);  /* Make it transparent */
+    background-color: rgba(255, 255, 255, 0.5);  /* Make it transparent */
     backdrop-filter: blur(10px); 
     box-shadow: 0 0 0 0.2rem rgba(137, 156, 251, 0.336) 0 8px 15px;
   }
+  .form-floating > label::after {
+    background-color: transparent !important;
+}

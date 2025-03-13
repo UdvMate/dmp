@@ -110,8 +110,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <!-- Submit Button -->
                             <br>
                             <div class="mb-3 text-center">
-                                <button type="submit" class="btn btn-primary">Register</button>
+                                <button type="submit" class="button-27">Register</button>
                             </div>
+
+                            <p>Already a member? <a href="login.php" class="links">Login</a></p>
+
                         </div>
                         <div class="col-1"></div>
                     </div>
