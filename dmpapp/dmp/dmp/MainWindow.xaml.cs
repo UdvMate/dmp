@@ -44,7 +44,7 @@ namespace dmp
             if (isUserLoggedIn)
             {
                 VerifyDatabaseConnection();
-                LoadUserData();
+                //LoadUserData();
             }
         }
 
@@ -65,7 +65,7 @@ namespace dmp
             }
         }
 
-        private void LoadUserData()
+        /*private void LoadUserData()
         {
             // Your existing code to load user data
             using (MySqlConnection connection = new MySqlConnection(connectionString))
@@ -86,6 +86,18 @@ namespace dmp
                     MessageBox.Show($"Failed to load user data: {ex.Message}");
                 }
             }
-        }
+        }*/
+
+        /*private string loggedInUsername;
+
+        public MainWindow(string username)
+        {
+            InitializeComponent();
+            loggedInUsername = username;
+
+            // Update UI elements with the logged-in username
+            WelcomeTextBlock.Text = $"Welcome back, {loggedInUsername}!";
+            UsernameTextBlock.Text = loggedInUsername;
+        }*/
     }
 }
