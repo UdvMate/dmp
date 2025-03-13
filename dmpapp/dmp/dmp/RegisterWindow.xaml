@@ -7,13 +7,31 @@
         mc:Ignorable="d"
         Title="RegisterWindow" Height="450" Width="388">
     <Grid>
-        <TextBlock Text="Username:" HorizontalAlignment="Left" Margin="30,50,0,363"/>
-        <TextBox x:Name="UsernameTextBox" HorizontalAlignment="Left" Margin="120,50,0,363" Width="200"/>
-        <TextBlock Text="Email:" HorizontalAlignment="Left" Margin="30,100,0,316"/>
-        <TextBox x:Name="EmailTextBox" HorizontalAlignment="Left" Margin="120,100,0,316" Width="200"/>
-        <TextBlock Text="Password:" HorizontalAlignment="Left" Margin="30,150,0,262"/>
-        <PasswordBox x:Name="PasswordBox" HorizontalAlignment="Left" Margin="120,150,0,262" Width="200"/>
-        <Button Content="Register" HorizontalAlignment="Left" Margin="180,192,0,202" Width="80" Height="40" Click="RegisterButton_Click"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
+        <!-- Username -->
+        <TextBlock Text="Username:" Grid.Row="0" Grid.Column="0" Margin="30,10,5,5"/>
+        <TextBox x:Name="UsernameTextBox" Grid.Row="0" Grid.Column="1" Margin="5,10,30,5" Width="200" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+
+        <!-- Email -->
+        <TextBlock Text="Email:" Grid.Row="1" Grid.Column="0" Margin="30,10,5,5"/>
+        <TextBox x:Name="EmailTextBox" Grid.Row="1" Grid.Column="1" Margin="5,10,30,5" Width="200" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+
+        <!-- Password -->
+        <TextBlock Text="Password:" Grid.Row="2" Grid.Column="0" Margin="30,10,5,5"/>
+        <PasswordBox x:Name="PasswordBox" Grid.Row="2" Grid.Column="1" Margin="5,10,30,5" Width="200" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+
+        <!-- Register Button -->
+        <Button Content="Register" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Left" Margin="5,20,0,10" Width="80" Click="RegisterButton_Click"/>
     </Grid>
 </Window>

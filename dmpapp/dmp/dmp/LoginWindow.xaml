@@ -7,12 +7,24 @@
         mc:Ignorable="d"
         Title="Login" Height="300" Width="400">
     <Grid>
-        <TextBlock Text="Username" HorizontalAlignment="Left" Margin="30,50,0,213"/>
-        <TextBox x:Name="UsernameTextBox" HorizontalAlignment="Left" Margin="120,50,0,213" Width="200"/>
-        <TextBlock Text="Password:" HorizontalAlignment="Left" Margin="30,100,0,163"/>
-        <PasswordBox x:Name="PasswordBox" HorizontalAlignment="Left" Margin="120,100,0,163" Width="200"/>
-        <Button Content="Login" HorizontalAlignment="Left" Margin="120,150,0,0" Width="80" Height="40" Click="LoginButton_Click"/>
-        <Button Content="Register" HorizontalAlignment="Left" Margin="220,150,0,0" Width="80" Height="40" Click="RegisterButton_Click"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
+        <TextBlock Text="Username:" Grid.Row="0" Grid.Column="0" Margin="30,10,5,5"/>
+        <TextBox x:Name="UsernameTextBox" Grid.Row="0" Grid.Column="1" Margin="5,10,30,5" Width="200" HorizontalAlignment="Left"/>
+
+        <TextBlock Text="Password:" Grid.Row="1" Grid.Column="0" Margin="30,10,5,5"/>
+        <PasswordBox x:Name="PasswordBox" Grid.Row="1" Grid.Column="1" Margin="5,10,30,5" Width="200" HorizontalAlignment="Left"/>
+
+        <Button Content="Login" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Left" Margin="5,20,0,10" Width="80" Click="LoginButton_Click"/>
+        <Button Content="Register" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right" Margin="0,20,30,10" Width="80" Click="RegisterButton_Click"/>
     </Grid>
 </Window>

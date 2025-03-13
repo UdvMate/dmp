@@ -15,13 +15,37 @@ namespace dmp
 {
     public partial class MainWindow : Window
     {
-        private string connectionString = "Server=localhost;Database=dmproject;UserID=root;";
+        private string connectionString = "Server=localhost;Database=dmproject;UserID=root;Password=;";
+        private bool isUserLoggedIn = false; // Track login status
 
         public MainWindow()
         {
             InitializeComponent();
-            VerifyDatabaseConnection();
-            LoadUserTable();
+
+            // Check if user is logged in - initially set to false
+            if (!isUserLoggedIn)
+            {
+                // Open login window
+                LoginWindow loginWindow = new LoginWindow();
+                loginWindow.ShowDialog(); // Modal dialog (blocks interaction with MainWindow)
+
+                // If the user closed LoginWindow without logging in, close the application
+                if (!loginWindow.IsLoggedIn)
+                {
+                    this.Close();
+                    return;
+                }
+
+                // If we get here, user logged in successfully
+                isUserLoggedIn = true;
+            }
+
+            // Only connect to database and load data if user is logged in
+            if (isUserLoggedIn)
+            {
+                VerifyDatabaseConnection();
+                LoadUserData();
+            }
         }
 
         private void VerifyDatabaseConnection()
@@ -31,7 +55,8 @@ namespace dmp
                 try
                 {
                     connection.Open();
-                    MessageBox.Show("Database connection successful!");
+                    // Consider removing or logging this message instead of showing it
+                    // MessageBox.Show("Database connection successful!");
                 }
                 catch (Exception ex)
                 {
@@ -40,28 +65,25 @@ namespace dmp
             }
         }
 
-        private void LoadUserTable()
+        private void LoadUserData()
         {
+            // Your existing code to load user data
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
                 try
                 {
                     connection.Open();
-
-                    // Query to fetch all data from the user table
                     string query = "SELECT * FROM users";
-
-                    // Use MySqlDataAdapter to fill a DataTable
                     MySqlDataAdapter adapter = new MySqlDataAdapter(query, connection);
                     DataTable dataTable = new DataTable();
                     adapter.Fill(dataTable);
 
-                    // Bind the DataTable to the DataGrid
+                    // Assuming you have a DataGrid named UserDataGrid
                     UserDataGrid.ItemsSource = dataTable.DefaultView;
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Failed to load user table: {ex.Message}");
+                    MessageBox.Show($"Failed to load user data: {ex.Message}");
                 }
             }
         }

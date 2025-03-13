@@ -1,52 +1,63 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using MySql.Data.MySqlClient;
+using System.Security.Cryptography;
+using System.Diagnostics;
 
 namespace dmp
 {
     public partial class LoginWindow : Window
     {
         private string connectionString = "Server=localhost;Database=dmproject;UserID=root;";
+        public bool IsLoggedIn { get; private set; } = false;
 
         public LoginWindow()
         {
             InitializeComponent();
         }
 
+        // Hashing function (same as used during registration)
+        private string HashPassword(string password)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+                return Convert.ToBase64String(bytes);
+            }
+        }
+
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
-            string username = UsernameTextBox.Text;
-            string password = PasswordBox.Password;
+            string username = UsernameTextBox.Text.Trim();
+            string password = PasswordBox.Password.Trim();
+
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            {
+                MessageBox.Show("Please enter both username and password.");
+                return;
+            }
+
+            // Hash the entered password
+            string hashedInputPassword = HashPassword(password);
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
                 try
                 {
                     connection.Open();
-                    string query = "SELECT * FROM users WHERE username=@username AND password=@password";
+                    // Query to check if the username and hashed password match
+                    string query = "SELECT COUNT(*) FROM users WHERE username=@username AND password=@password";
                     MySqlCommand command = new MySqlCommand(query, connection);
                     command.Parameters.AddWithValue("@username", username);
-                    command.Parameters.AddWithValue("@password", password);
+                    command.Parameters.AddWithValue("@password", hashedInputPassword);
 
-                    MySqlDataReader reader = command.ExecuteReader();
-                    if (reader.HasRows)
+                    int userExists = Convert.ToInt32(command.ExecuteScalar());
+                    if (userExists > 0)
                     {
+                        IsLoggedIn = true;
                         MessageBox.Show("Login successful!");
-                        this.Close(); // Close the login window
-                        MainWindow mainWindow = new MainWindow();
-                        mainWindow.Show(); // Open the main window
+                        this.Close();
                     }
                     else
                     {
@@ -60,11 +71,18 @@ namespace dmp
             }
         }
 
+
         private void RegisterButton_Click(object sender, RoutedEventArgs e)
         {
             RegisterWindow registerWindow = new RegisterWindow();
-            registerWindow.Show();
-            this.Close();
+            registerWindow.ShowDialog();
+
+            // If the user registered successfully, you might want to auto-login
+            if (registerWindow.RegistrationSuccessful)
+            {
+                IsLoggedIn = true;
+                this.Close();
+            }
         }
     }
 }
