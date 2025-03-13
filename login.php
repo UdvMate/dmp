@@ -2,7 +2,6 @@
 include 'includes/config.php';
 session_start();
 
-// Redirect logged-in users to welcome page
 if (isset($_SESSION['user_id'])) {
     header("Location: welcome.php");
     exit();
@@ -13,17 +12,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'];
 
     try {
+        // Get stored hash from database
         $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch();
 
-        if ($user && password_verify($password, $user['password'])) {
-            // Set session and redirect to welcome page
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['success'] = "Logged in successfully!";
-            header("Location: welcome.php");
-            exit();
+        if ($user) {
+            // Hash input password using SHA-256 + Base64
+            $hashedInput = base64_encode(hash('sha256', $password, true));
+            
+            // Compare hashes
+            if (hash_equals($user['password'], $hashedInput)) {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['success'] = "Logged in successfully!";
+                header("Location: welcome.php");
+                exit();
+            } else {
+                $error = "Invalid username or password!";
+            }
         } else {
             $error = "Invalid username or password!";
         }

@@ -2,32 +2,54 @@
 include 'includes/config.php';
 session_start();
 
-// Redirect logged-in users to welcome page
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 if (isset($_SESSION['user_id'])) {
     header("Location: welcome.php");
     exit();
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $username = trim($_POST['username']);
+    // Retrieve and sanitize inputs
+    $username = trim($_POST['username']); // Changed from 'form_username'
     $email = trim($_POST['email']);
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $password = $_POST['password'];
+    $passwordConfirm = $_POST['passwordConfirm'];
 
-    try {
-        $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-        $stmt->execute([$username, $email, $password]);
-        
-        // Set session and redirect to welcome page
-        $_SESSION['user_id'] = $pdo->lastInsertId();
-        $_SESSION['username'] = $username;
-        $_SESSION['success'] = "Registration successful!";
-        header("Location: welcome.php");
-        exit();
-    } catch (PDOException $e) {
-        $error = "Registration failed: " . $e->getMessage();
+    // Validate required fields
+    if (empty($username) || empty($email) || empty($password)) {
+        $error = "All fields are required!";
+    } elseif ($password !== $passwordConfirm) {
+        $error = "Passwords do not match!";
+    } else {
+        // Hash password using SHA-256 + Base64
+        $hashedPassword = base64_encode(hash('sha256', $password, true));
+
+        try {
+            // Insert into database
+            $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+            $stmt->execute([$username, $email, $hashedPassword]);
+
+            // Set session and redirect
+            $_SESSION['user_id'] = $pdo->lastInsertId();
+            $_SESSION['username'] = $username;
+            $_SESSION['success'] = "Registration successful!";
+            header("Location: welcome.php");
+            exit();
+        } catch (PDOException $e) {
+            // Handle duplicate entries or other errors
+            if ($e->getCode() == '23000') { // MySQL duplicate entry error code
+                $error = "Username or email already exists!";
+            } else {
+                $error = "Registration failed: " . $e->getMessage();
+            }
+        }
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -47,55 +69,55 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 <body>
     <div class="dp">
-    <div class="login-container">
-    <h1>Registration</h1>
-    <?php if (!empty($error)): ?>
-        <p style="color:red"><?= htmlspecialchars($error) ?></p>
-    <?php endif; ?>
-    
-    <div class="myForm">
+        <div class="login-container">
+            <h1>Registration</h1>
+            <?php if (!empty($error)): ?>
+                <p style="color:red"><?= htmlspecialchars($error) ?></p>
+            <?php endif; ?>
             
-            <br>
-            <form action="" method="POST">
-                <div class="row">
-                    <div class="col-1"></div>
-                    <div class="col-10">
-                        <div class="form-floating mb-3">
-                            <input type="username" class="form-control" name="form_username" id="username"
-                                placeholder="Your username" required/>
-                            <label for="floatingInput">Username</label>
-                        </div>
-                        <div class="form-floating mb-3 ">
-                            <input type="password" class="form-control" name="password" id="password"
-                                placeholder="Your password" required/>
-                            <label for="" class="form-label">Password</label>
-                        </div>
-                        <div class="form-floating mb-3 ">
-                            <input type="password" class="form-control" name="passwordConfirm" id="passwordConfirm"
-                                placeholder="Your password again" required/>
-                            <label for="" class="form-label">Password confirm</label>
+            <div class="myForm">
+                <form action="" method="POST">
+                    <div class="row">
+                        <div class="col-1"></div>
+                        <div class="col-10">
+                            <!-- Username Field -->
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" name="username" id="username" placeholder="Your username" required/>
+                                <label for="username">Username</label>
+                            </div>
 
-                        </div>
-                        <div class="form-floating mb-3 ">
-                            <input type="text" class="form-control" name="email" id="email" placeholder="Your E-mail" required/>
-                            <label for="" class="form-label">E-mail</label>
-                        </div>
-                        <br>
-                        <div class="mb-3 text-center">
-                            <button role="button" class="button-27" name="submit" id="submit" required>Register</button>
+                            <!-- Password Field -->
+                            <div class="form-floating mb-3 ">
+                                <input type="password" class="form-control" name="password" id="password"
+                                    placeholder="Your password" required/>
+                                <label for="password">Password</label>
+                            </div>
 
+                            <!-- Password Confirmation Field -->
+                            <div class="form-floating mb-3 ">
+                                <input type="password" class="form-control" name="passwordConfirm" id="passwordConfirm"
+                                    placeholder="Your password again" required/>
+                                <label for="passwordConfirm">Password Confirm</label>
+                            </div>
+
+                            <!-- Email Field -->
+                            <div class="form-floating mb-3 ">
+                                <input type="email" class="form-control" name="email" id="email"
+                                    placeholder="Your E-mail" required/>
+                                <label for="email">E-mail</label>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <br>
+                            <div class="mb-3 text-center">
+                                <button type="submit" class="btn btn-primary">Register</button>
+                            </div>
                         </div>
+                        <div class="col-1"></div>
                     </div>
-                    <div class="col-1"></div>
-
-                </div>
-
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
-    </div>
-    
-    </div>
-    
+    </div>    
 </body>
 </html>
