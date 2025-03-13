@@ -25,7 +25,7 @@ if (isset($_GET['logout'])) {
     <header class="navbar">
         <div class="navbar-content">
             <div class="logo" id="logo">
-                <img src="media/images/logoblack.png" alt="Logo">
+                <img src="media/images/icon2.png" alt="Logo">
                 <span>Flashcard.ai</span>
             </div>
             <nav class="nav-links">
