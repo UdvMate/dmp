@@ -25,7 +25,7 @@ if (isset($_GET['logout'])) {
     <header class="navbar">
         <div class="navbar-content">
             <div class="logo" id="logo">
-            <a href="login.php" >
+            <a href="download.php" >
             <img src="media/images/icon2.png" alt="Logo" id="icon" >
             </a>
                 
@@ -63,7 +63,7 @@ if (isset($_GET['logout'])) {
                                 <p>Generate flashcards from any text automatically.</p>
                             </div>
                             <div class="flip-card-back">
-                                <h3>AI-Powered Generation</h3>
+                                <h3>More effective work</h3>
                                 <p>Our AI algorithm analyzes your notes and creates effective flashcards, saving you time and effort.</p>
                             </div>
                         </div>
@@ -85,12 +85,12 @@ if (isset($_GET['logout'])) {
                     <div class="flip-card" id="cross-platform-access">
                         <div class="flip-card-inner">
                             <div class="flip-card-front">
-                                <h3>Cross-Platform Access</h3>
-                                <p>Access your flashcards on desktop, mobile, and web.</p>
+                                <h3>Download the app!</h3>
+                                <p>You can access and utilize the AI directly through the app.</p>
                             </div>
                             <div class="flip-card-back">
-                                <h3>Cross-Platform Access</h3>
-                                <p>Study anywhere, anytime. Our app is available on all major platforms, so you can seamlessly switch between devices.</p>
+                                <h3>Download the app!</h3>
+                                <p>Download the app to create AI-powered flashcards, personalize your learning, and study anytime, anywhere.</p>
                             </div>
                         </div>
                     </div>
