@@ -25,7 +25,10 @@ if (isset($_GET['logout'])) {
     <header class="navbar">
         <div class="navbar-content">
             <div class="logo" id="logo">
-                <img src="media/images/logoblack.png" alt="Logo">
+            <a href="download.php" >
+            <img src="media/images/icon2.png" alt="Logo" id="icon" >
+            </a>
+                
                 <span>Flashcard.ai</span>
             </div>
             <nav class="nav-links">
@@ -35,11 +38,11 @@ if (isset($_GET['logout'])) {
                     </a>
                     <?php if (isset($_SESSION['user_id'])) : ?>
                         <!-- Show Logout button if logged in -->
-                        <a href="welcome.php?logout" class="btn">Logout</a>
+                        <a href="welcome.php?logout" class="links">Logout</a>
                     <?php else : ?>
                         <!-- Show Login/Register buttons if not logged in -->
-                        <a href="login.php" class="btn">Login</a>
-                        <a href="register.php" class="btn">Register</a>
+                        <a href="login.php" class="links">Login</a>
+                        <a href="register.php" class="links">Register</a>
                     <?php endif; ?>
                 </div>
             </nav>
@@ -60,7 +63,7 @@ if (isset($_GET['logout'])) {
                                 <p>Generate flashcards from any text automatically.</p>
                             </div>
                             <div class="flip-card-back">
-                                <h3>AI-Powered Generation</h3>
+                                <h3>More effective work</h3>
                                 <p>Our AI algorithm analyzes your notes and creates effective flashcards, saving you time and effort.</p>
                             </div>
                         </div>
@@ -82,12 +85,12 @@ if (isset($_GET['logout'])) {
                     <div class="flip-card" id="cross-platform-access">
                         <div class="flip-card-inner">
                             <div class="flip-card-front">
-                                <h3>Cross-Platform Access</h3>
-                                <p>Access your flashcards on desktop, mobile, and web.</p>
+                                <h3>Download the app!</h3>
+                                <p>You can access and utilize the AI directly through the app.</p>
                             </div>
                             <div class="flip-card-back">
-                                <h3>Cross-Platform Access</h3>
-                                <p>Study anywhere, anytime. Our app is available on all major platforms, so you can seamlessly switch between devices.</p>
+                                <h3>Download the app!</h3>
+                                <p>Download the app to create AI-powered flashcards, personalize your learning, and study anytime, anywhere.</p>
                             </div>
                         </div>
                     </div>
@@ -98,7 +101,7 @@ if (isset($_GET['logout'])) {
 
     <!-- Footer -->
     <footer>
-        <p>&copy; 2025 Flashcard.ai | <a href="https://docs.google.com/document/d/1rvKo156DPou6UD3AZTfpJEa7ZuKD_uafZSG2bJSty6A/edit?usp=sharing">Documentation</a></p>
+        <p>&copy; 2025 Flashcard.ai | <a class="links" href="https://docs.google.com/document/d/1rvKo156DPou6UD3AZTfpJEa7ZuKD_uafZSG2bJSty6A/edit?usp=sharing">Documentation</a></p>
     </footer>
 
     <a class="scroll-down-arrow">
