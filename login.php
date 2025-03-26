@@ -38,29 +38,51 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = "Login failed: " . $e->getMessage();
     }
 }
+
+include('includes/header.php');
+
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-</head>
+
+
 <body>
-    <h1>Login</h1>
-    
-    <?php if (!empty($error)): ?>
-        <p style="color:red"><?= htmlspecialchars($error) ?></p>
-    <?php endif; ?>
+<title>Login</title>
+<div class="dp">
+        <div class="login-container">
+            <h1>Login</h1>
+            <?php if (!empty($error)): ?>
+                <p style="color:red"><?= htmlspecialchars($error) ?></p>
+            <?php endif; ?>
+            
+            <div class="myForm">
+                <form action="" method="POST">
+                    <div class="row">
+                        <div class="col-1"></div>
+                        <div class="col-10">
+                            <!-- Username Field -->
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" name="username" id="username" placeholder="Your username" required/>
+                                <label for="username">Username</label>
+                            </div>
 
-    <form method="POST" action="">
-        <label for="username">Username:</label><br>
-        <input type="text" id="username" name="username" required><br><br>
+                            <!-- Password Field -->
+                            <div class="form-floating mb-3 ">
+                                <input type="password" class="form-control" name="password" id="password"
+                                    placeholder="Your password" required/>
+                                <label for="password">Password</label>
+                            </div>
+                            <!-- Submit Button -->
+                            <br>
+                            <div class="mb-3 text-center">
+                                <button type="submit" class="button-27">Login</button>
+                            </div>
+                            <p>New member? <a class="links" href="register.php">Register</a></p>
 
-        <label for="password">Password:</label><br>
-        <input type="password" id="password" name="password" required><br><br>
-
-        <button type="submit">Login</button>
-    </form>
+                        </div>
+                        <div class="col-1"></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>    
 </body>
 </html>
