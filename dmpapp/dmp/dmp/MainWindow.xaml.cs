@@ -22,12 +22,15 @@ namespace dmp
         {
             InitializeComponent();
 
+
             // Check if user is logged in - initially set to false
             if (!isUserLoggedIn)
             {
                 // Open login window
                 LoginWindow loginWindow = new LoginWindow();
                 loginWindow.ShowDialog(); // Modal dialog (blocks interaction with MainWindow)
+
+                txtSearch.Text = "Enter text here...";
 
                 // If the user closed LoginWindow without logging in, close the application
                 if (!loginWindow.IsLoggedIn)
@@ -47,6 +50,27 @@ namespace dmp
                 //LoadUserData();
             }
         }
+        private string GetUsernameFromDatabase()
+        {
+            string query = "SELECT username FROM users WHERE Condition"; // Replace with your actual query
+
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+
+                MySqlCommand command = new MySqlCommand(query, connection);
+                MySqlDataReader reader = command.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    return reader["Username"].ToString();
+                }
+                else
+                {
+                    return "Unknown User";
+                }
+            }
+        }
 
         private void VerifyDatabaseConnection()
         {
@@ -63,41 +87,37 @@ namespace dmp
                     MessageBox.Show($"Database connection failed: {ex.Message}");
                 }
             }
+
+            //USERNAME STUFF
+            //string username = 
+            //WelcomeBlock.Text = $"Welcome back, {username}";
         }
 
-        /*private void LoadUserData()
+        
+
+        private void txtSearch_GotFocus(object sender, RoutedEventArgs e)
         {
-            // Your existing code to load user data
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            if (txtSearch.Text == "Enter text here...")
             {
-                try
-                {
-                    connection.Open();
-                    string query = "SELECT * FROM users";
-                    MySqlDataAdapter adapter = new MySqlDataAdapter(query, connection);
-                    DataTable dataTable = new DataTable();
-                    adapter.Fill(dataTable);
-
-                    // Assuming you have a DataGrid named UserDataGrid
-                    UserDataGrid.ItemsSource = dataTable.DefaultView;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Failed to load user data: {ex.Message}");
-                }
+                txtSearch.Text = "";
             }
-        }*/
+        }
 
-        /*private string loggedInUsername;
-
-        public MainWindow(string username)
+        private void txtSearch_LostFocus(object sender, RoutedEventArgs e)
         {
-            InitializeComponent();
-            loggedInUsername = username;
+            if (string.IsNullOrEmpty(txtSearch.Text))
+            {
+                txtSearch.Text = "Enter text here...";
+            }
+        }
 
-            // Update UI elements with the logged-in username
-            WelcomeTextBlock.Text = $"Welcome back, {loggedInUsername}!";
-            UsernameTextBlock.Text = loggedInUsername;
-        }*/
+        // Initialize the placeholder text when the window loads
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(txtSearch.Text))
+            {
+                txtSearch.Text = "Enter text here...";
+            }
+        }
     }
 }

@@ -11,6 +11,7 @@ namespace dmp
     {
         private string connectionString = "Server=localhost;Database=dmproject;UserID=root;";
         public bool IsLoggedIn { get; private set; } = false;
+        
 
         public LoginWindow()
         {

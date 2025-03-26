@@ -3,56 +3,76 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Flashcard.ai" Height="600" Width="800">
     <Grid>
-        <!-- Left Sidebar -->
+        <!--GRID-->
+
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
-            <!-- Sidebar width -->
             <ColumnDefinition Width="*"/>
-            <!-- Main content area -->
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-        <Border Background="#F5F5F5" Grid.Column="0">
-            <StackPanel Margin="10">
-                <!-- App Title -->
-                <TextBlock Text="Flashcard.ai" FontSize="16" FontWeight="Bold" Margin="0,0,0,20"/>
+        <Border Grid.Column="1" Grid.Row="0" Grid.RowSpan="8" Width="1" Background="#CCCCCC" HorizontalAlignment="Left" />
 
-                <!-- Library Section -->
-                <TextBlock Text="Library" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
-                <Button Content="Biology Note 03.14" Width="180" Height="40" Margin="0,0,0,10"/>
-                <Button Content="History Exam Revision" Width="180" Height="40"/>
+        <!--LOGO-->
+        <TextBlock Text="Flashcard.ai" FontSize="16" FontWeight="Bold" Margin="0,0,0,20" Grid.Column="0" Grid.Row="0"/>
 
-                <!-- Bottom Section -->
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" Margin="0,20,0,0">
-                    <Ellipse Width="30" Height="30" Fill="#EAEAEA">
-                        <Ellipse.Stroke>
-                            <SolidColorBrush Color="#CCCCCC"/>
-                        </Ellipse.Stroke>
-                    </Ellipse>
-                    <TextBlock Text="Username" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                </StackPanel>
-            </StackPanel>
+        <!--LIBRARY-->
+        <StackPanel Margin="10,0,30,0" Grid.Column="0" Grid.Row="2" Grid.RowSpan="3">
+            <TextBlock Text="Library" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+
+            <Button Content="Biology Note 03.14" Width="150" Height="40" Margin="0,0,0,10"/>
+            <Button Content="History Exam Revision" Width="150" Height="40"/>
+
+        </StackPanel>
+        <!--ACCOUNT-->
+
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" Margin="20,20,0,20" Grid.Column="0" Grid.Row="7">
+            <Ellipse Width="30" Height="30" Fill="#EAEAEA">
+                <Ellipse.Stroke>
+                    <SolidColorBrush Color="#CCCCCC"/>
+                </Ellipse.Stroke>
+            </Ellipse>
+            <TextBlock Text="Username" VerticalAlignment="Center" Margin="10,0,0,0"/>
+        </StackPanel>
+
+        <!-- RIGHT SIDE -->
+        <!--WELCOME TEXT-->
+
+        <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Grid.RowSpan="2">
+            <TextBlock x:Name="WelcomeBlock" VerticalAlignment="Center" FontSize="20" Margin="20"/>
+        </Grid>
+        <!--TEXT INPUT-->
+        <Grid Grid.Column="1" Grid.Row="6" Grid.ColumnSpan="3" Grid.RowSpan="2"> <!--Grid for Placement-->
+            <Border BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="10"
+                         Margin="30,10,30,10">
+                <!--GRID FOR INPUT-->
+                <Grid Margin="0,0,0,0"> 
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox x:Name="txtSearch" Grid.Column="0" GotFocus="txtSearch_GotFocus" LostFocus="txtSearch_LostFocus" Margin="10,10,10,10" BorderThickness="0" />
+                    
+                    <Button x:Name="btnShare" Grid.Column="1" Content="▶" Margin="10,10,10,10" Background="White" BorderBrush="White"/>
+
+                    <Button x:Name="btnSend" Grid.Column="2" Content="📎" Margin="10,10,10,10" Background="White" BorderBrush="White"/>
+                    
+                </Grid>
         </Border>
-
-        <!-- Main Content Area -->
-        <Grid Grid.Column="1">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,247,0,0" Height="189">
-                <!-- Welcome Message -->
-                <TextBlock Text="Welcome back, username!" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/>
-                <Border BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="10"
-                        Width="400" Height="152">
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock Text="Copy or upload your notes . . ." FontSize="14"
-                                   Foreground="#888888"/>
-                        <!-- Upload Icon -->
-                        <Button Width="40" Height="40" Background="#FFFFFF"
-                                BorderBrush="#CCCCCC" Content="📎">
-                            <!-- Add icon here (optional) -->
-                        </Button>
-                    </StackPanel>
-                </Border>
-
-                <!-- Notes Upload Section -->
-            </StackPanel>
         </Grid>
     </Grid>
 </Window>
