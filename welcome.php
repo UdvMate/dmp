@@ -52,6 +52,12 @@ if (isset($_GET['logout'])) {
     <!-- Main Content -->
     <div class="wrapper">
         <main class="content">
+            
+
+    <div id="flashcardsContainer"></div>
+
+                </div>
+            </section>
 
             <section class="features">
                 <h2>Key Features</h2>
@@ -158,6 +164,8 @@ if (isset($_GET['logout'])) {
                 });
             });
         });
+    
+        
     </script>
 </body>
 </html>

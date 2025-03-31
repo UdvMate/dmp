@@ -1,11 +1,13 @@
 h1{
   padding-bottom: 50px;
+  
 }
 
 .dp{
     display: flex;
   justify-content: center;
   align-items: center;
+  
 }
 
 .login-container {
@@ -20,7 +22,8 @@ h1{
     height: 600px;
     
     border-radius: 8px;
-    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px soild #20b8cd;
+    background-color: #202222;
     box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
     text-align: center;        
   }
@@ -77,6 +80,7 @@ h1{
     margin-right: 50px;
    background-color: rgba(255, 255, 255, 0.5);  /* Make it transparent */
     backdrop-filter: blur(10px); 
+    
     
   }
   
