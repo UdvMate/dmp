@@ -50,7 +50,18 @@ function generate_flashcards($content) {
     return $response;
 }
 
+// Decode Unicode escape sequences in JSON response
+function decode_unicode_escape_sequences($string) {
+    return preg_replace_callback('/\\\\u([0-9a-fA-F]{4})/', function ($matches) {
+        return mb_convert_encoding(pack('H*', $matches[1]), 'UTF-8', 'UCS-2BE');
+    }, $string);
+}
+
+// Process API response into dictionary format with proper decoding
 function processStringToDict($contentText) {
+    // Decode Unicode characters
+    $contentText = decode_unicode_escape_sequences($contentText);
+
     // Remove everything after first newline
     $newlinePos = strpos($contentText, "\n");
     if ($newlinePos !== false) {
@@ -58,19 +69,19 @@ function processStringToDict($contentText) {
     }
 
     // Remove all asterisks and trim
-    $contentText = str_replace(['**', '*'], '', trim($contentText));
+    $contentText = str_replace(['**', '*','\n'], '', trim($contentText));
 
     // Split into dictionary
     $dict = [];
-    $remaining = substr($contentText, strpos($contentText, 'QQQ') + 3);
-    $parts = preg_split('/(QQQ|AAA)/', $remaining, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+    $remaining = substr($contentText, strpos($contentText, 'QQQ:') + 4);
+    $parts = preg_split('/(QQQ:|AAA:)/', $remaining, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
 
     $currentKey = null;
     foreach ($parts as $part) {
         $part = trim($part);
-        if ($part === 'QQQ') {
+        if ($part === 'QQQ:') {
             $currentKey = null;
-        } elseif ($part === 'AAA') {
+        } elseif ($part === 'AAA:') {
             continue;
         } else {
             if ($currentKey === null) {
@@ -88,7 +99,7 @@ function processStringToDict($contentText) {
         $lastValue = $dict[$lastKey];
         $periodPos = strpos($lastValue, '.');
         if ($periodPos !== false) {
-            $dict[$lastKey] = substr($lastValue, 0, $periodPos);
+            $dict[$lastKey] = substr($lastValue, 0, $periodPos + 1); // Include the period
         }
     }
 
@@ -98,14 +109,22 @@ function processStringToDict($contentText) {
 // Display results
 if (isset($_SESSION['rawResponse'])) {
     try {
+        // Decode and process the raw response into flashcards dictionary
         $flashcards = processStringToDict($_SESSION['rawResponse']);
-        
-        echo "<h1>Flashcards</h1>";
+        $firstQuestion = array_key_first($flashcards);
+        $setTitle = substr($firstQuestion, 0, 7); // Get first 7 characters of the first question
+
+        $stmt = $pdo->prepare("INSERT INTO sets (user_id, title, generated_at) VALUES (?, ?, NOW())");
+        $stmt->execute([$_SESSION['user_id'], $setTitle]);
+        $setId = $pdo->lastInsertId(); // Get the ID of the newly created set
+        $stmt = $pdo->prepare("INSERT INTO flashcards (set_id, question, answer) VALUES (?, ?, ?)");
+        //echo "<h1>Flashcards</h1>";
         foreach ($flashcards as $q => $a) {
-            echo "<div style='margin:20px; padding:10px; border:1px solid #ccc'>
+            /*echo "<div style='margin:20px; padding:10px; border:1px solid #ccc'>
                     <h3>Q: {$q}</h3>
                     <p>A: {$a}</p>
-                  </div>";
+                  </div>";*/
+                  $stmt->execute([$setId, $q, $a]);
         }
         
         unset($_SESSION['rawResponse']);
