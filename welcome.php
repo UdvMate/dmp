@@ -6,6 +6,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 
 include 'includes/config.php';
 
+
 // Perplexity API key for flashcard generation
 const PERPLEXITY_API_KEY = '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';
 
@@ -237,14 +238,19 @@ if (isset($_SESSION['rawResponse'])) {
         $stmt = $pdo->prepare("INSERT INTO flashcards (set_id, question, answer) VALUES (?, ?, ?)");
         
         foreach ($flashcards as $q => $a) {
-                  $stmt->execute([$setId, $q, $a]);
+            $stmt->execute([$setId, $q, $a]);
         }
+        
+        // Store the set ID in a session variable for the success message
+        $_SESSION['last_created_set_id'] = $setId;
+        $_SESSION['success'] = "Flashcards created!";
         
         unset($_SESSION['rawResponse']);
     } catch (Exception $e) {
         echo "<p style='color:red'>Error: " . htmlspecialchars($e->getMessage()) . "</p>";
     }
 }
+
 
 function displayFlashcardSetsFromDatabase($pdo, $userId) {
     try {
@@ -258,9 +264,19 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
         // Check if any sets were found
         if (!empty($sets)) {
             foreach ($sets as $set) {
-                echo '<a href="flashcard.php" class="library-item">';
-                echo '<span>' . htmlspecialchars($set['title']) . '</span>';
+                echo '<div class="library-item-container">';
+                echo '<a href="flashcard.php?set_id=' . $set['set_id'] . '" class="library-item" data-set-id="' . $set['set_id'] . '">';
+                echo '<span class="set-title">' . htmlspecialchars($set['title']) . '</span>';
                 echo '</a>';
+                echo '<div class="item-actions">';
+                echo '<button class="edit-set-btn" data-set-id="' . $set['set_id'] . '" data-set-title="' . htmlspecialchars($set['title']) . '">';
+                echo '<i class="fa fa-pen"></i>';
+                echo '</button>';
+                echo '<button class="delete-set-btn" data-set-id="' . $set['set_id'] . '" data-set-title="' . htmlspecialchars($set['title']) . '">';
+                echo '<i class="fa fa-trash"></i>';
+                echo '</button>';
+                echo '</div>';
+                echo '</div>';
             }
         } else {
             // Display static examples if no sets are found
@@ -849,6 +865,220 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
             border-left-color: #58a6ff; /* Change left border to accent color */
             background-color: #21262d; /* Slight hover background for better visibility */
         }
+        .library-item-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        }
+        
+        .library-item {
+            flex-grow: 1;
+            padding: 8px 12px;
+            font-size: 14px;
+            color: #8b949e;
+            cursor: pointer;
+            border-left: 2px solid #30363d;
+            transition: all 0.2s ease-in-out;
+            text-decoration: none;
+        }
+        
+        .library-item:hover {
+            color: #e6edf3;
+            border-left-color: #58a6ff;
+            background-color: #21262d;
+        }
+        
+        .delete-set-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--error-color);
+            cursor: pointer;
+            padding: 8px;
+            margin-right: 4px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .delete-set-btn:hover {
+            background-color: rgba(248, 81, 73, 0.1);
+        }
+        
+        .library-item-container:hover .delete-set-btn {
+            display: block;
+        }
+        .library-item-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .library-item {
+            flex-grow: 1;
+            padding: 8px 12px;
+            font-size: 14px;
+            color: #8b949e;
+            cursor: pointer;
+            border-left: 2px solid #30363d;
+            transition: all 0.2s ease-in-out;
+            text-decoration: none;
+        }
+        
+        .library-item:hover {
+            color: #e6edf3;
+            border-left-color: #58a6ff;
+            background-color: #21262d;
+        }
+        
+        .item-actions {
+            display: none;
+            margin-right: 4px;
+        }
+        
+        .edit-set-btn, .delete-set-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .edit-set-btn {
+            color: var(--accent-color);
+            margin-right: 2px;
+        }
+        
+        .edit-set-btn:hover {
+            background-color: rgba(88, 166, 255, 0.1);
+        }
+        
+        .delete-set-btn {
+            color: var(--error-color);
+        }
+        
+        .delete-set-btn:hover {
+            background-color: rgba(248, 81, 73, 0.1);
+        }
+        
+        .library-item-container:hover .item-actions {
+            display: flex;
+        }
+        .create-flashcards-btn, 
+        a.create-flashcards-btn {
+            background: none;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        
+        .create-flashcards-btn i, 
+        a.create-flashcards-btn i {
+            margin-right: 6px;
+        }
+        
+        .create-flashcards-btn:hover,
+        a.create-flashcards-btn:hover {
+            background-color: rgba(88, 166, 255, 0.1);
+            text-decoration: none;
+        }
+        .sidebar-bottom {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .sidebar-bottom .nav-item {
+            padding: 8px 12px;
+        }
+        /* Add to your CSS */
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .typing::after {
+            content: '|';
+            margin-left: 2px;
+            animation: blink 1s infinite;
+        }
+
+        .quick-questions {
+            display: flex;
+            gap: 10px;
+            padding: 10px 16px;
+            background-color: var(--secondary-color);
+            border-top: 1px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .quick-question-btn {
+            background: none;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .quick-question-btn i {
+            margin-right: 6px;
+        }
+
+        .quick-question-btn:hover {
+            background-color: rgba(88, 166, 255, 0.1);
+        }
+
+        /* Make sure horizontal scrolling works smoothly */
+        .quick-questions::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .quick-questions::-webkit-scrollbar-thumb {
+            background: #3b4351;
+            border-radius: 4px;
+        }
+        .user-message {
+    margin-left: auto;
+    margin-right: 0;
+    background-color: #304054;
+    align-self: flex-end;
+    text-align: right;
+}
+
+.bot-message {
+    margin-right: auto;
+    margin-left: 0;
+    background-color: var(--secondary-color);
+    align-self: flex-start;
+    text-align: left;
+}
+
+/* Make sure the message container uses flexbox */
+.message-container {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+
+
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -873,21 +1103,18 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
                 <i class="fa fa-home"></i>
                 <span>Home</span>
             </a>
-            <a href="#" class="nav-item">
-                <i class="fa fa-compass"></i>
-                <span>Discover</span>
+            <a href="https://docs.google.com/document/d/1rvKo156DPou6UD3AZTfpJEa7ZuKD_uafZSG2bJSty6A/edit?pli=1&tab=t.0" class="nav-item" target="_blank">
+                <i class="fa fa-file-alt"></i>
+                <span>Documentation</span>
             </a>
             <a href="#" class="nav-item">
-                <i class="fa fa-folder"></i>
-                <span>Spaces</span>
-            </a>
-            
-            <div class="library-section">
-                <a href="#" class="nav-item">
                     <i class="fa fa-book"></i>
                     <span>Library</span>
                 </a>
+
+            <div class="library-section">
                 
+
                 <div class="library-section">
                     <div id="library-items">
                         <?php 
@@ -901,6 +1128,13 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="sidebar-bottom">
+            <!-- Add download button above the account button -->
+            <a href="#" class="nav-item" id="download-btn">
+                <i class="fa fa-download"></i>
+                <span>Download</span>
+            </a>
         </div>
         
         <div class="sidebar-bottom">
@@ -918,91 +1152,65 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
     <!-- Main Content -->
     <div class="main-content">
         <div class="content-area" id="content-area">
-            <?php if (isset($_SESSION['current_set']) && isset($_SESSION['current_flashcards'])): ?>
-                <!-- Display specific flashcard set -->
-                <div class="flashcard-set-header">
-                    <h2><?php echo htmlspecialchars($_SESSION['current_set']['title']); ?></h2>
-                    <p>Created: <?php echo date('F j, Y', strtotime($_SESSION['current_set']['created_at'])); ?></p>
-                    <p>Click on each question to reveal the answer</p>
-                </div>
+           
                 
-                <div id="flashcardsContainer">
-                    <?php foreach ($_SESSION['current_flashcards'] as $card): ?>
-                        <div class="flashcard">
-                            <div class="flashcard-question">
-                                <h3>Q: <?php echo htmlspecialchars($card['question']); ?></h3>
-                            </div>
-                            <div class="flashcard-content">
-                                <p>A: <?php echo htmlspecialchars($card['answer']); ?></p>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-                
-                <?php 
-                // Clear the session variables after displaying
-                unset($_SESSION['current_set']);
-                unset($_SESSION['current_flashcards']);
-                ?>
-                
+        <div class="message-container">
+    <div class="message bot-message">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <?php if (isset($_SESSION['user_id'])): ?>
+                <p id="welcome-message" 
+                   data-text="Hello! How can I help you today? You can ask me questions or generate flashcards from your notes.">
+                   <!-- Remove the conditional content display -->
+                </p>
             <?php else: ?>
-                <!-- Default welcome message -->
-                <div class="message-container">
-                    <div class="message bot-message">
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <p>Hello! How can I help you today? You can ask me questions or generate flashcards from your notes.</p>
-                            <button class="create-flashcards-btn" id="FCbtn">
-                                <i class="fa fa-plus"></i> Create Flashcards
-                            </button>
-                        </div>
-                        
-                    </div>
-                </div>
-
-                <?php if (isset($_SESSION['success'])): ?>
-                    <div class="message-container">
-                        <div class="message bot-message">
-                            <p><?php echo $_SESSION['success']; ?></p>
-                        </div>
-                    </div>
-                    <?php unset($_SESSION['success']); ?>
-                <?php endif; ?>
-                
-                <?php if (isset($_SESSION['error'])): ?>
-                    <div class="message-container">
-                        <div class="message bot-message">
-                            <p style="color: var(--error-color);"><?php echo $_SESSION['error']; ?></p>
-                        </div>
-                    </div>
-                    <?php unset($_SESSION['error']); ?>
-                <?php endif; ?>
-                
-                <?php if (isset($_SESSION['flashcards']) && !empty($_SESSION['flashcards'])): ?>
-                    <div class="message-container">
-                        <div class="message bot-message" style="width: 100%; max-width: 100%;">
-                            <h3>Generated Flashcards</h3>
-                            <p>Click on a question to reveal the answer. <a href="welcome.php?set_id=<?php echo $_SESSION['latest_set_id']; ?>">View in Library</a></p>
-                            
-                            <div id="flashcardsContainer">
-                                <?php foreach ($_SESSION['flashcards'] as $question => $answer): ?>
-                                    <div class="flashcard">
-                                        <div class="flashcard-question">
-                                            <h3>Q: <?php echo htmlspecialchars($question); ?></h3>
-                                        </div>
-                                        <div class="flashcard-content">
-                                            <p>A: <?php echo htmlspecialchars($answer); ?></p>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                    </div>
-                    <?php 
-                    unset($_SESSION['flashcards']);
-                    unset($_SESSION['latest_set_id']);
-                    ?>
-                <?php endif; ?>
+                <p id="welcome-message" 
+                   data-text="Log in to get started with Flashcard.ai">
+                   <!-- Remove the conditional content display -->
+                </p>
             <?php endif; ?>
+            <button class="create-flashcards-btn" id="FCbtn">
+                <i class="fa fa-plus"></i> Create Flashcards
+            </button>
+        </div>
+    </div>
+</div>
+        <?php if (isset($_SESSION['success'])): ?>
+            <div class="message-container">
+                <div class="message bot-message">
+                    <?php if ($_SESSION['success'] === "Flashcards created!" && isset($_SESSION['last_created_set_id'])): ?>
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <p id="success-message" data-text="Flashcards created! Click the button to view them."></p>
+                            <a href="flashcard.php?set_id=<?php echo $_SESSION['last_created_set_id']; ?>" class="create-flashcards-btn">
+                                <i class="fa fa-eye"></i> View Flashcards
+                            </a>
+                        </div>
+                    <?php else: ?>
+                        <p id="success-message" data-text="<?php echo $_SESSION['success']; ?>"></p>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php 
+            // Clean up session variables after displaying the message
+            unset($_SESSION['success']); 
+            if (isset($_SESSION['last_created_set_id'])) {
+                unset($_SESSION['last_created_set_id']);
+            }
+            ?>
+        <?php endif; ?>
+                
+                
+            
+        </div>
+        <div class="quick-questions">
+            <button class="quick-question-btn" data-question="What can you do?">
+                <i class="fa fa-question-circle"></i> What can you do?
+            </button>
+            <button class="quick-question-btn" data-question="How do I create flashcards?">
+                <i class="fa fa-magic"></i> How do I create flashcards?
+            </button>
+            <button class="quick-question-btn" data-question="How do I study effectively?">
+                <i class="fa fa-brain"></i> How do I study effectively?
+            </button>
         </div>
         
         <div class="input-area">
@@ -1086,6 +1294,58 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
             <?php endif; ?>
         </div>
     </div>
+    <div id="context-menu" class="context-menu" style="display: none; position: absolute; z-index: 1000; background-color: var(--secondary-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px 0;">
+    <div class="context-menu-item" id="delete-set" style="padding: 8px 12px; cursor: pointer; color: var(--error-color);">
+        <i class="fa fa-trash"></i> Delete Set
+    </div>
+</div>
+
+<div id="confirmation-modal" class="auth-modal" style="display: none;">
+    <div class="auth-container" style="width: 300px;">
+        <div class="auth-form active">
+            <div class="form-group" style="text-align: center; margin-bottom: 20px;">
+                <h3>Confirm Deletion</h3>
+                <p>Are you sure you want to delete "<span id="set-title-to-delete"></span>"?</p>
+                <p style="color: var(--error-color); font-size: 12px; margin-top: 8px;">This action cannot be undone.</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button id="cancel-delete" class="auth-btn" style="background-color: var(--hover-color);">Cancel</button>
+                <button id="confirm-delete" class="auth-btn" style="background-color: var(--error-color);">Yes, I'm sure</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="edit-modal" class="auth-modal" style="display: none;">
+    <div class="auth-container" style="width: 300px;">
+        <div class="auth-form active">
+            <div class="form-group" style="text-align: center; margin-bottom: 20px;">
+                <h3>Rename Set</h3>
+            </div>
+            <div class="form-group">
+                <label for="new-set-title">New Title (Max 10 characters)</label>
+                <input type="text" id="new-set-title" maxlength="10" required>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button id="cancel-edit" class="auth-btn" style="background-color: var(--hover-color);">Cancel</button>
+                <button id="confirm-edit" class="auth-btn" style="background-color: var(--accent-color);">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="download-modal" class="auth-modal" style="display: none;">
+    <div class="auth-container" style="width: 350px;">
+        <div class="auth-form active">
+            <div class="form-group" style="text-align: center; margin-bottom: 20px;">
+                <h3>Download</h3>
+                <p style="margin-top: 10px;">Download the app for managing, reviewing and to access your sets wherever you are!</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button id="cancel-download" class="auth-btn" style="background-color: var(--hover-color);">Cancel</button>
+                <button id="confirm-download" class="auth-btn" style="background-color: var(--accent-color);">Download</button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1149,16 +1409,6 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
                 authModal.style.display = 'flex';
                 <?php endif; ?>
             });
-            /*sendBtn.addEventListener('click', function() {
-                <?php if (!isset($_SESSION['user_id'])): ?>
-                authModal.style.display = 'flex';
-                <?php endif; ?>
-            });
-            uploadBtn.addEventListener('click', function() {
-                <?php if (!isset($_SESSION['user_id'])): ?>
-                authModal.style.display = 'flex';
-                <?php endif; ?>
-            });*/
             
             // "Create Flashcards" button just focuses on input field
             const createFlashcardsBtn = document.querySelector('.create-flashcards-btn');
@@ -1216,6 +1466,267 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
                 });
             });
         });
+        document.addEventListener('DOMContentLoaded', function() {
+    // Delete set functionality
+    const confirmationModal = document.getElementById('confirmation-modal');
+    const setTitleToDelete = document.getElementById('set-title-to-delete');
+    const cancelDelete = document.getElementById('cancel-delete');
+    const confirmDelete = document.getElementById('confirm-delete');
+    
+    // Edit set functionality
+    const editModal = document.getElementById('edit-modal');
+    const newSetTitleInput = document.getElementById('new-set-title');
+    const cancelEdit = document.getElementById('cancel-edit');
+    const confirmEdit = document.getElementById('confirm-edit');
+    
+    let currentSetId = null;
+    
+    // Add event listeners to delete buttons
+    document.querySelectorAll('.delete-set-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation(); // Prevent triggering the parent link
+            
+            // Store the set ID and title for deletion
+            currentSetId = this.dataset.setId;
+            setTitleToDelete.textContent = this.dataset.setTitle;
+            
+            // Show confirmation dialog
+            confirmationModal.style.display = 'flex';
+        });
+    });
+    
+    // Add event listeners to edit buttons
+    document.querySelectorAll('.edit-set-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation(); // Prevent triggering the parent link
+            
+            // Store the set ID for editing
+            currentSetId = this.dataset.setId;
+            
+            // Pre-fill the input with current title
+            newSetTitleInput.value = this.dataset.setTitle;
+            
+            // Show edit dialog
+            editModal.style.display = 'flex';
+            newSetTitleInput.focus();
+            newSetTitleInput.select();
+        });
+    });
+    
+    // Cancel deletion
+    cancelDelete.addEventListener('click', function() {
+        confirmationModal.style.display = 'none';
+    });
+    
+    // Confirm deletion
+    confirmDelete.addEventListener('click', function() {
+        // Send AJAX request to delete the set
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'delete_set.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onload = function() {
+            if (this.status === 200) {
+                // Reload the page to refresh the library
+                window.location.reload();
+            } else {
+                alert('Error deleting set: ' + this.responseText);
+            }
+        };
+        xhr.send('set_id=' + currentSetId);
+        
+        // Hide the confirmation modal
+        confirmationModal.style.display = 'none';
+    });
+    
+    // Cancel edit
+    cancelEdit.addEventListener('click', function() {
+        editModal.style.display = 'none';
+    });
+    
+    // Confirm edit
+    confirmEdit.addEventListener('click', function() {
+        const newTitle = newSetTitleInput.value.trim();
+        
+        if (!newTitle) {
+            alert('Title cannot be empty');
+            return;
+        }
+        
+        // Send AJAX request to update the set title
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'edit_set.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onload = function() {
+            if (this.status === 200) {
+                // Reload the page to refresh the library
+                window.location.reload();
+            } else {
+                alert('Error updating set title: ' + this.responseText);
+            }
+        };
+        xhr.send('set_id=' + currentSetId + '&title=' + encodeURIComponent(newTitle));
+        
+        // Hide the edit modal
+        editModal.style.display = 'none';
+    });
+    
+    // Handle Enter key in edit input
+    newSetTitleInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            confirmEdit.click();
+        }
+    });
+    
+    // Close modals when clicking outside
+    window.addEventListener('click', function(e) {
+        if (e.target === confirmationModal) {
+            confirmationModal.style.display = 'none';
+        }
+        if (e.target === editModal) {
+            editModal.style.display = 'none';
+        }
+    });
+    });
+    const downloadBtn = document.getElementById('download-btn');
+    const downloadModal = document.getElementById('download-modal');
+    const cancelDownload = document.getElementById('cancel-download');
+    const confirmDownload = document.getElementById('confirm-download');
+    
+    // Show download modal when download button is clicked
+    downloadBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        downloadModal.style.display = 'flex';
+    });
+    
+    // Cancel download
+    cancelDownload.addEventListener('click', function() {
+        downloadModal.style.display = 'none';
+    });
+    
+    // Confirm download (currently does nothing)
+    confirmDownload.addEventListener('click', function() {
+        // This is where you would add the actual download functionality in the future
+        alert('Download functionality will be implemented in the future.');
+        downloadModal.style.display = 'none';
+    });
+    
+    // Close download modal when clicking outside
+    downloadModal.addEventListener('click', function(e) {
+        if (e.target === downloadModal) {
+            downloadModal.style.display = 'none';
+        }
+    });
+    
+    // Typing animation function
+    function typeMessage(element, text, speed = 30) {
+        let i = 0;
+        element.textContent = '';
+        element.classList.add('typing');
+        
+        function type() {
+            if (i < text.length) {
+                element.textContent += text.charAt(i);
+                i++;
+                setTimeout(type, speed);
+            } else {
+                // Remove the cursor when typing is complete
+                element.classList.remove('typing');
+            }
+        }
+        
+        type();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+    // Existing code...
+    
+    // Always animate welcome message (like in fff.php)
+    const welcomeMessage = document.getElementById('welcome-message');
+    if (welcomeMessage) {
+        const text = welcomeMessage.getAttribute('data-text');
+        typeMessage(welcomeMessage, text);
+    }
+
+    // Always animate success and error messages as they are new
+    const successMessage = document.getElementById('success-message');
+    if (successMessage) {
+        const text = successMessage.getAttribute('data-text');
+        typeMessage(successMessage, text);
+    }
+
+    const errorMessage = document.getElementById('error-message');
+    if (errorMessage) {
+        const text = errorMessage.getAttribute('data-text');
+        typeMessage(errorMessage, text);
+    }
+
+    // Existing code...
+});
+
+
+    // Add to your existing JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Existing code...
+    
+    // Quick question buttons
+    const quickQuestionBtns = document.querySelectorAll('.quick-question-btn');
+    const contentArea = document.getElementById('content-area');
+    
+    quickQuestionBtns.forEach(button => {
+        button.addEventListener('click', function() {
+            const question = this.getAttribute('data-question');
+            let answer = '';
+            
+            // Define answers for each question
+            switch(question) {
+                case 'What can you do?':
+                    answer = "I can help you create flashcards from your notes, organize your study materials, and provide a platform for effective learning. Just paste your notes in the input box below or upload a text file, and I'll convert them into question-answer flashcards for you to study.";
+                    break;
+                case 'How do I create flashcards?':
+                    answer = "To create flashcards, simply type or paste your notes in the text box below, or upload a text file using the paperclip icon. Then click the send button, and I'll analyze your content and generate flashcards automatically. You can view, edit, and organize these flashcards in your library.";
+                    break;
+                case 'How do I study effectively?':
+                    answer = "Effective studying involves active recall and spaced repetition. Use the flashcards to test yourself regularly rather than just reading them. Space out your study sessions over time instead of cramming. Focus on the cards you find difficult, and review your material in different environments to strengthen memory associations.";
+                    break;
+                default:
+                    answer = "I don't have a specific answer for that question. Please try one of the other options or ask me something else.";
+            }
+            
+            // Create user message
+            const userMessageContainer = document.createElement('div');
+            userMessageContainer.className = 'message-container';
+            userMessageContainer.innerHTML = `
+                <div class="message user-message">
+                    <p>${question}</p>
+                </div>
+            `;
+            contentArea.appendChild(userMessageContainer);
+            
+            // Create bot message with typing effect
+            const botMessageContainer = document.createElement('div');
+            botMessageContainer.className = 'message-container';
+            botMessageContainer.innerHTML = `
+                <div class="message bot-message">
+                    <p id="bot-response-${Date.now()}"></p>
+                </div>
+            `;
+            contentArea.appendChild(botMessageContainer);
+            
+            // Scroll to the bottom
+            contentArea.scrollTop = contentArea.scrollHeight;
+            
+            // Apply typing effect to the bot response
+            const botResponseElement = botMessageContainer.querySelector('p');
+            typeMessage(botResponseElement, answer);
+        });
+    });
+    
+    // Existing code...
+});
+
     </script>
 </body>
 </html>
