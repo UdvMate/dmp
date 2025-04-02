@@ -25,10 +25,9 @@ namespace dmpApp.Data
             {
                 return new User
                 {
-                    Id = reader.GetInt32("id"),
-                    Username = reader.GetString("username"),
-                    Email = reader.GetString("email"),
-                    Role = reader.GetString("role")
+                    Id = reader.GetInt32(reader.GetOrdinal("id")),
+                    Username = reader.GetString(reader.GetOrdinal("username")),
+                    Email = reader.GetString(reader.GetOrdinal("email"))
                 };
             }
             return null;
@@ -49,10 +48,10 @@ namespace dmpApp.Data
             {
                 flashcards.Add(new Flashcard
                 {
-                    Id = reader.GetInt32("id"),
-                    Question = reader.GetString("question"),
-                    Answer = reader.GetString("answer"),
-                    FolderId = reader.GetInt32("folder_id")
+                    Id = reader.GetInt32(reader.GetOrdinal("id")),
+                    Question = reader.GetString(reader.GetOrdinal("question")),
+                    Answer = reader.GetString(reader.GetOrdinal("answer")),
+                    FolderId = reader.GetInt32(reader.GetOrdinal("folder_id"))
                 });
             }
             return flashcards;
@@ -69,16 +68,15 @@ namespace dmpApp.Data
     public class User
     {
         public int Id { get; set; }
-        public string Username { get; set; }
-        public string Email { get; set; }
-        public string Role { get; set; }
+        public required string Username { get; set; }
+        public required string Email { get; set; }
     }
 
     public class Flashcard
     {
         public int Id { get; set; }
-        public string Question { get; set; }
-        public string Answer { get; set; }
+        public required string Question { get; set; }
+        public required string Answer { get; set; }
         public int FolderId { get; set; }
     }
 }
