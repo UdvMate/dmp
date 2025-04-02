@@ -258,7 +258,7 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
         // Check if any sets were found
         if (!empty($sets)) {
             foreach ($sets as $set) {
-                echo '<a href="welcome.php?set_id=' . htmlspecialchars($set['set_id']) . '" class="library-item">';
+                echo '<a href="flashcard.php" class="library-item">';
                 echo '<span>' . htmlspecialchars($set['title']) . '</span>';
                 echo '</a>';
             }
@@ -857,8 +857,11 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
     <div class="sidebar" id="sidebar">
         <div class="sidebar-top">
             <div class="logo">
-                <img src="media/images/icon2.png" alt="Logo">
+            <a href="welcome.php">    
+            <img src="media/images/icon2.png" alt="Logo">
+            </a>
                 <span>Flashcard.ai</span>
+                
             </div>
             <button class="toggle-btn" id="toggle-sidebar">
                 <i class="fa fa-chevron-left"></i>
@@ -1004,7 +1007,7 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
         
         <div class="input-area">
             <form class="message-form" id="message-form" method="POST" action="" enctype="multipart/form-data">
-                <textarea class="message-input" id="message-input" name="message_text" placeholder="Ask follow-up" rows="1"></textarea>
+                <textarea class="message-input" id="message-input" name="message_text" placeholder="Paste or Upload your notes here . . ." rows="1"></textarea>
                 <div class="input-buttons">
                     <div class="file-upload">
                         <input type="file" id="file-upload" name="message_file" accept=".txt">
