@@ -1,25 +1,37 @@
-﻿namespace dmpApp
+﻿using dmpApp.ViewModel;
+using Microsoft.Maui.Controls;
+
+namespace dmpApp
 {
     public partial class MainPage : ContentPage
     {
-        int count = 0;
+        private readonly FlashcardsViewModel _viewModel;
 
         public MainPage()
         {
             InitializeComponent();
+            _viewModel = new FlashcardsViewModel();
+            BindingContext = _viewModel;
         }
 
-        private void OnCounterClicked(object sender, EventArgs e)
+        private void OnFolderSelected(object sender, SelectionChangedEventArgs e)
         {
-            count++;
+            if (e.CurrentSelection.FirstOrDefault() is Folder selectedFolder)
+            {
+                _viewModel.SelectFolder(selectedFolder.Id);
+            }
+        }
 
-            if (count == 1)
-                CounterBtn.Text = $"Clicked {count} time";
-            else
-                CounterBtn.Text = $"Clicked {count} times";
-
-            SemanticScreenReader.Announce(CounterBtn.Text);
+        private void OnShowAnswerClicked(object sender, EventArgs e)
+        {
+            if (sender is Button button && button.Parent is StackLayout stackLayout)
+            {
+                var answerLabel = stackLayout.Children.OfType<Label>().FirstOrDefault(l => l.Opacity == 0);
+                if (answerLabel != null)
+                {
+                    answerLabel.Opacity = 1; // Felfedi a választ
+                }
+            }
         }
     }
-
 }

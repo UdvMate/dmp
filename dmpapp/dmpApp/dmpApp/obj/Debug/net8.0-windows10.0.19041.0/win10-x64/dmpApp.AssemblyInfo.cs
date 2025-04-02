@@ -18,7 +18,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("dmpApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0+64202792391565ce3d67a41ff38a119ff4874683")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0+881d47e82846d0661ee7f6926d3699976b4069ad")]
 [assembly: System.Reflection.AssemblyProductAttribute("dmpApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("dmpApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
