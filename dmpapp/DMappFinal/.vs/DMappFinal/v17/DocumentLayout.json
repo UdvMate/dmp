@@ -1,0 +1,139 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\dmpapp\\DMappFinal\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{BEA6DA7E-FDE8-4431-AD47-C739B321E43D}|DMappFinal\\DMappFinal.csproj|c:\\users\\dan\\documents\\github\\dmp\\dmpapp\\dmappfinal\\dmappfinal\\databaseservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BEA6DA7E-FDE8-4431-AD47-C739B321E43D}|DMappFinal\\DMappFinal.csproj|solutionrelative:dmappfinal\\databaseservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BEA6DA7E-FDE8-4431-AD47-C739B321E43D}|DMappFinal\\DMappFinal.csproj|c:\\users\\dan\\documents\\github\\dmp\\dmpapp\\dmappfinal\\dmappfinal\\mainpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BEA6DA7E-FDE8-4431-AD47-C739B321E43D}|DMappFinal\\DMappFinal.csproj|solutionrelative:dmappfinal\\mainpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BEA6DA7E-FDE8-4431-AD47-C739B321E43D}|DMappFinal\\DMappFinal.csproj|c:\\users\\dan\\documents\\github\\dmp\\dmpapp\\dmappfinal\\dmappfinal\\mainpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{BEA6DA7E-FDE8-4431-AD47-C739B321E43D}|DMappFinal\\DMappFinal.csproj|solutionrelative:dmappfinal\\mainpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BEA6DA7E-FDE8-4431-AD47-C739B321E43D}|DMappFinal\\DMappFinal.csproj|c:\\users\\dan\\documents\\github\\dmp\\dmpapp\\dmappfinal\\dmappfinal\\dmappfinal.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{BEA6DA7E-FDE8-4431-AD47-C739B321E43D}|DMappFinal\\DMappFinal.csproj|solutionrelative:dmappfinal\\dmappfinal.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BEA6DA7E-FDE8-4431-AD47-C739B321E43D}|DMappFinal\\DMappFinal.csproj|c:\\users\\dan\\documents\\github\\dmp\\dmpapp\\dmappfinal\\dmappfinal\\mauiprogram.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BEA6DA7E-FDE8-4431-AD47-C739B321E43D}|DMappFinal\\DMappFinal.csproj|solutionrelative:dmappfinal\\mauiprogram.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BEA6DA7E-FDE8-4431-AD47-C739B321E43D}|DMappFinal\\DMappFinal.csproj|c:\\users\\dan\\documents\\github\\dmp\\dmpapp\\dmappfinal\\dmappfinal\\appshell.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{BEA6DA7E-FDE8-4431-AD47-C739B321E43D}|DMappFinal\\DMappFinal.csproj|solutionrelative:dmappfinal\\appshell.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BEA6DA7E-FDE8-4431-AD47-C739B321E43D}|DMappFinal\\DMappFinal.csproj|c:\\users\\dan\\documents\\github\\dmp\\dmpapp\\dmappfinal\\dmappfinal\\app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{BEA6DA7E-FDE8-4431-AD47-C739B321E43D}|DMappFinal\\DMappFinal.csproj|solutionrelative:dmappfinal\\app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "DMappFinal",
+              "DocumentMoniker": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\dmpapp\\DMappFinal\\DMappFinal\\DMappFinal.csproj",
+              "RelativeDocumentMoniker": "DMappFinal\\DMappFinal.csproj",
+              "ToolTip": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\dmpapp\\DMappFinal\\DMappFinal\\DMappFinal.csproj",
+              "RelativeToolTip": "DMappFinal\\DMappFinal.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-04-03T14:45:44.853Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "DatabaseService.cs",
+              "DocumentMoniker": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\dmpapp\\DMappFinal\\DMappFinal\\DatabaseService.cs",
+              "RelativeDocumentMoniker": "DMappFinal\\DatabaseService.cs",
+              "ToolTip": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\dmpapp\\DMappFinal\\DMappFinal\\DatabaseService.cs",
+              "RelativeToolTip": "DMappFinal\\DatabaseService.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAkAAABhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T14:46:21.825Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "App.xaml",
+              "DocumentMoniker": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\dmpapp\\DMappFinal\\DMappFinal\\App.xaml",
+              "RelativeDocumentMoniker": "DMappFinal\\App.xaml",
+              "ToolTip": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\dmpapp\\DMappFinal\\DMappFinal\\App.xaml",
+              "RelativeToolTip": "DMappFinal\\App.xaml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-04-02T18:44:14.975Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "MainPage.xaml",
+              "DocumentMoniker": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\dmpapp\\DMappFinal\\DMappFinal\\MainPage.xaml",
+              "RelativeDocumentMoniker": "DMappFinal\\MainPage.xaml",
+              "ToolTip": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\dmpapp\\DMappFinal\\DMappFinal\\MainPage.xaml",
+              "RelativeToolTip": "DMappFinal\\MainPage.xaml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-04-02T18:39:04.878Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "MainPage.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\dmpapp\\DMappFinal\\DMappFinal\\MainPage.xaml.cs",
+              "RelativeDocumentMoniker": "DMappFinal\\MainPage.xaml.cs",
+              "ToolTip": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\dmpapp\\DMappFinal\\DMappFinal\\MainPage.xaml.cs",
+              "RelativeToolTip": "DMappFinal\\MainPage.xaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAswCEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-02T18:45:18.855Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "MauiProgram.cs",
+              "DocumentMoniker": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\dmpapp\\DMappFinal\\DMappFinal\\MauiProgram.cs",
+              "RelativeDocumentMoniker": "DMappFinal\\MauiProgram.cs",
+              "ToolTip": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\dmpapp\\DMappFinal\\DMappFinal\\MauiProgram.cs",
+              "RelativeToolTip": "DMappFinal\\MauiProgram.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-02T18:44:19.596Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "AppShell.xaml",
+              "DocumentMoniker": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\dmpapp\\DMappFinal\\DMappFinal\\AppShell.xaml",
+              "RelativeDocumentMoniker": "DMappFinal\\AppShell.xaml",
+              "ToolTip": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\dmpapp\\DMappFinal\\DMappFinal\\AppShell.xaml",
+              "RelativeToolTip": "DMappFinal\\AppShell.xaml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-04-02T18:44:11.448Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

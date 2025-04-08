@@ -29,7 +29,10 @@ namespace dmp
         }
 
         private void LoginButton_Click(object sender, RoutedEventArgs e)
+
         {
+           
+
             string username = UsernameTextBox.Text.Trim();
             string password = PasswordBox.Password.Trim();
 
@@ -38,7 +41,8 @@ namespace dmp
                 MessageBox.Show("Please enter both username and password.");
                 return;
             }
-
+            var main = new MainWindow(username);
+            main.Show();
             // Hash the entered password
             string hashedInputPassword = HashPassword(password);
 
@@ -56,7 +60,7 @@ namespace dmp
                     int userExists = Convert.ToInt32(command.ExecuteScalar());
                     if (userExists > 0)
                     {
-                        IsLoggedIn = true;
+                        //IsLoggedIn = true;
                         MessageBox.Show("Login successful!");
                         this.Close();
                     }

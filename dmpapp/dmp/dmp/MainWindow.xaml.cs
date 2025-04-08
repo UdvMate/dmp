@@ -15,6 +15,18 @@ namespace dmp
 {
     public partial class MainWindow : Window
     {
+        private string currentUsername;
+
+        public MainWindow(string username)
+        {
+            InitializeComponent();
+            currentUsername = username;
+            UserInfoText.Text = $"Logged in as: {currentUsername}";
+        }
+    }
+
+    public partial class MainWindow : Window
+    {
         private string connectionString = "Server=localhost;Database=dmproject;UserID=root;Password=;";
         private bool isUserLoggedIn = false; // Track login status
 
@@ -22,15 +34,12 @@ namespace dmp
         {
             InitializeComponent();
 
-
             // Check if user is logged in - initially set to false
             if (!isUserLoggedIn)
             {
                 // Open login window
                 LoginWindow loginWindow = new LoginWindow();
                 loginWindow.ShowDialog(); // Modal dialog (blocks interaction with MainWindow)
-
-                txtSearch.Text = "Enter text here...";
 
                 // If the user closed LoginWindow without logging in, close the application
                 if (!loginWindow.IsLoggedIn)
@@ -50,6 +59,7 @@ namespace dmp
                 //LoadUserData();
             }
         }
+
         private string GetUsernameFromDatabase()
         {
             string query = "SELECT username FROM users WHERE Condition"; // Replace with your actual query
@@ -93,31 +103,21 @@ namespace dmp
             //WelcomeBlock.Text = $"Welcome back, {username}";
         }
 
-        
-
-        private void txtSearch_GotFocus(object sender, RoutedEventArgs e)
-        {
-            if (txtSearch.Text == "Enter text here...")
-            {
-                txtSearch.Text = "";
-            }
-        }
-
-        private void txtSearch_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrEmpty(txtSearch.Text))
-            {
-                txtSearch.Text = "Enter text here...";
-            }
-        }
-
         // Initialize the placeholder text when the window loads
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private void AccountButton_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(txtSearch.Text))
-            {
-                txtSearch.Text = "Enter text here...";
-            }
+            AccountPopup.IsOpen = true;
+        }
+
+        private void Logout_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Press OK to log out");
+            // Itt történik a kijelentkezés, például Login ablak megnyitása
+
+            // Például itt lehet visszanavigálni a Login ablakhoz
+            var loginWindow = new LoginWindow();
+            loginWindow.Show();
+            this.Close(); // Bezárja az aktuális ablakot
         }
     }
 }

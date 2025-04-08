@@ -261,7 +261,6 @@ C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\MainWi
 C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\RegisterWindow.g.cs
 C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\App.g.cs
 C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\dmp_MarkupCompile.cache
-C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\dmp_MarkupCompile.lref
 C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\LoginWindow.baml
 C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\RegisterWindow.baml
 C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\dmp.g.resources
