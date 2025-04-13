@@ -27,7 +27,6 @@
                     Foreground="White"
                     BorderBrush="Transparent"
                     Cursor="Hand"/>
-
             <Popup x:Name="AccountPopup"
                    Placement="Bottom"
                    PlacementTarget="{Binding ElementName=AccountButton}"
@@ -57,19 +56,43 @@
         </Grid>
 
         <!-- Flashcards Area -->
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,60,0,0">
-            <UniformGrid x:Name="FlashcardsPanel"  Columns="3" Rows="2" HorizontalAlignment="Center" Margin="40" IsItemsHost="False">
-                <!-- Dynamic flashcards will be added here -->
-            </UniformGrid>
-        </ScrollViewer>
+        <DockPanel Margin="0,60,0,50">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <UniformGrid x:Name="FlashcardsPanel"
+                             Columns="3"
+                             HorizontalAlignment="Center"
+                             Margin="20"/>
+            </ScrollViewer>
+        </DockPanel>
 
-        <!-- Pagination Area -->
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,20">
-            <Button Content="◀" Tag="1" Width="50" Height="30" Click="PageButton_Click" Background="#3b82f6" Foreground="White"/>
-            <Button Content="1" Tag="1" Width="30" Height="30" Click="PageButton_Click" Background="#3b82f6" Foreground="White"/>
-            <Button Content="2" Tag="2" Width="30" Height="30" Click="PageButton_Click" Background="#3b82f6" Foreground="White"/>
-            <Button Content="3" Tag="3" Width="30" Height="30" Click="PageButton_Click" Background="#3b82f6" Foreground="White"/>
-            <Button Content="▶" Tag="3" Width="50" Height="30" Click="PageButton_Click" Background="#3b82f6" Foreground="White"/>
+        <!-- Pagination Controls -->
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,0,10">
+            <Button Content="◀"
+                    Click="PrevPage_Click"
+                    Width="40"
+                    Height="30"
+                    Margin="5"
+                    Background="#3b82f6"
+                    Foreground="White"
+                    BorderBrush="Transparent"
+                    Cursor="Hand"/>
+            <TextBlock x:Name="PageNumberText"
+                       Foreground="White"
+                       VerticalAlignment="Center"
+                       FontSize="16"
+                       Margin="10,0"/>
+            <Button Content="▶"
+                    Click="NextPage_Click"
+                    Width="40"
+                    Height="30"
+                    Margin="5"
+                    Background="#3b82f6"
+                    Foreground="White"
+                    BorderBrush="Transparent"
+                    Cursor="Hand"/>
         </StackPanel>
     </Grid>
 </Window>
