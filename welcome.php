@@ -146,6 +146,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$loadingMessageHtml = '
+<div class="message-container" id="loading-message-container" style="display: none;">
+    <div class="message bot-message">
+        <div class="loading-content">
+            <div class="loader-container">
+                <div class="loader"></div>
+            </div>
+            <p id="loading-stage">Initializing...</p>
+            <div class="loading-progress">
+                <div id="loading-bar" class="loading-bar"></div>
+            </div>
+        </div>
+    </div>
+</div>';
+
 function generate_flashcards($content) {
     $prompt = "Convert these notes into Q&A flashcards. Format strictly as: QQQ:questionAAA:answer" . $content;
 
@@ -1077,6 +1092,85 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
     width: 100%;
 }
 
+// Add this to your existing CSS section
+.loader-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.loader {
+    border: 3px solid var(--border-color);
+    border-radius: 50%;
+    border-top: 3px solid var(--accent-color);
+    width: 30px;
+    height: 30px;
+    -webkit-animation: spin 1.5s linear infinite;
+    animation: spin 1.5s linear infinite;
+}
+
+.loading-content {
+    width: 100%;
+}
+
+.loading-progress {
+    height: 4px;
+    width: 100%;
+    background-color: var(--border-color);
+    border-radius: 2px;
+    margin-top: 10px;
+}
+
+.loading-bar {
+    height: 100%;
+    width: 0%;
+    background-color: var(--accent-color);
+    border-radius: 2px;
+    transition: width 0.5s ease;
+}
+/* Profile picture styles */
+.profile-picture-section {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-picture {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--accent-color);
+    margin-bottom: 15px;
+}
+
+.upload-pfp-btn {
+    background-color: var(--accent-color);
+    color: var(--text-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.upload-pfp-btn i {
+    margin-right: 6px;
+}
+
+.upload-pfp-btn:hover {
+    background-color: #4a8ede;
+}
+
+.profile-upload-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
 
 
     </style>
@@ -1107,6 +1201,11 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
                 <i class="fa fa-file-alt"></i>
                 <span>Documentation</span>
             </a>
+            <a href="connect.php" class="nav-item">
+                <i class="fa fa-users"></i>
+                <span>Friends</span>
+            </a>
+
             <a href="#" class="nav-item">
                     <i class="fa fa-book"></i>
                     <span>Library</span>
@@ -1138,21 +1237,35 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
         </div>
         
         <div class="sidebar-bottom">
-            <div class="account" id="account-btn">
-                <img src="media/images/pfp.png" alt="User">
-                <span>
-                    <?php 
-                    echo isset($_SESSION['username']) ? $_SESSION['username'] : 'Guest'; 
-                    ?>
-                </span>
-            </div>
-        </div>
+    <div class="account" id="account-btn">
+        <img src="<?php 
+            // Get profile picture URL from database or use default
+            if (isset($_SESSION['user_id'])) {
+                try {
+                    $stmt = $pdo->prepare("SELECT profile_picture_url FROM users WHERE id = ?");
+                    $stmt->execute([$_SESSION['user_id']]);
+                    $user = $stmt->fetch();
+                    echo !empty($user['profile_picture_url']) ? htmlspecialchars($user['profile_picture_url']) : 'media/images/pfp.png';
+                } catch (PDOException $e) {
+                    echo 'media/images/pfp.png';
+                }
+            } else {
+                echo 'media/images/pfp.png';
+            }
+        ?>" alt="User">
+        <span>
+            <?php 
+            echo isset($_SESSION['username']) ? $_SESSION['username'] : 'Guest'; 
+            ?>
+        </span>
+    </div>
+</div>
+
     </div>
 
     <!-- Main Content -->
     <div class="main-content">
         <div class="content-area" id="content-area">
-           
                 
         <div class="message-container">
     <div class="message bot-message">
@@ -1168,19 +1281,19 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
                    <!-- Remove the conditional content display -->
                 </p>
             <?php endif; ?>
-            <button class="create-flashcards-btn" id="FCbtn">
-                <i class="fa fa-plus"></i> Create Flashcards
-            </button>
+            
         </div>
     </div>
+    <?php echo $loadingMessageHtml; ?>
+
 </div>
         <?php if (isset($_SESSION['success'])): ?>
             <div class="message-container">
                 <div class="message bot-message">
                     <?php if ($_SESSION['success'] === "Flashcards created!" && isset($_SESSION['last_created_set_id'])): ?>
                         <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <p id="success-message" data-text="Flashcards created! Click the button to view them."></p>
-                            <a href="flashcard.php?set_id=<?php echo $_SESSION['last_created_set_id']; ?>" class="create-flashcards-btn">
+                            <p id="success-message" data-text="Flashcards created! Click the button to view them.  "></p>
+                            <a href="flashcard.php?set_id=<?php echo $_SESSION['last_created_set_id']; ?>" class="create-flashcards-btn" style="margin-left: 10px;">
                                 <i class="fa fa-eye"></i> View Flashcards
                             </a>
                         </div>
@@ -1233,67 +1346,92 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
     </div>
 
     <!-- Authentication Modal -->
-    <div class="auth-modal" id="auth-modal">
-        <button class="close-modal" id="close-auth-modal">&times;</button>
-        <div class="auth-container">
-            <?php if (isset($_SESSION['user_id'])): ?>
-                <!-- Logged in view -->
-                <div class="auth-form active" id="logout-form">
-                    <div class="form-group" style="text-align: center; margin-bottom: 20px;">
-                        <h3>Account</h3>
-                        <p>Logged in as: <?php echo $_SESSION['username']; ?></p>
+<div class="auth-modal" id="auth-modal">
+    <button class="close-modal" id="close-auth-modal">&times;</button>
+    <div class="auth-container">
+        <?php if (isset($_SESSION['user_id'])): ?>
+            <!-- Logged in view -->
+            <div class="auth-form active" id="logout-form">
+                <div class="form-group" style="text-align: center; margin-bottom: 20px;">
+                    <h3>Account</h3>
+                    <p>Logged in as: <?php echo $_SESSION['username']; ?></p>
+                    
+                    <!-- Profile picture section -->
+                    <div class="profile-picture-section">
+                        <img src="<?php 
+                            // Get profile picture URL from database or use default
+                            try {
+                                $stmt = $pdo->prepare("SELECT profile_picture_url FROM users WHERE id = ?");
+                                $stmt->execute([$_SESSION['user_id']]);
+                                $user = $stmt->fetch();
+                                echo !empty($user['profile_picture_url']) ? htmlspecialchars($user['profile_picture_url']) : 'media/images/pfp.png';
+                            } catch (PDOException $e) {
+                                echo 'media/images/pfp.png';
+                            }
+                        ?>" alt="Profile Picture" class="profile-picture">
+                        
+                        <form method="POST" action="upload_pfp.php" enctype="multipart/form-data" class="profile-upload-form">
+                            <label for="profile-picture-upload" class="upload-pfp-btn">
+                                <i class="fa fa-camera"></i> Change Picture
+                            </label>
+                            <input type="file" id="profile-picture-upload" name="profile_picture" accept="image/*" style="display: none;">
+                            <button type="submit" id="save-profile-picture" class="auth-btn" style="display: none;">Save Picture</button>
+                        </form>
                     </div>
-                    <a href="?logout" class="auth-btn" style="display: block; text-align: center; text-decoration: none;">Logout</a>
                 </div>
-            <?php else: ?>
-                <!-- Login/Register tabs -->
-                <div class="auth-tabs">
-                    <div class="auth-tab active" data-form="login-form">Login</div>
-                    <div class="auth-tab" data-form="register-form">Register</div>
+                <a href="?logout" class="auth-btn" style="display: block; text-align: center; text-decoration: none;">Logout</a>
+            </div>
+        <?php else: ?>
+            <!-- Login/Register tabs -->
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-form="login-form">Login</div>
+                <div class="auth-tab" data-form="register-form">Register</div>
+            </div>
+            
+            <!-- Login form -->
+            <form method="POST" action="" class="auth-form active" id="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
                 </div>
-                
-                <!-- Login form -->
-                <form method="POST" action="" class="auth-form active" id="login-form">
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" id="username" name="username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" name="password" required>
-                    </div>
-                    <?php if (isset($login_error)): ?>
-                        <div class="error-message"><?php echo $login_error; ?></div>
-                    <?php endif; ?>
-                    <button type="submit" name="login_submit" class="auth-btn">Login</button>
-                </form>
-                
-                <!-- Register form -->
-                <form method="POST" action="" class="auth-form" id="register-form">
-                    <div class="form-group">
-                        <label for="reg_username">Username</label>
-                        <input type="text" id="reg_username" name="reg_username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg_email">Email</label>
-                        <input type="email" id="reg_email" name="reg_email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg_password">Password</label>
-                        <input type="password" id="reg_password" name="reg_password" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg_passwordConfirm">Confirm Password</label>
-                        <input type="password" id="reg_passwordConfirm" name="reg_passwordConfirm" required>
-                    </div>
-                    <?php if (isset($register_error)): ?>
-                        <div class="error-message"><?php echo $register_error; ?></div>
-                    <?php endif; ?>
-                    <button type="submit" name="register_submit" class="auth-btn">Register</button>
-                </form>
-            <?php endif; ?>
-        </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <?php if (isset($login_error)): ?>
+                    <div class="error-message"><?php echo $login_error; ?></div>
+                <?php endif; ?>
+                <button type="submit" name="login_submit" class="auth-btn">Login</button>
+            </form>
+            
+            <!-- Register form -->
+            <form method="POST" action="" class="auth-form" id="register-form">
+                <div class="form-group">
+                    <label for="reg_username">Username</label>
+                    <input type="text" id="reg_username" name="reg_username" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg_email">Email</label>
+                    <input type="email" id="reg_email" name="reg_email" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg_password">Password</label>
+                    <input type="password" id="reg_password" name="reg_password" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg_passwordConfirm">Confirm Password</label>
+                    <input type="password" id="reg_passwordConfirm" name="reg_passwordConfirm" required>
+                </div>
+                <?php if (isset($register_error)): ?>
+                    <div class="error-message"><?php echo $register_error; ?></div>
+                <?php endif; ?>
+                <button type="submit" name="register_submit" class="auth-btn">Register</button>
+            </form>
+        <?php endif; ?>
     </div>
+</div>
+
+
     <div id="context-menu" class="context-menu" style="display: none; position: absolute; z-index: 1000; background-color: var(--secondary-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px 0;">
     <div class="context-menu-item" id="delete-set" style="padding: 8px 12px; cursor: pointer; color: var(--error-color);">
         <i class="fa fa-trash"></i> Delete Set
@@ -1726,6 +1864,177 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Existing code...
 });
+
+// Add this to your existing JavaScript section
+document.addEventListener('DOMContentLoaded', function() {
+    // Existing code...
+    
+    // Form submission handling with loading animation
+    const messageForm = document.getElementById('message-form');
+    const loadingContainer = document.getElementById('loading-message-container');
+    const loadingStage = document.getElementById('loading-stage');
+    const loadingBar = document.getElementById('loading-bar');
+    
+    if (messageForm) {
+        messageForm.addEventListener('submit', function(e) {
+            // Only show loading if there's content to process
+            const messageInput = document.getElementById('message-input');
+            const fileUpload = document.getElementById('file-upload');
+            
+            if ((messageInput && messageInput.value.trim()) || 
+                (fileUpload && fileUpload.files && fileUpload.files.length > 0)) {
+                
+                // Show loading message
+                loadingContainer.style.display = 'block';
+                
+                // Scroll to the loading message
+                const contentArea = document.getElementById('content-area');
+                contentArea.scrollTop = contentArea.scrollHeight;
+                
+                // Simulate the loading stages
+                updateLoadingStage('Processing your notes...', 20);
+                
+                setTimeout(() => {
+                    updateLoadingStage('Sending to AI for analysis...', 40);
+                    
+                    setTimeout(() => {
+                        updateLoadingStage('Generating flashcards...', 70);
+                        
+                        setTimeout(() => {
+                            updateLoadingStage('Finalizing and saving...', 90);
+                        }, 2000);
+                    }, 2000);
+                }, 1500);
+                
+                // The form will naturally submit and redirect, so the loading
+                // animation will be visible until the page reloads
+            }
+        });
+    }
+    
+    // Function to update loading stage text and progress bar
+    function updateLoadingStage(text, progress) {
+        loadingStage.textContent = text;
+        loadingBar.style.width = progress + '%';
+    }
+    
+    // Existing code...
+});
+
+// Profile picture upload handling
+document.addEventListener('DOMContentLoaded', function() {
+    const profilePictureUpload = document.getElementById('profile-picture-upload');
+    const saveProfilePictureBtn = document.getElementById('save-profile-picture');
+    const profilePicture = document.querySelector('.profile-picture');
+    
+    if (profilePictureUpload) {
+        profilePictureUpload.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                
+                // Check file type
+                const fileType = file.type;
+                if (!fileType.match('image.*')) {
+                    alert('Please select an image file');
+                    return;
+                }
+                
+                // Check file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size should be less than 5MB');
+                    return;
+                }
+                
+                // Preview the image
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    profilePicture.src = e.target.result;
+                    saveProfilePictureBtn.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+
+// Debug modal structure
+document.addEventListener('DOMContentLoaded', function() {
+    const authModal = document.getElementById('auth-modal');
+    if (authModal) {
+        console.log('Auth modal found in DOM');
+        console.log('Auth modal children:', authModal.children.length);
+        
+        const authContainer = authModal.querySelector('.auth-container');
+        if (authContainer) {
+            console.log('Auth container found');
+            console.log('Auth container children:', authContainer.children.length);
+        } else {
+            console.error('Auth container not found inside modal');
+        }
+    } else {
+        console.error('Auth modal not found in DOM');
+    }
+});
+
+
+// Authentication modal
+const authModal = document.getElementById('auth-modal');
+const accountBtn = document.getElementById('account-btn');
+const closeAuthModal = document.getElementById('close-auth-modal');
+
+// Open modal on account click
+accountBtn.addEventListener('click', function() {
+    authModal.style.display = 'flex';
+});
+
+// Authentication modal
+document.addEventListener('DOMContentLoaded', function() {
+    const authModal = document.getElementById('auth-modal');
+    const accountBtn = document.getElementById('account-btn');
+    const closeAuthModal = document.getElementById('close-auth-modal');
+    
+    if (accountBtn) {
+        accountBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (authModal) {
+                // Force layout recalculation before showing the modal
+                void authModal.offsetWidth;
+                
+                // Show the modal
+                authModal.style.display = 'flex';
+                
+                // Add debugging
+                console.log('Auth modal opened');
+                console.log('Modal style:', window.getComputedStyle(authModal).display);
+                
+                // Force the browser to repaint
+                setTimeout(function() {
+                    authModal.style.opacity = '1';
+                }, 10);
+            } else {
+                console.error('Auth modal element not found');
+            }
+        });
+    } else {
+        console.error('Account button element not found');
+    }
+    
+    // Close modal on X click
+    if (closeAuthModal) {
+        closeAuthModal.addEventListener('click', function() {
+            authModal.style.display = 'none';
+        });
+    }
+    
+    // Close modal on outside click
+    window.addEventListener('click', function(e) {
+        if (e.target === authModal) {
+            authModal.style.display = 'none';
+        }
+    });
+});
+
+
 
     </script>
 </body>

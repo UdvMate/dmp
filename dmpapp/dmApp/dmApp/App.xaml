@@ -1,0 +1,6 @@
+﻿<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             x:Class="dmApp.App">
+    <Application.Resources>
+        <!-- Globális stílusok -->
+    </Application.Resources>
+</Application>

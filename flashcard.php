@@ -1063,6 +1063,135 @@ input:checked + .toggle-slider:before {
 }
 
 
+/* Action buttons styling */
+.card-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.action-btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    border: 1px solid var(--border-color);
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.action-btn i {
+    margin-right: 8px;
+}
+
+.action-btn:hover {
+    background-color: var(--hover-color);
+}
+
+.delete-btn {
+    color: var(--error-color);
+    border-color: var(--error-color);
+}
+
+.delete-btn:hover {
+    background-color: rgba(248, 81, 73, 0.1);
+}
+
+.add-btn {
+    color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+.add-btn:hover {
+    background-color: rgba(86, 211, 100, 0.1);
+}
+
+/* Profile picture styles */
+.profile-picture-section {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-picture {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--accent-color);
+    margin-bottom: 15px;
+}
+
+.upload-pfp-btn {
+    background-color: var(--accent-color);
+    color: var(--text-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.upload-pfp-btn i {
+    margin-right: 6px;
+}
+
+.upload-pfp-btn:hover {
+    background-color: #4a8ede;
+}
+
+.profile-upload-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+/* Auth modal styles - ensure these are updated */
+.auth-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-container {
+    background-color: var(--secondary-color);
+    border-radius: 8px;
+    width: 320px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 1001;
+    opacity: 1;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Fallback to ensure modal visibility */
+.auth-modal[style*="display: flex"] {
+    display: flex !important;
+}
+
+.auth-modal[style*="display: flex"] .auth-container {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
 
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1124,146 +1253,204 @@ input:checked + .toggle-slider:before {
         </div>
         
         <div class="sidebar-bottom">
-            <div class="account" id="account-btn">
-                <img src="media/images/pfp.png" alt="User">
-                <span>
-                    <?php 
-                    echo isset($_SESSION['username']) ? $_SESSION['username'] : 'Guest'; 
-                    ?>
-                </span>
-            </div>
-        </div>
+    <div class="account" id="account-btn">
+        <img src="<?php 
+            // Get profile picture URL from database or use default
+            if (isset($_SESSION['user_id'])) {
+                try {
+                    $stmt = $pdo->prepare("SELECT profile_picture_url FROM users WHERE id = ?");
+                    $stmt->execute([$_SESSION['user_id']]);
+                    $user = $stmt->fetch();
+                    echo !empty($user['profile_picture_url']) ? htmlspecialchars($user['profile_picture_url']) : 'media/images/pfp.png';
+                } catch (PDOException $e) {
+                    echo 'media/images/pfp.png';
+                }
+            } else {
+                echo 'media/images/pfp.png';
+            }
+        ?>" alt="User">
+        <span>
+            <?php 
+            echo isset($_SESSION['username']) ? $_SESSION['username'] : 'Guest'; 
+            ?>
+        </span>
+    </div>
+</div>
+
     </div>
 
     <!-- Main Content -->
     <div class="main-content">
         <div class="content-area" id="content-area">
-            <?php if (isset($_SESSION['current_flashcards']) && !empty($_SESSION['current_flashcards'])): ?>
-                <div class="flashcard-set-header">
-                    <h2><?php echo htmlspecialchars($_SESSION['current_set']['title']); ?></h2>
-                    <p>Total cards: <?php echo count($_SESSION['current_flashcards']); ?></p>
-                </div>
-            
-                <div class="flashcard-container">
-                    <div class="flashcards-wrapper">
-                        <?php foreach ($_SESSION['current_flashcards'] as $index => $card): ?>
-                            <div class="flashcard <?php echo ($index === 0) ? 'active' : ''; ?>" data-index="<?php echo $index; ?>">
-                                <div class="flashcard-inner">
-                                    <div class="flashcard-front">
-                                        <h3>Question:</h3>
-                                        <p><?php echo htmlspecialchars($card['question']); ?></p>
-                                        <div class="flashcard-hint">Click to reveal answer</div>
-                                    </div>
-                                    <div class="flashcard-back">
-                                        <h3>Answer:</h3>
-                                        <p><?php echo htmlspecialchars($card['answer']); ?></p>
-                                        <div class="flashcard-hint">Click to see question</div>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                
-                    <div class="flashcard-navigation">
-                        <button id="prev-card" class="nav-btn"><i class="fa fa-arrow-left"></i> Previous</button>
-                        <span id="card-counter">Card 1 of <?php echo count($_SESSION['current_flashcards']); ?></span>
-                        <button id="next-card" class="nav-btn">Next <i class="fa fa-arrow-right"></i></button>
-                    </div>
-                    <div class="progress-tracking">
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="progress-toggle">
-                            <span class="toggle-slider"></span>
-                            <span class="toggle-label">Track Progress</span>
-                        </label>
-                    </div>
+        <?php if (isset($_SESSION['current_flashcards']) && !empty($_SESSION['current_flashcards'])): ?>
+    <div class="flashcard-set-header">
+        <h2><?php echo htmlspecialchars($_SESSION['current_set']['title']); ?></h2>
+        <p>Total cards: <?php echo count($_SESSION['current_flashcards']); ?></p>
+    </div>
 
-                    <!-- Review buttons (initially hidden) -->
-                    <div class="review-buttons" style="display: none;">
-                        <button id="know-btn" class="review-btn know-btn"><i class="fa fa-check"></i> I know this</button>
-                        <button id="dont-know-btn" class="review-btn dont-know-btn"><i class="fa fa-times"></i> Still learning</button>
-                    </div>
+    <div class="flashcard-container">
+        <!-- Add this div for the card action buttons above the flashcard -->
+        <div class="card-actions" style="text-align: center; margin-bottom: 15px;">
+            <button id="edit-current-card-btn" class="action-btn">
+                <i class="fa fa-pen"></i> Edit Card
+            </button>
+            <button id="delete-current-card-btn" class="action-btn delete-btn">
+                <i class="fa fa-trash"></i> Delete Card
+            </button>
+            <button id="add-new-card-btn" class="action-btn add-btn">
+                <i class="fa fa-plus"></i> Add Card
+            </button>
+        </div>
 
-                    <!-- Again button (initially hidden) -->
-                    <div class="again-container" style="display: none; margin-top: 20px; text-align: center;">
-                        <p id="review-complete-msg">Review complete!</p>
-                        <button id="review-again-btn" class="nav-btn"><i class="fa fa-redo"></i> Review again</button>
-                        <button id="reset-all-btn" class="nav-btn"><i class="fa fa-sync"></i> Reset all cards</button>
+        <div class="flashcards-wrapper">
+            <?php foreach ($_SESSION['current_flashcards'] as $index => $card): ?>
+                <div class="flashcard <?php echo ($index === 0) ? 'active' : ''; ?>" data-index="<?php echo $index; ?>" data-card-id="<?php echo $card['flashcard_id']; // Important: Add card ID ?>">
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front">
+                            <h3>Question:</h3>
+                            <p><?php echo htmlspecialchars($card['question']); ?></p>
+                            <div class="flashcard-hint">Click to reveal answer</div>
+                        </div>
+                        <div class="flashcard-back">
+                            <h3>Answer:</h3>
+                            <p><?php echo htmlspecialchars($card['answer']); ?></p>
+                            <div class="flashcard-hint">Click to see question</div>
+                        </div>
                     </div>
                 </div>
-            <?php else: ?>
-                <div class="message-container">
-                    <div class="message bot-message">
-                        <p>Select a flashcard set from the library to start studying, or create a new set.</p>
-                    </div>
-                </div>
-            <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+
+        <div class="flashcard-navigation">
+            <button id="prev-card" class="nav-btn"><i class="fa fa-arrow-left"></i> Previous</button>
+            <span id="card-counter">Card 1 of <?php echo count($_SESSION['current_flashcards']); ?></span>
+            <button id="next-card" class="nav-btn">Next <i class="fa fa-arrow-right"></i></button>
+        </div>
+
+        <!-- Add this div for the edit button -->
+        
+        <!-- End of added div -->
+
+        <div class="progress-tracking">
+            <label class="toggle-switch">
+                <input type="checkbox" id="progress-toggle">
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">Track Progress</span>
+            </label>
+        </div>
+
+        <!-- Review buttons (initially hidden) -->
+        <div class="review-buttons" style="display: none;">
+            <button id="know-btn" class="review-btn know-btn"><i class="fa fa-check"></i> I know this</button>
+            <button id="dont-know-btn" class="review-btn dont-know-btn"><i class="fa fa-times"></i> Still learning</button>
+        </div>
+
+        <!-- Again button (initially hidden) -->
+        <div class="again-container" style="display: none; margin-top: 20px; text-align: center;">
+            <p id="review-complete-msg">Review complete!</p>
+            <button id="review-again-btn" class="nav-btn"><i class="fa fa-redo"></i> Review again</button>
+            <button id="reset-all-btn" class="nav-btn"><i class="fa fa-sync"></i> Reset all cards</button>
+        </div>
+    </div>
+<?php else: ?>
+    <div class="message-container">
+        <div class="message bot-message">
+            <p>Select a flashcard set from the library to start studying, or create a new set.</p>
+        </div>
+    </div>
+<?php endif; ?>
+
                             
         </div>
     
     </div>
 
     <!-- Authentication Modal -->
-    <div class="auth-modal" id="auth-modal">
-        <button class="close-modal" id="close-auth-modal">&times;</button>
-        <div class="auth-container">
-            <?php if (isset($_SESSION['user_id'])): ?>
-                <!-- Logged in view -->
-                <div class="auth-form active" id="logout-form">
-                    <div class="form-group" style="text-align: center; margin-bottom: 20px;">
-                        <h3>Account</h3>
-                        <p>Logged in as: <?php echo $_SESSION['username']; ?></p>
+<div class="auth-modal" id="auth-modal">
+    <button class="close-modal" id="close-auth-modal">&times;</button>
+    <div class="auth-container">
+        <?php if (isset($_SESSION['user_id'])): ?>
+            <!-- Logged in view -->
+            <div class="auth-form active" id="logout-form">
+                <div class="form-group" style="text-align: center; margin-bottom: 20px;">
+                    <h3>Account</h3>
+                    <p>Logged in as: <?php echo $_SESSION['username']; ?></p>
+                    
+                    <!-- Profile picture section -->
+                    <div class="profile-picture-section">
+                        <img src="<?php 
+                            // Get profile picture URL from database or use default
+                            try {
+                                $stmt = $pdo->prepare("SELECT profile_picture_url FROM users WHERE id = ?");
+                                $stmt->execute([$_SESSION['user_id']]);
+                                $user = $stmt->fetch();
+                                echo !empty($user['profile_picture_url']) ? htmlspecialchars($user['profile_picture_url']) : 'media/images/pfp.png';
+                            } catch (PDOException $e) {
+                                echo 'media/images/pfp.png';
+                            }
+                        ?>" alt="Profile Picture" class="profile-picture">
+                        
+                        <form method="POST" action="upload_pfp.php" enctype="multipart/form-data" class="profile-upload-form">
+                            <label for="profile-picture-upload" class="upload-pfp-btn">
+                                <i class="fa fa-camera"></i> Change Picture
+                            </label>
+                            <input type="file" id="profile-picture-upload" name="profile_picture" accept="image/*" style="display: none;">
+                            <button type="submit" id="save-profile-picture" class="auth-btn" style="display: none;">Save Picture</button>
+                        </form>
                     </div>
-                    <a href="?logout" class="auth-btn" style="display: block; text-align: center; text-decoration: none;">Logout</a>
                 </div>
-            <?php else: ?>
-                <!-- Login/Register tabs -->
-                <div class="auth-tabs">
-                    <div class="auth-tab active" data-form="login-form">Login</div>
-                    <div class="auth-tab" data-form="register-form">Register</div>
+                <a href="?logout" class="auth-btn" style="display: block; text-align: center; text-decoration: none;">Logout</a>
+            </div>
+        <?php else: ?>
+            <!-- Login/Register tabs -->
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-form="login-form">Login</div>
+                <div class="auth-tab" data-form="register-form">Register</div>
+            </div>
+            
+            <!-- Login form -->
+            <form method="POST" action="" class="auth-form active" id="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
                 </div>
-                
-                <!-- Login form -->
-                <form method="POST" action="" class="auth-form active" id="login-form">
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" id="username" name="username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" name="password" required>
-                    </div>
-                    <?php if (isset($login_error)): ?>
-                        <div class="error-message"><?php echo $login_error; ?></div>
-                    <?php endif; ?>
-                    <button type="submit" name="login_submit" class="auth-btn">Login</button>
-                </form>
-                
-                <!-- Register form -->
-                <form method="POST" action="" class="auth-form" id="register-form">
-                    <div class="form-group">
-                        <label for="reg_username">Username</label>
-                        <input type="text" id="reg_username" name="reg_username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg_email">Email</label>
-                        <input type="email" id="reg_email" name="reg_email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg_password">Password</label>
-                        <input type="password" id="reg_password" name="reg_password" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg_passwordConfirm">Confirm Password</label>
-                        <input type="password" id="reg_passwordConfirm" name="reg_passwordConfirm" required>
-                    </div>
-                    <?php if (isset($register_error)): ?>
-                        <div class="error-message"><?php echo $register_error; ?></div>
-                    <?php endif; ?>
-                    <button type="submit" name="register_submit" class="auth-btn">Register</button>
-                </form>
-            <?php endif; ?>
-        </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <?php if (isset($login_error)): ?>
+                    <div class="error-message"><?php echo $login_error; ?></div>
+                <?php endif; ?>
+                <button type="submit" name="login_submit" class="auth-btn">Login</button>
+            </form>
+            
+            <!-- Register form -->
+            <form method="POST" action="" class="auth-form" id="register-form">
+                <div class="form-group">
+                    <label for="reg_username">Username</label>
+                    <input type="text" id="reg_username" name="reg_username" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg_email">Email</label>
+                    <input type="email" id="reg_email" name="reg_email" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg_password">Password</label>
+                    <input type="password" id="reg_password" name="reg_password" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg_passwordConfirm">Confirm Password</label>
+                    <input type="password" id="reg_passwordConfirm" name="reg_passwordConfirm" required>
+                </div>
+                <?php if (isset($register_error)): ?>
+                    <div class="error-message"><?php echo $register_error; ?></div>
+                <?php endif; ?>
+                <button type="submit" name="register_submit" class="auth-btn">Register</button>
+            </form>
+        <?php endif; ?>
     </div>
+</div>
+
     <div id="confirmation-modal" class="auth-modal" style="display: none;">
     <div class="auth-container" style="width: 300px;">
         <div class="auth-form active">
@@ -1312,73 +1499,256 @@ input:checked + .toggle-slider:before {
     </div>
 </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Toggle sidebar
-            const sidebar = document.getElementById('sidebar');
-            const toggleBtn = document.getElementById('toggle-sidebar');
-            const toggleIcon = toggleBtn.querySelector('i');
-            
-            toggleBtn.addEventListener('click', function() {
-                sidebar.classList.toggle('collapsed');
-                if (sidebar.classList.contains('collapsed')) {
-                    toggleIcon.classList.remove('fa-chevron-left');
-                    toggleIcon.classList.add('fa-chevron-right');
-                } else {
-                    toggleIcon.classList.remove('fa-chevron-right');
-                    toggleIcon.classList.add('fa-chevron-left');
-                }
-            });
-            
-            // Authentication modal
-            const authModal = document.getElementById('auth-modal');
-            const accountBtn = document.getElementById('account-btn');
-            const closeAuthModal = document.getElementById('close-auth-modal');
-            
-            // Open modal on account click
-            accountBtn.addEventListener('click', function() {
-                authModal.style.display = 'flex';
-            });
-            
-            // Close modal on X click
-            closeAuthModal.addEventListener('click', function() {
-                authModal.style.display = 'none';
-            });
-            
-            // Tab switching for auth forms
-            const authTabs = document.querySelectorAll('.auth-tab');
-            
-            authTabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const targetFormId = this.getAttribute('data-form');
-                    
-                    // Deactivate all tabs and forms
-                    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
-                    
-                    // Activate clicked tab and corresponding form
-                    this.classList.add('active');
-                    document.getElementById(targetFormId).classList.add('active');
-                });
-            });
-            
-            // Close modal on outside click
-            window.addEventListener('click', function(e) {
-                if (e.target === authModal) {
-                    authModal.style.display = 'none';
-                }
-            });
-            
-            // Toggle flashcard answers
-            const flashcards = document.querySelectorAll('.flashcard');
-            flashcards.forEach(card => {
-                card.addEventListener('click', function() {
-                    this.classList.toggle('flipped');
-                });
-            });
-        });
+<!-- Edit Card Modal -->
+<div id="edit-card-modal" class="auth-modal" style="display: none;">
+    <div class="auth-container" style="width: 450px;"> <!-- Wider modal for textareas -->
+        <div class="auth-form active">
+            <div class="form-group" style="text-align: center; margin-bottom: 20px;">
+                <h3>Edit Flashcard</h3>
+            </div>
+            <input type="hidden" id="edit-card-id"> <!-- To store the ID of the card being edited -->
+            <div class="form-group">
+                <label for="edit-card-question">Question</label>
+                <textarea id="edit-card-question" name="edit_card_question" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="edit-card-answer">Answer</label>
+                <textarea id="edit-card-answer" name="edit_card_answer" rows="4" required></textarea>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button id="cancel-edit-card" class="auth-btn" style="background-color: var(--hover-color);">Cancel</button>
+                <button id="confirm-edit-card" class="auth-btn" style="background-color: var(--accent-color);">Save Changes</button>
+            </div>
+            <div id="edit-card-error" class="error-message" style="margin-top: 10px; text-align: center;"></div>
+        </div>
+    </div>
+</div>
+<!-- Delete Card Confirmation Modal -->
+<div id="delete-card-modal" class="auth-modal" style="display: none;">
+    <div class="auth-container" style="width: 350px;">
+        <div class="auth-form active">
+            <div class="form-group" style="text-align: center; margin-bottom: 20px;">
+                <h3>Delete Flashcard</h3>
+                <p>Are you sure you want to delete this flashcard?</p>
+                <p style="color: var(--error-color); font-size: 12px; margin-top: 8px;">This action cannot be undone.</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button id="cancel-delete-card" class="auth-btn" style="background-color: var(--hover-color);">Cancel</button>
+                <button id="confirm-delete-card" class="auth-btn" style="background-color: var(--error-color);">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-        document.addEventListener('DOMContentLoaded', function() {
+<!-- Add Card Modal -->
+<div id="add-card-modal" class="auth-modal" style="display: none;">
+    <div class="auth-container" style="width: 450px;"> <!-- Wider modal for textareas -->
+        <div class="auth-form active">
+            <div class="form-group" style="text-align: center; margin-bottom: 20px;">
+                <h3>Add New Flashcard</h3>
+            </div>
+            <input type="hidden" id="add-card-set-id"> <!-- To store the set ID -->
+            <div class="form-group">
+                <label for="add-card-question">Question</label>
+                <textarea id="add-card-question" name="add_card_question" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="add-card-answer">Answer</label>
+                <textarea id="add-card-answer" name="add_card_answer" rows="4" required></textarea>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button id="cancel-add-card" class="auth-btn" style="background-color: var(--hover-color);">Cancel</button>
+                <button id="confirm-add-card" class="auth-btn" style="background-color: var(--accent-color);">Add Card</button>
+            </div>
+            <div id="add-card-error" class="error-message" style="margin-top: 10px; text-align: center;"></div>
+        </div>
+    </div>
+</div>
+
+
+
+    <script>
+ document.addEventListener('DOMContentLoaded', function() {
+    // ... (existing sidebar, auth modal, delete/edit set, download modal, flashcard navigation code) ...
+
+    // --- Start: Edit Card Functionality ---
+    const editCardModal = document.getElementById('edit-card-modal');
+    const editCardBtn = document.getElementById('edit-current-card-btn');
+    const cancelEditCardBtn = document.getElementById('cancel-edit-card');
+    const confirmEditCardBtn = document.getElementById('confirm-edit-card');
+    const editCardIdInput = document.getElementById('edit-card-id');
+    const editCardQuestionTextarea = document.getElementById('edit-card-question');
+    const editCardAnswerTextarea = document.getElementById('edit-card-answer');
+    const editCardErrorDiv = document.getElementById('edit-card-error');
+    const flashcardsWrapper = document.querySelector('.flashcards-wrapper'); // Get the container
+
+    // Show edit card modal
+    if (editCardBtn) {
+        editCardBtn.addEventListener('click', function() {
+            const activeCard = document.querySelector('.flashcard.active');
+            if (!activeCard) {
+                alert('No active card selected.');
+                return;
+            }
+
+            const cardId = activeCard.dataset.cardId;
+            const question = activeCard.querySelector('.flashcard-front p').textContent;
+            const answer = activeCard.querySelector('.flashcard-back p').textContent;
+
+            // Populate the modal
+            editCardIdInput.value = cardId;
+            editCardQuestionTextarea.value = question;
+            editCardAnswerTextarea.value = answer;
+            editCardErrorDiv.textContent = ''; // Clear previous errors
+
+            // Show the modal
+            editCardModal.style.display = 'flex';
+            editCardQuestionTextarea.focus(); // Focus the first field
+        });
+    }
+
+    // Cancel editing card
+    if (cancelEditCardBtn) {
+        cancelEditCardBtn.addEventListener('click', function() {
+            editCardModal.style.display = 'none';
+        });
+    }
+
+    // Confirm editing card (Save Changes)
+    if (confirmEditCardBtn) {
+        confirmEditCardBtn.addEventListener('click', function() {
+            const cardId = editCardIdInput.value;
+            const newQuestion = editCardQuestionTextarea.value.trim();
+            const newAnswer = editCardAnswerTextarea.value.trim();
+            editCardErrorDiv.textContent = ''; // Clear previous errors
+
+            if (!newQuestion || !newAnswer) {
+                editCardErrorDiv.textContent = 'Question and Answer cannot be empty.';
+                return;
+            }
+
+            // Send AJAX request to update the card
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'edit_card.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+            xhr.onload = function() {
+                if (this.status === 200) {
+                    try {
+                        const response = JSON.parse(this.responseText);
+                        if (response.success) {
+                            // Update the card display on the page
+                            const cardElement = flashcardsWrapper.querySelector(`.flashcard[data-card-id="${cardId}"]`);
+                            if (cardElement) {
+                                cardElement.querySelector('.flashcard-front p').textContent = newQuestion;
+                                cardElement.querySelector('.flashcard-back p').textContent = newAnswer;
+                            }
+
+                            // Optional: Update the session data if needed for other features
+                            // This requires more complex logic to find and update the specific card
+                            // in the PHP session array, potentially needing another AJAX call or page reload.
+                            // For simplicity, we'll just update the visual display for now.
+
+                            editCardModal.style.display = 'none'; // Hide modal on success
+                        } else {
+                            editCardErrorDiv.textContent = response.message || 'An unknown error occurred.';
+                        }
+                    } catch (e) {
+                         editCardErrorDiv.textContent = 'Error parsing server response.';
+                         console.error("Parsing error:", e, "Response:", this.responseText);
+                    }
+                } else {
+                    editCardErrorDiv.textContent = `Error updating card: ${this.statusText}`;
+                }
+            };
+
+            xhr.onerror = function() {
+                 editCardErrorDiv.textContent = 'Network error occurred while trying to save.';
+            };
+
+            const params = `card_id=${encodeURIComponent(cardId)}&question=${encodeURIComponent(newQuestion)}&answer=${encodeURIComponent(newAnswer)}`;
+            xhr.send(params);
+        });
+    }
+
+    // Close edit card modal when clicking outside
+    if (editCardModal) {
+        editCardModal.addEventListener('click', function(e) {
+            if (e.target === editCardModal) {
+                editCardModal.style.display = 'none';
+            }
+        });
+    }
+    // --- End: Edit Card Functionality ---
+
+}); // End of DOMContentLoaded
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle sidebar
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    const toggleIcon = toggleBtn.querySelector('i');
+    
+    toggleBtn.addEventListener('click', function() {
+        sidebar.classList.toggle('collapsed');
+        if (sidebar.classList.contains('collapsed')) {
+            toggleIcon.classList.remove('fa-chevron-left');
+            toggleIcon.classList.add('fa-chevron-right');
+        } else {
+            toggleIcon.classList.remove('fa-chevron-right');
+            toggleIcon.classList.add('fa-chevron-left');
+        }
+    });
+    
+    // Authentication modal
+    const authModal = document.getElementById('auth-modal');
+    const accountBtn = document.getElementById('account-btn');
+    const closeAuthModal = document.getElementById('close-auth-modal');
+    
+    // Open modal on account click
+    accountBtn.addEventListener('click', function() {
+        authModal.style.display = 'flex';
+    });
+    
+    // Close modal on X click
+    closeAuthModal.addEventListener('click', function() {
+        authModal.style.display = 'none';
+    });
+    
+    // Tab switching for auth forms
+    const authTabs = document.querySelectorAll('.auth-tab');
+    
+    authTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetFormId = this.getAttribute('data-form');
+            
+            // Deactivate all tabs and forms
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            
+            // Activate clicked tab and corresponding form
+            this.classList.add('active');
+            document.getElementById(targetFormId).classList.add('active');
+        });
+    });
+    
+    // Close modal on outside click
+    window.addEventListener('click', function(e) {
+        if (e.target === authModal) {
+            authModal.style.display = 'none';
+        }
+    });
+    
+    // Toggle flashcard answers
+    const flashcards = document.querySelectorAll('.flashcard');
+    flashcards.forEach(card => {
+        card.addEventListener('click', function() {
+            this.classList.toggle('flipped');
+        });
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
     // Delete set functionality
     const confirmationModal = document.getElementById('confirmation-modal');
     const setTitleToDelete = document.getElementById('set-title-to-delete');
@@ -1502,21 +1872,24 @@ input:checked + .toggle-slider:before {
         }
     });
 });
+
+// MODIFIED: Removed this standalone keyboard event listener that was causing the issue
 // Add keyboard navigation
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'ArrowLeft' && !prevBtn.disabled) {
-        prevBtn.click();
-    } else if (e.key === 'ArrowRight' && !nextBtn.disabled) {
-        nextBtn.click();
-    } else if (e.key === ' ' || e.key === 'Spacebar') {
-        // Flip current card on spacebar
-        const currentCard = document.querySelector('.flashcard.active');
-        if (currentCard) {
-            currentCard.classList.toggle('flipped');
-        }
-        e.preventDefault(); // Prevent page scrolling on spacebar
-    }
-});
+// document.addEventListener('keydown', function(e) {
+//     if (e.key === 'ArrowLeft' && !prevBtn.disabled) {
+//         prevBtn.click();
+//     } else if (e.key === 'ArrowRight' && !nextBtn.disabled) {
+//         nextBtn.click();
+//     } else if (e.key === ' ' || e.key === 'Spacebar') {
+//         // Flip current card on spacebar
+//         const currentCard = document.querySelector('.flashcard.active');
+//         if (currentCard) {
+//             currentCard.classList.toggle('flipped');
+//         }
+//         e.preventDefault(); // Prevent page scrolling on spacebar
+//     }
+// });
+
 const downloadBtn = document.getElementById('download-btn');
 const downloadModal = document.getElementById('download-modal');
 const cancelDownload = document.getElementById('cancel-download');
@@ -1582,10 +1955,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Flip card on click
     document.querySelectorAll('.flashcard').forEach(card => {
-    card.addEventListener('click', function() {
-        this.classList.toggle('flipped');
+        card.addEventListener('click', function() {
+            this.classList.toggle('flipped');
+        });
     });
-});
     
     // Function to show a specific card
     function showCard(index) {
@@ -1613,22 +1986,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Add keyboard navigation
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'ArrowLeft' && prevBtn && !prevBtn.disabled) {
-            prevBtn.click();
-        } else if (e.key === 'ArrowRight' && nextBtn && !nextBtn.disabled) {
-            nextBtn.click();
-        } else if (e.key === ' ' || e.key === 'Spacebar') {
-            // Flip current card on spacebar
-            const currentCard = document.querySelector('.flashcard.active');
-            if (currentCard) {
-                currentCard.classList.toggle('flipped');
-            }
-            e.preventDefault(); // Prevent page scrolling on spacebar
-        }
-    });
+    // MODIFIED: Removed duplicate keyboard navigation code here
 });
+
+// Add this to your JavaScript
 // Add this to your JavaScript
 document.querySelectorAll('.flashcard').forEach(card => {
     card.addEventListener('click', function() {
@@ -1817,41 +2178,520 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Add keyboard navigation
+    // Add keyboard navigation (Updated to allow spaces in inputs/textareas)
     document.addEventListener('keydown', function(e) {
-        if (!reviewMode) {
-            if (e.key === 'ArrowLeft' && prevBtn && !prevBtn.disabled) {
-                prevBtn.click();
-            } else if (e.key === 'ArrowRight' && nextBtn && !nextBtn.disabled) {
-                nextBtn.click();
+        const targetElement = e.target;
+        // Check if the event target is an input field or textarea
+        const isTypingInInput = targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA';
+
+        // Handle navigation and review keys ONLY if not typing in an input/textarea
+        if (!isTypingInInput) {
+            if (!reviewMode) {
+                if (e.key === 'ArrowLeft' && prevBtn && !prevBtn.disabled) {
+                    prevBtn.click();
+                } else if (e.key === 'ArrowRight' && nextBtn && !nextBtn.disabled) {
+                    nextBtn.click();
+                }
+            } else { // In review mode
+                // Check if review buttons are visible before triggering click
+                if ((e.key === 'ArrowRight' || e.key === 'y' || e.key === 'Y') && knowBtn && knowBtn.offsetParent !== null) {
+                    knowBtn.click(); // "I know this"
+                } else if ((e.key === 'ArrowLeft' || e.key === 'n' || e.key === 'N') && dontKnowBtn && dontKnowBtn.offsetParent !== null) {
+                    dontKnowBtn.click(); // "Still learning"
+                }
             }
-        } else {
-            if (e.key === 'ArrowRight' || e.key === 'y' || e.key === 'Y') {
-                knowBtn.click(); // "I know this"
-            } else if (e.key === 'ArrowLeft' || e.key === 'n' || e.key === 'N') {
-                dontKnowBtn.click(); // "Still learning"
-            }
-        }
-        
-        if (e.key === ' ' || e.key === 'Spacebar') {
+        } // End of check for not typing
+
+        // Handle spacebar: Flip card ONLY if not typing in an input/textarea
+        if ((e.key === ' ' || e.key === 'Spacebar') && !isTypingInInput) {
             // Flip current card on spacebar
             const currentCard = document.querySelector('.flashcard.active');
             if (currentCard) {
                 currentCard.classList.toggle('flipped');
             }
-            e.preventDefault(); // Prevent page scrolling on spacebar
+            // Prevent page scrolling ONLY when flipping the card
+            e.preventDefault();
         }
+        // If isTypingInInput is true, the spacebar event is not handled here,
+        // allowing the default behavior (inserting a space) in the input/textarea.
+    });
+}); // Make sure this closing }); matches the outer DOMContentLoaded listener
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Find all flashcards and add click event listeners
+    const flashcards = document.querySelectorAll('.flashcard');
+    
+    flashcards.forEach(card => {
+        // Remove any existing click event listeners (to avoid duplicates)
+        card.removeEventListener('click', flipCard);
+        
+        // Add a new click event listener
+        card.addEventListener('click', flipCard);
+    });
+    
+    // Function to flip a card
+    function flipCard(event) {
+        // Make sure we're not clicking on a button inside the card
+        if (event.target.closest('button') === null) {
+            console.log('Card clicked');
+            this.classList.toggle('flipped');
+            console.log('Flipped class toggled:', this.classList.contains('flipped'));
+        }
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Existing edit card button functionality
+    const editCardBtn = document.getElementById('edit-current-card-btn');
+    
+    // New buttons
+    const deleteCardBtn = document.getElementById('delete-current-card-btn');
+    const addCardBtn = document.getElementById('add-new-card-btn');
+    
+    // Add event listeners for the new buttons
+    if (deleteCardBtn) {
+        deleteCardBtn.addEventListener('click', function(event) {
+            event.stopPropagation(); // Prevent card flipping
+            
+            const activeCard = document.querySelector('.flashcard.active');
+            if (!activeCard) {
+                alert('No active card selected.');
+                return;
+            }
+            
+            // Show the delete confirmation modal
+            const deleteCardModal = document.getElementById('delete-card-modal');
+            deleteCardModal.style.display = 'flex';
+            
+            // Store the card ID and index in variables accessible to the confirm handler
+            const cardId = activeCard.dataset.cardId;
+            const cardIndex = parseInt(activeCard.dataset.index);
+            
+            // Set up the confirm delete button
+            const confirmDeleteCardBtn = document.getElementById('confirm-delete-card');
+            const cancelDeleteCardBtn = document.getElementById('cancel-delete-card');
+            
+            // Remove any existing event listeners to prevent duplicates
+            const newConfirmBtn = confirmDeleteCardBtn.cloneNode(true);
+            confirmDeleteCardBtn.parentNode.replaceChild(newConfirmBtn, confirmDeleteCardBtn);
+            
+            const newCancelBtn = cancelDeleteCardBtn.cloneNode(true);
+            cancelDeleteCardBtn.parentNode.replaceChild(newCancelBtn, cancelDeleteCardBtn);
+            
+            // Add event listener for cancel button
+            newCancelBtn.addEventListener('click', function() {
+                deleteCardModal.style.display = 'none';
+            });
+            
+            // Add event listener for confirm button
+            newConfirmBtn.addEventListener('click', function() {
+                // Send AJAX request to delete the card
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'delete_card.php', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                
+                xhr.onload = function() {
+                    if (this.status === 200) {
+                        try {
+                            const response = JSON.parse(this.responseText);
+                            
+                            if (response.success) {
+                                // Get all flashcards and the total count
+                                const flashcards = document.querySelectorAll('.flashcard');
+                                const totalCards = flashcards.length;
+                                
+                                if (totalCards <= 1) {
+                                    // If this was the last card, reload the page
+                                    alert('Last card deleted. Returning to set view.');
+                                    window.location.reload();
+                                    return;
+                                }
+                                
+                                // Remove the deleted card from the DOM
+                                activeCard.remove();
+                                
+                                // Update the remaining cards' indices
+                                document.querySelectorAll('.flashcard').forEach((card, idx) => {
+                                    card.dataset.index = idx;
+                                });
+                                
+                                // Show the next card or the previous if this was the last
+                                const newTotalCards = totalCards - 1;
+                                let newIndex = cardIndex;
+                                if (newIndex >= newTotalCards) {
+                                    newIndex = newTotalCards - 1;
+                                }
+                                
+                                // Find the card with the new index
+                                const nextCard = document.querySelector(`.flashcard[data-index="${newIndex}"]`);
+                                if (nextCard) {
+                                    nextCard.classList.add('active');
+                                }
+                                
+                                // Update the card counter
+                                const cardCounter = document.getElementById('card-counter');
+                                if (cardCounter) {
+                                    cardCounter.textContent = `Card ${newIndex + 1} of ${newTotalCards}`;
+                                }
+                                
+                                // Update navigation buttons state
+                                const prevBtn = document.getElementById('prev-card');
+                                const nextBtn = document.getElementById('next-card');
+                                if (prevBtn) prevBtn.disabled = newIndex === 0;
+                                if (nextBtn) nextBtn.disabled = newIndex === newTotalCards - 1;
+                                
+                                // Update the set header to reflect the new count
+                                const totalCardsElement = document.querySelector('.flashcard-set-header p');
+                                if (totalCardsElement) {
+                                    totalCardsElement.textContent = `Total cards: ${newTotalCards}`;
+                                }
+                                
+                                // Hide the modal
+                                deleteCardModal.style.display = 'none';
+                            } else {
+                                alert(response.message || 'Error deleting flashcard.');
+                            }
+                        } catch (e) {
+                            console.error('Error parsing response:', e);
+                            alert('Error processing server response.');
+                        }
+                    } else {
+                        alert('Error deleting flashcard. Server returned: ' + this.status);
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    alert('Network error occurred while trying to delete the flashcard.');
+                };
+                
+                xhr.send(`card_id=${encodeURIComponent(cardId)}`);
+            });
+        });
+    }
+    
+    if (addCardBtn) {
+    addCardBtn.addEventListener('click', function(event) {
+        event.stopPropagation(); // Prevent card flipping
+        
+        // Get the current set ID from the URL or session
+        let setId;
+        const urlParams = new URLSearchParams(window.location.search);
+        setId = urlParams.get('set_id');
+        
+        if (!setId) {
+            alert('Could not determine the current set ID.');
+            return;
+        }
+        
+        // Show the add card modal
+        const addCardModal = document.getElementById('add-card-modal');
+        const addCardSetIdInput = document.getElementById('add-card-set-id');
+        const addCardQuestionTextarea = document.getElementById('add-card-question');
+        const addCardAnswerTextarea = document.getElementById('add-card-answer');
+        const addCardErrorDiv = document.getElementById('add-card-error');
+        
+        // Reset form and set the set ID
+        addCardSetIdInput.value = setId;
+        addCardQuestionTextarea.value = '';
+        addCardAnswerTextarea.value = '';
+        addCardErrorDiv.textContent = '';
+        
+        // Show the modal
+        addCardModal.style.display = 'flex';
+        addCardQuestionTextarea.focus();
+        
+        // Set up the buttons
+        const confirmAddCardBtn = document.getElementById('confirm-add-card');
+        const cancelAddCardBtn = document.getElementById('cancel-add-card');
+        
+        // Remove any existing event listeners to prevent duplicates
+        const newConfirmBtn = confirmAddCardBtn.cloneNode(true);
+        confirmAddCardBtn.parentNode.replaceChild(newConfirmBtn, confirmAddCardBtn);
+        
+        const newCancelBtn = cancelAddCardBtn.cloneNode(true);
+        cancelAddCardBtn.parentNode.replaceChild(newCancelBtn, cancelAddCardBtn);
+        
+        // Add event listener for cancel button
+        newCancelBtn.addEventListener('click', function() {
+            addCardModal.style.display = 'none';
+        });
+        
+        // Add event listener for confirm button
+        newConfirmBtn.addEventListener('click', function() {
+            const question = addCardQuestionTextarea.value.trim();
+            const answer = addCardAnswerTextarea.value.trim();
+            addCardErrorDiv.textContent = '';
+            
+            if (!question || !answer) {
+                addCardErrorDiv.textContent = 'Question and Answer cannot be empty.';
+                return;
+            }
+            
+            // Send AJAX request to add the card
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'add_card.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            
+            xhr.onload = function() {
+                if (this.status === 201) { // Created
+                    try {
+                        const response = JSON.parse(this.responseText);
+                        
+                        if (response.success) {
+                            // Get the new card data
+                            const newCard = response.card;
+                            
+                            // Get all existing flashcards and the flashcards wrapper
+                            const flashcardsWrapper = document.querySelector('.flashcards-wrapper');
+                            const existingCards = document.querySelectorAll('.flashcard');
+                            const totalCards = existingCards.length;
+                            const newIndex = totalCards; // New card will be at the end
+                            
+                            // Create the new flashcard HTML
+                            const newCardHTML = `
+                                <div class="flashcard" data-index="${newIndex}" data-card-id="${newCard.flashcard_id}">
+                                    <div class="flashcard-inner">
+                                        <div class="flashcard-front">
+                                            <h3>Question:</h3>
+                                            <p>${newCard.question}</p>
+                                            <div class="flashcard-hint">Click to reveal answer</div>
+                                        </div>
+                                        <div class="flashcard-back">
+                                            <h3>Answer:</h3>
+                                            <p>${newCard.answer}</p>
+                                            <div class="flashcard-hint">Click to see question</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            // Add the new card to the DOM
+                            flashcardsWrapper.insertAdjacentHTML('beforeend', newCardHTML);
+                            
+                            // Add click event to the new card
+                            const newCardElement = flashcardsWrapper.querySelector(`.flashcard[data-index="${newIndex}"]`);
+                            newCardElement.addEventListener('click', function() {
+                                this.classList.toggle('flipped');
+                            });
+                            
+                            // Update the total cards count in the header
+                            const newTotalCards = totalCards + 1;
+                            const totalCardsElement = document.querySelector('.flashcard-set-header p');
+                            if (totalCardsElement) {
+                                totalCardsElement.textContent = `Total cards: ${newTotalCards}`;
+                            }
+                            
+                            // Hide the modal
+                            addCardModal.style.display = 'none';
+                            
+                            // Get navigation elements
+                            const prevBtn = document.getElementById('prev-card');
+                            const nextBtn = document.getElementById('next-card');
+                            const cardCounter = document.getElementById('card-counter');
+                            
+                            // Hide all cards first
+                            document.querySelectorAll('.flashcard').forEach(card => {
+                                card.classList.remove('active');
+                            });
+                            
+                            // Show the new card
+                            newCardElement.classList.add('active');
+                            
+                            // Update the card counter
+                            if (cardCounter) {
+                                cardCounter.textContent = `Card ${newIndex + 1} of ${newTotalCards}`;
+                            }
+                            
+                            // Update navigation buttons state
+                            if (prevBtn) prevBtn.disabled = newIndex === 0;
+                            if (nextBtn) nextBtn.disabled = newIndex === newTotalCards - 1;
+                            
+                            // IMPORTANT: Update the currentIndex variable in the outer scope
+                            // This is crucial for navigation to work properly
+                            currentIndex = newIndex;
+                            
+                            // IMPORTANT: Refresh the navigation button event listeners
+                            // Remove existing listeners
+                            if (prevBtn) {
+                                const newPrevBtn = prevBtn.cloneNode(true);
+                                prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
+                                
+                                // Add new listener
+                                newPrevBtn.addEventListener('click', function() {
+                                    if (currentIndex > 0) {
+                                        showCard(currentIndex - 1);
+                                    }
+                                });
+                            }
+                            
+                            if (nextBtn) {
+                                const newNextBtn = nextBtn.cloneNode(true);
+                                nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
+                                
+                                // Add new listener
+                                newNextBtn.addEventListener('click', function() {
+                                    if (currentIndex < newTotalCards - 1) {
+                                        showCard(currentIndex + 1);
+                                    }
+                                });
+                            }
+                            
+                            // Alert success
+                            alert('Flashcard added successfully!');
+                            window.location.reload();
+
+
+                        } else {
+                            addCardErrorDiv.textContent = response.message || 'An unknown error occurred.';
+                        }
+                    } catch (e) {
+                        console.error('Error parsing response:', e);
+                        addCardErrorDiv.textContent = 'Error processing server response.';
+                    }
+                } else {
+                    addCardErrorDiv.textContent = `Error adding card: ${this.statusText}`;
+                }
+            };
+            
+            xhr.onerror = function() {
+                addCardErrorDiv.textContent = 'Network error occurred while trying to add the card.';
+            };
+            
+            const params = `set_id=${encodeURIComponent(setId)}&question=${encodeURIComponent(question)}&answer=${encodeURIComponent(answer)}`;
+            xhr.send(params);
+        });
+    });
+}
+
+
+    
+    // Make sure the edit button also prevents card flipping
+    if (editCardBtn) {
+        const originalClickHandler = editCardBtn.onclick;
+        editCardBtn.onclick = function(event) {
+            // Prevent the event from bubbling up to the card
+            event.stopPropagation();
+            // Call the original handler if it exists
+            if (typeof originalClickHandler === 'function') {
+                originalClickHandler.call(this, event);
+            }
+        };
+    }
+    
+    // Close delete card modal when clicking outside
+    const deleteCardModal = document.getElementById('delete-card-modal');
+    if (deleteCardModal) {
+        deleteCardModal.addEventListener('click', function(e) {
+            if (e.target === deleteCardModal) {
+                deleteCardModal.style.display = 'none';
+            }
+        });
+    }
+    // Close add card modal when clicking outside
+const addCardModal = document.getElementById('add-card-modal');
+if (addCardModal) {
+    addCardModal.addEventListener('click', function(e) {
+        if (e.target === addCardModal) {
+            addCardModal.style.display = 'none';
+        }
+    });
+}
+
+});
+
+// Profile picture upload handling
+document.addEventListener('DOMContentLoaded', function() {
+    const profilePictureUpload = document.getElementById('profile-picture-upload');
+    const saveProfilePictureBtn = document.getElementById('save-profile-picture');
+    const profilePicture = document.querySelector('.profile-picture');
+    
+    if (profilePictureUpload) {
+        profilePictureUpload.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                
+                // Check file type
+                const fileType = file.type;
+                if (!fileType.match('image.*')) {
+                    alert('Please select an image file');
+                    return;
+                }
+                
+                // Check file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size should be less than 5MB');
+                    return;
+                }
+                
+                // Preview the image
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    profilePicture.src = e.target.result;
+                    saveProfilePictureBtn.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+
+// Authentication modal
+document.addEventListener('DOMContentLoaded', function() {
+    const authModal = document.getElementById('auth-modal');
+    const accountBtn = document.getElementById('account-btn');
+    const closeAuthModal = document.getElementById('close-auth-modal');
+    
+    if (accountBtn) {
+        accountBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (authModal) {
+                // Force layout recalculation before showing the modal
+                void authModal.offsetWidth;
+                
+                // Show the modal
+                authModal.style.display = 'flex';
+                
+                // Force the browser to repaint
+                setTimeout(function() {
+                    authModal.style.opacity = '1';
+                }, 10);
+            }
+        });
+    }
+    
+    // Close modal on X click
+    if (closeAuthModal) {
+        closeAuthModal.addEventListener('click', function() {
+            authModal.style.display = 'none';
+        });
+    }
+    
+    // Close modal on outside click
+    window.addEventListener('click', function(e) {
+        if (e.target === authModal) {
+            authModal.style.display = 'none';
+        }
+    });
+    
+    // Tab switching for auth forms
+    const authTabs = document.querySelectorAll('.auth-tab');
+    
+    authTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetFormId = this.getAttribute('data-form');
+            
+            // Deactivate all tabs and forms
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            
+            // Activate clicked tab and corresponding form
+            this.classList.add('active');
+            document.getElementById(targetFormId).classList.add('active');
+        });
     });
 });
 
-// Add this to your JavaScript
-document.querySelectorAll('.flashcard').forEach(card => {
-    card.addEventListener('click', function() {
-        console.log('Card clicked');
-        this.classList.toggle('flipped');
-        console.log('Flipped class toggled:', this.classList.contains('flipped'));
-    });
-});
+
 
     </script>
 </body>
