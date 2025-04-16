@@ -69,7 +69,10 @@
                          Background="#171b21"
                          Foreground="White"
                          BorderBrush="#3b82f6"
-                         BorderThickness="1"/>
+                         BorderThickness="1"
+                         HorizontalContentAlignment="Left"
+                         VerticalContentAlignment="Center"/>
+                        
 
                 <TextBlock Text="Password:"
                            Margin="0,0,0,15"
@@ -81,7 +84,9 @@
                              Background="#171b21"
                              Foreground="White"
                              BorderBrush="#3b82f6"
-                             BorderThickness="1"/>
+                             BorderThickness="1"
+                             HorizontalContentAlignment="Left"
+                             VerticalContentAlignment="Center"/>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <Button Content="Login"
