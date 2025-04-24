@@ -89,19 +89,17 @@ namespace dmp
             {
                 Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0e1116")),
                 CornerRadius = new CornerRadius(12),
-                Padding = new Thickness(20),
+                Padding = new Thickness(10),
                 Margin = new Thickness(15),
                 Width = 240,
                 Height = 160,
                 Effect = new DropShadowEffect { Color = Colors.Black, BlurRadius = 12, ShadowDepth = 2, Opacity = 0.4 }
             };
 
-            StackPanel stackPanel = new StackPanel { Margin = new Thickness(0, 20, 0, 0) };
+            StackPanel stackPanel = new StackPanel { Margin = new Thickness(0, 0, 0, 0) };
 
             Button moreButton = new Button
             {
-                HorizontalAlignment = HorizontalAlignment.Right,
-                VerticalAlignment = VerticalAlignment.Top,
                 Content = "⋯",
                 FontSize = 16,
                 Width = 28,
@@ -109,7 +107,25 @@ namespace dmp
                 Background = Brushes.Transparent,
                 Foreground = Brushes.White,
                 BorderBrush = Brushes.Transparent,
-                Cursor = Cursors.Hand
+                Cursor = Cursors.Hand,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(0)
+            };
+
+            ContextMenu contextMenu = new ContextMenu();
+            MenuItem deleteItem = new MenuItem { Header = "Delete" };
+            deleteItem.Click += (s, e) => DeleteFlashcard(flashcard.Id);
+            contextMenu.Items.Add(deleteItem);
+            moreButton.ContextMenu = contextMenu;
+            moreButton.Click += (s, e) =>
+            {
+                moreButton.ContextMenu.IsOpen = true;
+            };
+
+            StackPanel contentPanel = new StackPanel
+            {
+                Margin = new Thickness(0, 8, 0, 0)
             };
 
             TextBlock questionText = new TextBlock
@@ -135,6 +151,29 @@ namespace dmp
 
             card.Child = stackPanel;
             return card;
+        }
+
+
+        private void DeleteFlashcard(int flashcardId)
+        {
+            var result = MessageBox.Show("Do you want to delete this card?", "Yes", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                using (MySqlConnection connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    string query = "DELETE FROM flashcards WHERE flashcard_id = @id";
+                    MySqlCommand command = new MySqlCommand(query, connection);
+                    command.Parameters.AddWithValue("@id", flashcardId);
+                    command.ExecuteNonQuery();
+                }
+
+                allFlashcards = GetFlashcardsFromDatabase();
+                int maxPage = (int)Math.Ceiling(allFlashcards.Count / (double)cardsPerPage);
+                if (currentPage > maxPage) currentPage = maxPage;
+                DisplayPage(currentPage);
+            }
         }
 
         private void ShowLoginMessage()
