@@ -96,8 +96,13 @@ namespace dmp
                 Effect = new DropShadowEffect { Color = Colors.Black, BlurRadius = 12, ShadowDepth = 2, Opacity = 0.4 }
             };
 
-            StackPanel stackPanel = new StackPanel { Margin = new Thickness(0, 0, 0, 0) };
+            Grid cardGrid = new Grid();
 
+            // 2 sor: első a gomb, második a szöveg
+            cardGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // gomb
+            cardGrid.RowDefinitions.Add(new RowDefinition()); // tartalom (scroll)
+
+            // Gomb
             Button moreButton = new Button
             {
                 Content = "⋯",
@@ -110,7 +115,7 @@ namespace dmp
                 Cursor = Cursors.Hand,
                 HorizontalAlignment = HorizontalAlignment.Right,
                 VerticalAlignment = VerticalAlignment.Top,
-                Margin = new Thickness(0)
+                Margin = new Thickness(0, 0, 0, 5)
             };
 
             ContextMenu contextMenu = new ContextMenu();
@@ -118,15 +123,19 @@ namespace dmp
             deleteItem.Click += (s, e) => DeleteFlashcard(flashcard.Id);
             contextMenu.Items.Add(deleteItem);
             moreButton.ContextMenu = contextMenu;
-            moreButton.Click += (s, e) =>
+            moreButton.Click += (s, e) => moreButton.ContextMenu.IsOpen = true;
+
+            Grid.SetRow(moreButton, 0);
+            cardGrid.Children.Add(moreButton);
+
+            // Tartalom (scrollolható)
+            ScrollViewer scrollViewer = new ScrollViewer
             {
-                moreButton.ContextMenu.IsOpen = true;
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                Margin = new Thickness(0, 5, 0, 0)
             };
 
-            StackPanel contentPanel = new StackPanel
-            {
-                Margin = new Thickness(0, 8, 0, 0)
-            };
+            StackPanel contentPanel = new StackPanel();
 
             TextBlock questionText = new TextBlock
             {
@@ -134,7 +143,8 @@ namespace dmp
                 FontSize = 16,
                 FontWeight = FontWeights.Bold,
                 Foreground = Brushes.White,
-                Margin = new Thickness(0, 10, 0, 4)
+                Margin = new Thickness(0, 5, 0, 4),
+                TextWrapping = TextWrapping.Wrap
             };
 
             TextBlock answerText = new TextBlock
@@ -145,13 +155,18 @@ namespace dmp
                 TextWrapping = TextWrapping.Wrap
             };
 
-            stackPanel.Children.Add(moreButton);
-            stackPanel.Children.Add(questionText);
-            stackPanel.Children.Add(answerText);
+            contentPanel.Children.Add(questionText);
+            contentPanel.Children.Add(answerText);
 
-            card.Child = stackPanel;
+            scrollViewer.Content = contentPanel;
+
+            Grid.SetRow(scrollViewer, 1);
+            cardGrid.Children.Add(scrollViewer);
+
+            card.Child = cardGrid;
             return card;
         }
+
 
 
         private void DeleteFlashcard(int flashcardId)
