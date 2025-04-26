@@ -138,3 +138,4 @@ C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\dmp.ge
 C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\ref\dmp.dll
 C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\dmp_MarkupCompile.lref
 C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\App.baml
+C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\dmp_Content.g.cs

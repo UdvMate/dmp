@@ -24,7 +24,7 @@ namespace dmp
             UserInfoText.Text = $"Logged in as: {currentUsername}";
             PageNumberText.Text = currentPage.ToString();
 
-            if (currentUsername != "Vendég")
+            if (currentUsername != "Guest")
             {
                 try
                 {
@@ -42,8 +42,8 @@ namespace dmp
             }
         }
 
-        public MainWindow() : this("Vendég") { }
-
+        public MainWindow() : this("Guest") { }
+        
         private List<Flashcard> GetFlashcardsFromDatabase()
         {
             List<Flashcard> flashcards = new List<Flashcard>();
@@ -171,7 +171,7 @@ namespace dmp
 
         private void DeleteFlashcard(int flashcardId)
         {
-            var result = MessageBox.Show("Do you want to delete this card?", "Yes", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            var result = MessageBox.Show("Do you want to delete this card?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
             if (result == MessageBoxResult.Yes)
             {
@@ -221,7 +221,7 @@ namespace dmp
 
         private void PrevPage_Click(object sender, RoutedEventArgs e)
         {
-            if (currentUsername == "Vendég") return;
+            if (currentUsername == "Guest") return;
             if (currentPage > 1)
             {
                 currentPage--;
@@ -231,7 +231,7 @@ namespace dmp
 
         private void NextPage_Click(object sender, RoutedEventArgs e)
         {
-            if (currentUsername == "Vendég") return;
+            if (currentUsername == "Guest") return;
             int maxPage = (int)Math.Ceiling(allFlashcards.Count / (double)cardsPerPage);
             if (currentPage < maxPage)
             {
