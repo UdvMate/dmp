@@ -1,21 +1,24 @@
 ﻿using System;
-using System.Windows;
-using MySql.Data.MySqlClient;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media.Effects;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
+using Newtonsoft.Json;
 
 namespace dmp
 {
     public partial class MainWindow : Window
     {
         private string currentUsername;
-        private string connectionString = "Server=localhost;Database=dmproject;UserID=root;Password=;";
         private int currentPage = 1;
         private int cardsPerPage = 6;
         private List<Flashcard> allFlashcards;
+        private readonly HttpClient httpClient = new HttpClient();
+        private readonly string apiBaseUrl = "http://localhost/dmp/get_flashcards.php"; // <-- IDE majd az API cím kell!
 
         public MainWindow(string username)
         {
@@ -26,15 +29,7 @@ namespace dmp
 
             if (currentUsername != "Guest")
             {
-                try
-                {
-                    allFlashcards = GetFlashcardsFromDatabase();
-                    DisplayPage(currentPage);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Hiba a kártyák betöltésekor: {ex.Message}");
-                }
+                LoadFlashcardsAsync();
             }
             else
             {
@@ -43,28 +38,44 @@ namespace dmp
         }
 
         public MainWindow() : this("Guest") { }
-        
-        private List<Flashcard> GetFlashcardsFromDatabase()
-        {
-            List<Flashcard> flashcards = new List<Flashcard>();
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
-            {
-                connection.Open();
-                string query = "SELECT flashcard_id, question, answer FROM flashcards";
-                MySqlCommand command = new MySqlCommand(query, connection);
-                MySqlDataReader reader = command.ExecuteReader();
 
-                while (reader.Read())
-                {
-                    flashcards.Add(new Flashcard
-                    {
-                        Id = reader.GetInt32("flashcard_id"),
-                        Question = reader.GetString("question"),
-                        Answer = reader.GetString("answer")
-                    });
-                }
+        private async void LoadFlashcardsAsync()
+        {
+            try
+            {
+                allFlashcards = await GetFlashcardsFromApi();
+                DisplayPage(currentPage);
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Hiba a kártyák betöltésekor: {ex.Message}");
+            }
+        }
+
+        private async Task<List<Flashcard>> GetFlashcardsFromApi()
+        {
+            HttpResponseMessage response = await httpClient.GetAsync($"{apiBaseUrl}/flashcards");
+            response.EnsureSuccessStatusCode();
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            var flashcards = JsonConvert.DeserializeObject<List<Flashcard>>(responseBody);
             return flashcards;
+        }
+
+        private async Task DeleteFlashcardAsync(int flashcardId)
+        {
+            var result = MessageBox.Show("Do you want to delete this card?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                HttpResponseMessage response = await httpClient.DeleteAsync($"{apiBaseUrl}/flashcards/{flashcardId}");
+                response.EnsureSuccessStatusCode();
+
+                allFlashcards = await GetFlashcardsFromApi();
+                int maxPage = (int)Math.Ceiling(allFlashcards.Count / (double)cardsPerPage);
+                if (currentPage > maxPage) currentPage = maxPage;
+                DisplayPage(currentPage);
+            }
         }
 
         private void DisplayPage(int pageNumber)
@@ -97,12 +108,9 @@ namespace dmp
             };
 
             Grid cardGrid = new Grid();
+            cardGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            cardGrid.RowDefinitions.Add(new RowDefinition());
 
-            // 2 sor: első a gomb, második a szöveg
-            cardGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // gomb
-            cardGrid.RowDefinitions.Add(new RowDefinition()); // tartalom (scroll)
-
-            // Gomb
             Button moreButton = new Button
             {
                 Content = "⋯",
@@ -120,7 +128,7 @@ namespace dmp
 
             ContextMenu contextMenu = new ContextMenu();
             MenuItem deleteItem = new MenuItem { Header = "Delete" };
-            deleteItem.Click += (s, e) => DeleteFlashcard(flashcard.Id);
+            deleteItem.Click += async (s, e) => await DeleteFlashcardAsync(flashcard.Id);
             contextMenu.Items.Add(deleteItem);
             moreButton.ContextMenu = contextMenu;
             moreButton.Click += (s, e) => moreButton.ContextMenu.IsOpen = true;
@@ -128,7 +136,6 @@ namespace dmp
             Grid.SetRow(moreButton, 0);
             cardGrid.Children.Add(moreButton);
 
-            // Tartalom (scrollolható)
             ScrollViewer scrollViewer = new ScrollViewer
             {
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
@@ -165,30 +172,6 @@ namespace dmp
 
             card.Child = cardGrid;
             return card;
-        }
-
-
-
-        private void DeleteFlashcard(int flashcardId)
-        {
-            var result = MessageBox.Show("Do you want to delete this card?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-            if (result == MessageBoxResult.Yes)
-            {
-                using (MySqlConnection connection = new MySqlConnection(connectionString))
-                {
-                    connection.Open();
-                    string query = "DELETE FROM flashcards WHERE flashcard_id = @id";
-                    MySqlCommand command = new MySqlCommand(query, connection);
-                    command.Parameters.AddWithValue("@id", flashcardId);
-                    command.ExecuteNonQuery();
-                }
-
-                allFlashcards = GetFlashcardsFromDatabase();
-                int maxPage = (int)Math.Ceiling(allFlashcards.Count / (double)cardsPerPage);
-                if (currentPage > maxPage) currentPage = maxPage;
-                DisplayPage(currentPage);
-            }
         }
 
         private void ShowLoginMessage()
