@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using Newtonsoft.Json;
+using static System.Net.WebRequestMethods;
 
 namespace dmp
 {
@@ -68,15 +69,35 @@ namespace dmp
 
             if (result == MessageBoxResult.Yes)
             {
-                HttpResponseMessage response = await httpClient.DeleteAsync($"{apiBaseUrl}/flashcards/{flashcardId}");
-                response.EnsureSuccessStatusCode();
+                try
+                {
+                    string url = $"http://localhost/dmp/delete_flashcard.php?id={flashcardId}";
+                    HttpResponseMessage response = await httpClient.GetAsync(url);
+                    response.EnsureSuccessStatusCode();
 
-                allFlashcards = await GetFlashcardsFromApi();
-                int maxPage = (int)Math.Ceiling(allFlashcards.Count / (double)cardsPerPage);
-                if (currentPage > maxPage) currentPage = maxPage;
-                DisplayPage(currentPage);
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    var resultJson = JsonConvert.DeserializeObject<Dictionary<string, string>>(responseBody);
+
+                    if (resultJson.ContainsKey("success"))
+                    {
+                        MessageBox.Show("Kártya sikeresen törölve!");
+                        allFlashcards = await GetFlashcardsFromApi();
+                        int maxPage = (int)Math.Ceiling(allFlashcards.Count / (double)cardsPerPage);
+                        if (currentPage > maxPage) currentPage = maxPage;
+                        DisplayPage(currentPage);
+                    }
+                    else if (resultJson.ContainsKey("error"))
+                    {
+                        MessageBox.Show("Hiba: " + resultJson["error"]);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Hiba a törlés közben: " + ex.Message);
+                }
             }
         }
+
 
         private void DisplayPage(int pageNumber)
         {
