@@ -6,10 +6,6 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 
 include 'includes/config.php';
 
-// Set content type to JSON
-
-// Get search query
-
 
 // Handle logout
 if (isset($_GET['logout'])) {
@@ -792,6 +788,573 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
     text-align: center;
     color: #8b949e;
 }
+/* Friends system styles */
+.friends-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.friends-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 16px;
+    position: relative;
+}
+
+.tab-btn:hover {
+    background-color: var(--hover-color);
+}
+
+.tab-btn.active {
+    color: var(--accent-color);
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--accent-color);
+}
+
+.tab-content {
+    position: relative;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* Search results styles */
+.search-container {
+    margin-bottom: 20px;
+}
+
+#friendSearch {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-color);
+    font-size: 16px;
+}
+
+#searchResults {
+    margin-top: 10px;
+    background-color: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.user-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+}
+
+.user-item:last-child {
+    border-bottom: none;
+}
+
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 15px;
+    object-fit: cover;
+}
+
+.user-name {
+    color: var(--text-color);
+    font-weight: 500;
+    flex: 1;
+}
+
+.add-friend-btn {
+    background-color: var(--accent-color);
+    color: var(--text-color);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.add-friend-btn:hover {
+    background-color: #4a8ede;
+}
+
+.pending-btn {
+    background-color: #f0883e;
+}
+
+.friends-btn {
+    background-color: #56d364;
+}
+
+.no-results {
+    padding: 15px;
+    text-align: center;
+    color: #8b949e;
+}
+
+/* Friend requests and friends list styles */
+.friend-requests, .friends-list {
+    background-color: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.request-item, .friend-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.request-item:last-child, .friend-item:last-child {
+    border-bottom: none;
+}
+
+.request-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.accept-btn {
+    background-color: #56d364;
+    color: var(--text-color);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.reject-btn {
+    background-color: #f85149;
+    color: var(--text-color);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.loading {
+    padding: 20px;
+    text-align: center;
+    color: #8b949e;
+}
+
+.empty-state {
+    padding: 30px;
+    text-align: center;
+    color: #8b949e;
+}
+
+/* Friends system styles */
+.friends-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.friends-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 16px;
+    position: relative;
+}
+
+.tab-btn:hover {
+    background-color: var(--hover-color);
+}
+
+.tab-btn.active {
+    color: var(--accent-color);
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--accent-color);
+}
+
+.tab-content {
+    position: relative;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* Search results styles */
+.search-container {
+    margin-bottom: 20px;
+}
+
+#friendSearch {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-color);
+    font-size: 16px;
+}
+
+#searchResults {
+    margin-top: 10px;
+    background-color: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.user-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+}
+
+.user-item:last-child {
+    border-bottom: none;
+}
+
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 15px;
+    object-fit: cover;
+}
+
+.user-name {
+    color: var(--text-color);
+    font-weight: 500;
+    flex: 1;
+}
+
+.add-friend-btn {
+    background-color: var(--accent-color);
+    color: var(--text-color);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.add-friend-btn:hover {
+    background-color: #4a8ede;
+}
+
+.pending-btn {
+    background-color: #f0883e;
+}
+
+.friends-btn {
+    background-color: #56d364;
+}
+
+.no-results {
+    padding: 15px;
+    text-align: center;
+    color: #8b949e;
+}
+
+/* Friend requests and friends list styles */
+.friend-requests, .friends-list {
+    background-color: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.request-item, .friend-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.request-item:last-child, .friend-item:last-child {
+    border-bottom: none;
+}
+
+.request-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.accept-btn {
+    background-color: #56d364;
+    color: var(--text-color);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.reject-btn {
+    background-color: #f85149;
+    color: var(--text-color);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.loading {
+    padding: 20px;
+    text-align: center;
+    color: #8b949e;
+}
+
+.empty-state {
+    padding: 30px;
+    text-align: center;
+    color: #8b949e;
+}
+
+/* Add or update these styles in the <style> section of connect.php */
+
+.remove-friend-btn {
+    background-color: transparent;
+    color: var(--error-color);
+    border: 1px solid var(--error-color);
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-friend-btn:hover {
+    background-color: rgba(248, 81, 73, 0.1);
+}
+
+.remove-friend-btn i {
+    margin-right: 5px;
+    font-size: 12px;
+}
+
+/* Update the friend-item styling to better align elements */
+.friend-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s;
+}
+
+.friend-item:hover {
+    background-color: var(--hover-color);
+}
+
+.friend-item:last-child {
+    border-bottom: none;
+}
+
+.user-info {
+    flex: 1;
+    margin-right: 15px;
+}
+
+/* Mobile responsiveness - for screens under 450px */
+/* Update the mobile sidebar styles in your media query */
+@media (max-width: 450px) {
+    /* Sidebar adjustments - updated */
+    .sidebar {
+        width: 100%;
+        height: auto;
+        max-height: 60px;
+        overflow: hidden;
+        transition: max-height 0.3s ease, width 0s;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+    }
+    
+    .sidebar.expanded {
+        max-height: 100vh;
+        overflow-y: auto;
+        width: 100% !important; /* Force full width */
+    }
+    
+    /* Force sidebar content to be visible when expanded */
+    .sidebar.expanded .sidebar-content,
+    .sidebar.expanded .library-section,
+    .sidebar.expanded .sidebar-bottom {
+        display: block;
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    /* Hide text in collapsed state */
+    .sidebar:not(.expanded) .logo span,
+    .sidebar:not(.expanded) .nav-item span,
+    .sidebar:not(.expanded) .account span,
+    .sidebar:not(.expanded) .library-section {
+        display: none;
+    }
+    
+    /* Show text in expanded state */
+    .sidebar.expanded .logo span,
+    .sidebar.expanded .nav-item span,
+    .sidebar.expanded .account span {
+        display: inline;
+    }
+    
+    /* Ensure toggle button is visible and properly positioned */
+    .toggle-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+    }
+    .sidebar-top {
+        padding: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+    }
+    
+    /* Logo positioning for collapsed state (centered) */
+    .sidebar:not(.expanded) .logo {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        justify-content: center;
+    }
+    
+    /* Logo positioning for expanded state (left aligned) */
+    .sidebar.expanded .logo {
+        position: relative;
+        left: 0;
+        transform: none;
+    }
+    
+    /* Title text styling */
+    .logo-title {
+        display: none;
+        font-weight: bold;
+        text-align: center;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+    }
+    
+    /* Show title in expanded state */
+    .sidebar.expanded .logo-title {
+        display: block;
+    }
+    
+    /* Hide logo text in collapsed state */
+    .sidebar:not(.expanded) .logo span {
+        display: none;
+    }
+    
+    /* Toggle button positioning */
+    .toggle-btn {
+        z-index: 10;
+    }
+    body {
+        padding-top: 0; /* Remove any existing padding */
+    }
+    
+    /* Adjust main content positioning */
+    .main-content {
+        margin-top: 60px; /* Match the height of the collapsed sidebar/navbar */
+        width: 100%;
+        position: relative;
+        z-index: 1; /* Ensure it's below the sidebar but above other content */
+    }
+    
+    /* When sidebar is expanded, push content further down or hide it */
+    .sidebar.expanded + .main-content {
+        margin-top: 60px; /* Keep the same margin when expanded */
+        opacity: 0.3; /* Optional: dim the content when sidebar is expanded */
+        pointer-events: none; /* Optional: prevent interaction with content when sidebar is expanded */
+    }
+    
+    /* Ensure content area has proper padding */
+    .content-area {
+        padding: 12px;
+        padding-top: 15px; /* Add a bit more padding at the top */
+    }
+    
+    /* Ensure the input area at bottom doesn't overlap with content */
+    .input-area {
+        padding: 10px;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 90;
+    }
+    
+    /* Add padding at the bottom to prevent content from being hidden behind the input area */
+    .content-area {
+        padding-bottom: 70px; /* Adjust based on the height of your input area */
+    }
+    
+    /* Quick questions section needs margin to not be hidden by input area */
+    .quick-questions {
+        margin-bottom: 60px; /* Space for fixed input area */
+    }
+
+}
+
 
 
     </style>
@@ -802,9 +1365,9 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
     <div class="sidebar" id="sidebar">
         <div class="sidebar-top">
             <div class="logo">
-            <a href="welcome.php">    
-            <img src="media/images/icon2.png" alt="Logo">
-            </a>
+                <a href="welcome.php">    
+                    <img src="media/images/icon2.png" alt="Logo">
+                </a>
                 <span>Flashcard.ai</span>
                 
             </div>
@@ -846,13 +1409,7 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
             </div>
         </div>
         
-        <div class="sidebar-bottom">
-            <!-- Add download button above the account button -->
-            <a href="#" class="nav-item" id="download-btn">
-                <i class="fa fa-download"></i>
-                <span>Download</span>
-            </a>
-        </div>
+        
         
         <div class="sidebar-bottom">
             <div class="account" id="account-btn">
@@ -883,7 +1440,7 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
     <!-- Main Content -->
     <div class="main-content">
         <?php if (isset($_SESSION['user_id'])): ?>
-            <div class="search-container">
+            <!--<div class="search-container">
                 <div class="search-header">
                     <h2>Find Friends</h2>
                     <p>Connect with other users to share flashcards and study together</p>
@@ -895,9 +1452,49 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
                 </div>
                 
                 <div id="searchResults" class="search-results" style="display: none;">
-                    <!-- Search results will appear here -->
+                </div>
+            </div> -->
+            <div class="friends-container">
+    <!-- Tabs navigation -->
+    <div class="friends-tabs">
+        <button class="tab-btn active" data-tab="search-tab">Search</button>
+        <button class="tab-btn" data-tab="requests-tab">Requests</button>
+        <button class="tab-btn" data-tab="friends-tab">Friends</button>
+    </div>
+    
+    <!-- Tab content -->
+    <div class="tab-content">
+        <!-- Search tab -->
+        <div id="search-tab" class="tab-pane active">
+            <div class="search-container">
+                <input type="text" id="friendSearch" placeholder="Search for users...">
+                <div id="searchResults" class="search-results"></div>
+            </div>
+        </div>
+        
+        <!-- Requests tab -->
+        <div id="requests-tab" class="tab-pane">
+            <div class="requests-container">
+                <h3>Friend Requests</h3>
+                <div id="friendRequests" class="friend-requests">
+                    <div class="loading">Loading requests...</div>
                 </div>
             </div>
+        </div>
+        
+        <!-- Friends tab -->
+        <div id="friends-tab" class="tab-pane">
+            <div class="friends-list-container">
+                <h3>Your Friends</h3>
+                <div id="friendsList" class="friends-list">
+                    <div class="loading">Loading friends...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
         <?php else: ?>
             <div style="text-align: center; margin-top: 100px;">
                 <h2>Connect with Friends</h2>
@@ -1166,16 +1763,20 @@ if (friendSearch) {
                     
                     // Add each user to the results
                     users.forEach(user => {
-                        const userItem = document.createElement('div');
-                        userItem.className = 'user-item';
-                        
-                        userItem.innerHTML = `
-                            <img src="${user.profile_picture_url}" alt="${user.username}" class="user-avatar">
-                            <span class="user-name">${user.username}</span>
-                        `;
-                        
-                        resultsContainer.appendChild(userItem);
-                    });
+    const userItem = document.createElement('div');
+    userItem.className = 'user-item';
+    
+    // Check if user has a profile picture, if not use the default
+    const profilePic = user.profile_picture_url ? user.profile_picture_url : 'media/images/pfp.png';
+    
+    userItem.innerHTML = `
+        <img src="${profilePic}" alt="${user.username}" class="user-avatar">
+        <span class="user-name">${user.username}</span>
+    `;
+    
+    resultsContainer.appendChild(userItem);
+});
+
                     
                     // Add the results to the page
                     searchResults.appendChild(resultsContainer);
@@ -1239,6 +1840,672 @@ if (friendSearch) {
                 }
             });
         });
+        document.addEventListener('DOMContentLoaded', function() {
+    // Tab switching functionality
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove active class from all buttons and panes
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabPanes.forEach(p => p.classList.remove('active'));
+            
+            // Add active class to clicked button and corresponding pane
+            this.classList.add('active');
+            const tabId = this.getAttribute('data-tab');
+            document.getElementById(tabId).classList.add('active');
+            
+            // Load content for the tab if needed
+            if (tabId === 'requests-tab') {
+                loadFriendRequests();
+            } else if (tabId === 'friends-tab') {
+                loadFriends();
+            }
+        });
+    });
+    
+    // Friend search functionality
+    const friendSearch = document.getElementById('friendSearch');
+    const searchResults = document.getElementById('searchResults');
+    
+    if (friendSearch) {
+        friendSearch.addEventListener('input', function() {
+            const searchTerm = this.value.trim();
+            
+            if (searchTerm.length < 1) {
+                searchResults.innerHTML = '';
+                searchResults.style.display = 'none';
+                return;
+            }
+            
+            // Create an XMLHttpRequest object
+            const xhr = new XMLHttpRequest();
+            
+            // Configure it to GET from search_users.php
+            xhr.open('GET', 'search_users.php?q=' + encodeURIComponent(searchTerm), true);
+            
+            // Set up what happens on successful data submission
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    // Get the search results
+                    const results = xhr.responseText;
+                    
+                    // Update the search results container
+                    searchResults.innerHTML = results;
+                    searchResults.style.display = 'block';
+                    
+                    // Add friend request buttons to each user item
+                    addFriendRequestButtons();
+                } else {
+                    searchResults.innerHTML = '<div class="no-results">Error searching for users</div>';
+                    searchResults.style.display = 'block';
+                }
+            };
+            
+            xhr.send();
+        });
+    }
+    
+    // Function to add friend request buttons to search results
+    function addFriendRequestButtons() {
+        const userItems = document.querySelectorAll('.user-item');
+        
+        userItems.forEach(item => {
+            // Check if button already exists
+            if (item.querySelector('button')) return;
+            
+            const username = item.querySelector('.user-name').textContent;
+            
+            // Create button
+            const addButton = document.createElement('button');
+            addButton.className = 'add-friend-btn';
+            addButton.textContent = 'Add Friend';
+            addButton.setAttribute('data-username', username);
+            
+            // Add click event to send friend request
+            addButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                sendFriendRequest(username, this);
+            });
+            
+            // Append button to user item
+            item.appendChild(addButton);
+        });
+    }
+    
+    // Function to send friend request
+    function sendFriendRequest(username, button) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'send_friend_request.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                
+                if (response.success) {
+                    // Update button to show pending
+                    button.textContent = 'Request Sent';
+                    button.className = 'add-friend-btn pending-btn';
+                    button.disabled = true;
+                } else {
+                    alert(response.message || 'Error sending friend request');
+                }
+            } else {
+                alert('Error sending friend request');
+            }
+        };
+        
+        xhr.send('username=' + encodeURIComponent(username));
+    }
+    
+    // Function to load friend requests
+    // Function to load friend requests
+function loadFriendRequests() {
+    console.log("Loading friend requests");
+    const requestsContainer = document.getElementById('friendRequests');
+    
+    if (!requestsContainer) {
+        console.error("Friend requests container not found");
+        return;
+    }
+    
+    requestsContainer.innerHTML = '<div class="loading">Loading requests...</div>';
+    
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', 'get_friend_requests.php', true);
+    
+    xhr.onload = function() {
+        console.log("Friend requests response received");
+        
+        if (xhr.status === 200) {
+            try {
+                const response = JSON.parse(xhr.responseText);
+                
+                if (response.success) {
+                    if (response.requests && response.requests.length > 0) {
+                        let html = '';
+                        
+                        response.requests.forEach(request => {
+                            const profilePic = request.profile_picture_url || 'media/images/pfp.png';
+                            
+                            html += `
+                            <div class="request-item">
+                                <img src="${profilePic}" alt="${request.username}" class="user-avatar">
+                                <div class="user-info">
+                                    <div class="user-name">${request.username}</div>
+                                    <div class="request-time">Requested ${request.time_ago}</div>
+                                </div>
+                                <div class="request-actions">
+                                    <button class="accept-btn" data-id="${request.id}">Accept</button>
+                                    <button class="reject-btn" data-id="${request.id}">Reject</button>
+                                </div>
+                            </div>
+                            `;
+                        });
+                        
+                        requestsContainer.innerHTML = html;
+                        
+                        // Add event listeners to accept/reject buttons
+                        document.querySelectorAll('.accept-btn').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                respondToRequest(this.getAttribute('data-id'), 'accept', this.closest('.request-item'));
+                            });
+                        });
+                        
+                        document.querySelectorAll('.reject-btn').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                respondToRequest(this.getAttribute('data-id'), 'reject', this.closest('.request-item'));
+                            });
+                        });
+                    } else {
+                        requestsContainer.innerHTML = '<div class="empty-state">No friend requests at the moment</div>';
+                    }
+                } else {
+                    requestsContainer.innerHTML = '<div class="empty-state">Error: ' + (response.message || 'Unknown error') + '</div>';
+                }
+            } catch (e) {
+                console.error("Error parsing JSON:", e);
+                requestsContainer.innerHTML = '<div class="empty-state">Error parsing response</div>';
+            }
+        } else {
+            requestsContainer.innerHTML = '<div class="empty-state">Error loading requests</div>';
+        }
+    };
+    
+    xhr.onerror = function() {
+        console.error("Network error loading requests");
+        requestsContainer.innerHTML = '<div class="empty-state">Error connecting to server</div>';
+    };
+    
+    xhr.send();
+}
+
+    
+    // Function to respond to friend request
+    function respondToRequest(requestId, action, requestItem) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'respond_to_request.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    
+                    if (response.success) {
+                        // Remove the request item from the list
+                        requestItem.remove();
+                        
+                        // If no more requests, show empty state
+                        if (document.querySelectorAll('.request-item').length === 0) {
+                            document.getElementById('friendRequests').innerHTML = 
+                                '<div class="empty-state">No friend requests at the moment</div>';
+                        }
+                    } else {
+                        alert(response.message || 'Error responding to request');
+                    }
+                } catch (e) {
+                    alert('Error parsing response');
+                }
+            } else {
+                alert('Error responding to request');
+            }
+        };
+        
+        xhr.send('request_id=' + encodeURIComponent(requestId) + '&action=' + encodeURIComponent(action));
+    }
+    
+    // Function to load friends list
+    // Function to load friends list
+function loadFriends() {
+    console.log("Loading friends list");
+    const friendsContainer = document.getElementById('friendsList');
+    
+    if (!friendsContainer) {
+        console.error("Friends list container not found");
+        return;
+    }
+    
+    friendsContainer.innerHTML = '<div class="loading">Loading friends...</div>';
+    
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', 'get_friends.php', true);
+    
+    xhr.onload = function() {
+        console.log("Friends list response received");
+        
+        if (xhr.status === 200) {
+            try {
+                const response = JSON.parse(xhr.responseText);
+                
+                if (response.success) {
+                    if (response.friends && response.friends.length > 0) {
+                        let html = '';
+                        
+                        response.friends.forEach(friend => {
+                            const profilePic = friend.profile_picture_url || 'media/images/pfp.png';
+                            
+                            html += `
+                            <div class="friend-item">
+                                <img src="${profilePic}" alt="${friend.username}" class="user-avatar">
+                                <div class="user-info">
+                                    <div class="user-name">${friend.username}</div>
+                                    <div class="friend-since">Friends since ${friend.friends_since}</div>
+                                </div>
+                                <button class="remove-friend-btn" data-id="${friend.id}">Remove</button>
+                            </div>
+                            `;
+                        });
+                        
+                        friendsContainer.innerHTML = html;
+                        
+                        // Add event listeners to remove buttons
+                        document.querySelectorAll('.remove-friend-btn').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                removeFriend(this.getAttribute('data-id'), this.closest('.friend-item'));
+                            });
+                        });
+                    } else {
+                        friendsContainer.innerHTML = '<div class="empty-state">You don\'t have any friends yet</div>';
+                    }
+                } else {
+                    friendsContainer.innerHTML = '<div class="empty-state">Error: ' + (response.message || 'Unknown error') + '</div>';
+                }
+            } catch (e) {
+                console.error("Error parsing JSON:", e);
+                friendsContainer.innerHTML = '<div class="empty-state">Error parsing response</div>';
+            }
+        } else {
+            friendsContainer.innerHTML = '<div class="empty-state">Error loading friends</div>';
+        }
+    };
+    
+    xhr.onerror = function() {
+        console.error("Network error loading friends");
+        friendsContainer.innerHTML = '<div class="empty-state">Error connecting to server</div>';
+    };
+    
+    xhr.send();
+}
+
+    
+    // Function to remove a friend
+    function removeFriend(friendId, friendItem) {
+        if (!confirm('Are you sure you want to remove this friend?')) {
+            return;
+        }
+        
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'remove_friend.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    
+                    if (response.success) {
+                        // Remove the friend item from the list
+                        friendItem.remove();
+                        
+                        // If no more friends, show empty state
+                        if (document.querySelectorAll('.friend-item').length === 0) {
+                            document.getElementById('friendsList').innerHTML = 
+                                '<div class="empty-state">You don\'t have any friends yet</div>';
+                        }
+                    } else {
+                        alert(response.message || 'Error removing friend');
+                    }
+                } catch (e) {
+                    alert('Error parsing response');
+                }
+            } else {
+                alert('Error removing friend');
+            }
+        };
+        
+        xhr.send('friend_id=' + encodeURIComponent(friendId));
+    }
+    
+    // Load the initial tab content
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (activeTab) {
+        const tabId = activeTab.getAttribute('data-tab');
+        if (tabId === 'requests-tab') {
+            loadFriendRequests();
+        } else if (tabId === 'friends-tab') {
+            loadFriends();
+        }
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Tab switching functionality
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            console.log("Tab clicked: " + this.getAttribute('data-tab'));
+            
+            // Remove active class from all buttons and panes
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabPanes.forEach(p => p.classList.remove('active'));
+            
+            // Add active class to clicked button and corresponding pane
+            this.classList.add('active');
+            const tabId = this.getAttribute('data-tab');
+            document.getElementById(tabId).classList.add('active');
+            
+            // Load content for the tab if needed
+            if (tabId === 'requests-tab') {
+                loadFriendRequests();
+            } else if (tabId === 'friends-tab') {
+                loadFriends();
+            }
+        });
+    });
+    
+    // Friend search functionality
+    const friendSearch = document.getElementById('friendSearch');
+    const searchResults = document.getElementById('searchResults');
+    
+    if (friendSearch) {
+        console.log("Friend search input found");
+        
+        friendSearch.addEventListener('input', function() {
+            const searchTerm = this.value.trim();
+            console.log("Searching for: " + searchTerm);
+            
+            if (searchTerm.length < 1) {
+                searchResults.innerHTML = '';
+                searchResults.style.display = 'none';
+                return;
+            }
+            
+            // Create an XMLHttpRequest object
+            const xhr = new XMLHttpRequest();
+            
+            // Configure it to GET from search_users.php
+            xhr.open('GET', 'search_users.php?q=' + encodeURIComponent(searchTerm), true);
+            
+            // Set up what happens on successful data submission
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    // Get the search results
+                    const results = xhr.responseText;
+                    console.log("Search results received");
+                    
+                    // Update the search results container
+                    searchResults.innerHTML = results;
+                    searchResults.style.display = 'block';
+                    
+                    // Add event listeners to the Add Friend buttons
+                    const addFriendButtons = searchResults.querySelectorAll('.add-friend-btn');
+                    console.log("Found " + addFriendButtons.length + " Add Friend buttons");
+                    
+                    addFriendButtons.forEach(button => {
+                        button.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const username = this.getAttribute('data-username');
+                            console.log("Add friend button clicked for: " + username);
+                            sendFriendRequest(username, this);
+                        });
+                    });
+                } else {
+                    searchResults.innerHTML = '<div class="no-results">Error searching for users</div>';
+                    searchResults.style.display = 'block';
+                }
+            };
+            
+            xhr.send();
+        });
+    } else {
+        console.error("Friend search input not found");
+    }
+    
+    // Function to send friend request
+    function sendFriendRequest(username, button) {
+        console.log("Sending friend request to: " + username);
+        
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'send_friend_request.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        
+        xhr.onload = function() {
+            console.log("Response received: " + xhr.responseText);
+            
+            if (xhr.status === 200) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    console.log("Parsed response:", response);
+                    
+                    if (response.success) {
+                        // Update button to show pending
+                        button.textContent = 'Request Sent';
+                        button.className = 'add-friend-btn pending-btn';
+                        button.disabled = true;
+                        alert("Friend request sent successfully!");
+                    } else {
+                        alert(response.message || 'Error sending friend request');
+                    }
+                } catch (e) {
+                    console.error("Error parsing JSON:", e);
+                    alert("Error processing response");
+                }
+            } else {
+                console.error("HTTP error:", xhr.status);
+                alert('Error sending friend request');
+            }
+        };
+        
+        xhr.onerror = function() {
+            console.error("Network error");
+            alert('Network error when sending friend request');
+        };
+        
+        const data = 'username=' + encodeURIComponent(username);
+        console.log("Sending data: " + data);
+        xhr.send(data);
+    }
+    
+    
+    
+    // Function to respond to friend request
+    function respondToRequest(requestId, action, requestItem) {
+        console.log("Responding to request " + requestId + " with action: " + action);
+        
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'respond_to_request.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        
+        xhr.onload = function() {
+            console.log("Response received: " + xhr.responseText);
+            
+            if (xhr.status === 200) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    
+                    if (response.success) {
+                        // Remove the request item from the list
+                        requestItem.remove();
+                        
+                        // If no more requests, show empty state
+                        if (document.querySelectorAll('.request-item').length === 0) {
+                            document.getElementById('friendRequests').innerHTML = 
+                                '<div class="empty-state">No friend requests at the moment</div>';
+                        }
+                        
+                        alert(action === 'accept' ? "Friend request accepted!" : "Friend request rejected");
+                    } else {
+                        alert(response.message || 'Error responding to request');
+                    }
+                } catch (e) {
+                    console.error("Error parsing JSON:", e);
+                    alert("Error processing response");
+                }
+            } else {
+                console.error("HTTP error:", xhr.status);
+                alert('Error responding to request');
+            }
+        };
+        
+        xhr.send('request_id=' + encodeURIComponent(requestId) + '&action=' + encodeURIComponent(action));
+    }
+        
+    
+    // Function to remove a friend
+    function removeFriend(friendId, friendItem) {
+        console.log("Removing friend with ID: " + friendId);
+        
+        if (!confirm('Are you sure you want to remove this friend?')) {
+            return;
+        }
+        
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'remove_friend.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        
+        xhr.onload = function() {
+            console.log("Response received: " + xhr.responseText);
+            
+            if (xhr.status === 200) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    
+                    if (response.success) {
+                        // Remove the friend item from the list
+                        friendItem.remove();
+                        
+                        // If no more friends, show empty state
+                        if (document.querySelectorAll('.friend-item').length === 0) {
+                            document.getElementById('friendsList').innerHTML = 
+                                '<div class="empty-state">You don\'t have any friends yet</div>';
+                        }
+                        
+                        alert("Friend removed successfully");
+                    } else {
+                        alert(response.message || 'Error removing friend');
+                    }
+                } catch (e) {
+                    console.error("Error parsing JSON:", e);
+                    alert("Error processing response");
+                }
+            } else {
+                console.error("HTTP error:", xhr.status);
+                alert('Error removing friend');
+            }
+        };
+        
+        xhr.send('friend_id=' + encodeURIComponent(friendId));
+    }
+    
+    // Load the initial tab content
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (activeTab) {
+        console.log("Initial active tab: " + activeTab.getAttribute('data-tab'));
+        const tabId = activeTab.getAttribute('data-tab');
+        if (tabId === 'requests-tab') {
+            loadFriendRequests();
+        } else if (tabId === 'friends-tab') {
+            loadFriends();
+        }
+    } else {
+        console.error("No active tab found");
+    }
+});
+
+// Replace your existing mobile sidebar toggle code with this improved version
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile sidebar toggle - improved
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    const toggleIcon = toggleBtn.querySelector('i');
+    
+    function handleMobileView() {
+        if (window.innerWidth <= 450) {
+            // Reset any inline styles that might be causing issues
+            sidebar.style.width = '';
+            
+            // For mobile view
+            toggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                
+                // Toggle expanded class
+                sidebar.classList.toggle('expanded');
+                
+                // Update icon
+                if (sidebar.classList.contains('expanded')) {
+                    toggleIcon.classList.remove('fa-chevron-right');
+                    toggleIcon.classList.add('fa-chevron-left');
+                } else {
+                    toggleIcon.classList.remove('fa-chevron-left');
+                    toggleIcon.classList.add('fa-chevron-right');
+                }
+                
+                // Force a reflow to ensure transitions work properly
+                void sidebar.offsetWidth;
+            });
+            
+            // Close sidebar when clicking elsewhere
+            document.addEventListener('click', function(e) {
+                if (!sidebar.contains(e.target) && sidebar.classList.contains('expanded')) {
+                    sidebar.classList.remove('expanded');
+                    toggleIcon.classList.remove('fa-chevron-left');
+                    toggleIcon.classList.add('fa-chevron-right');
+                }
+            });
+            
+            // Prevent sidebar from closing when clicking inside it
+            sidebar.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        } else {
+            // For desktop view, ensure proper icon state
+            if (sidebar.classList.contains('collapsed')) {
+                toggleIcon.classList.remove('fa-chevron-left');
+                toggleIcon.classList.add('fa-chevron-right');
+            } else {
+                toggleIcon.classList.remove('fa-chevron-right');
+                toggleIcon.classList.add('fa-chevron-left');
+            }
+        }
+    }
+    
+    // Run on load
+    handleMobileView();
+    
+    // Run on resize with debounce
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(handleMobileView, 250);
+    });
+});
+
     </script>
 </body>
 </html>

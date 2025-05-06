@@ -93,13 +93,26 @@ if (isset($_POST['register_submit'])) {
 $currentSet = null;
 $flashcards = [];
 $setId = isset($_GET['set_id']) ? intval($_GET['set_id']) : null;
+$isShared = isset($_GET['shared']) && $_GET['shared'] == '1';
 
 // View specific flashcard set
 if (isset($_GET['set_id']) && is_numeric($_GET['set_id'])) {
     try {
-        // Verify the set belongs to the user
-        $stmt = $pdo->prepare("SELECT * FROM sets WHERE set_id = ? AND user_id = ?");
-        $stmt->execute([$_GET['set_id'], $_SESSION['user_id']]);
+        if ($isShared) {
+            // Verify the set is shared with the user
+            $stmt = $pdo->prepare("
+                SELECT s.* 
+                FROM sets s
+                JOIN shared_sets ss ON s.set_id = ss.set_id
+                WHERE s.set_id = ? AND ss.user_id = ?
+            ");
+            $stmt->execute([$_GET['set_id'], $_SESSION['user_id']]);
+        } else {
+            // Verify the set belongs to the user
+            $stmt = $pdo->prepare("SELECT * FROM sets WHERE set_id = ? AND user_id = ?");
+            $stmt->execute([$_GET['set_id'], $_SESSION['user_id']]);
+        }
+        
         $currentSet = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($currentSet) {
@@ -108,6 +121,7 @@ if (isset($_GET['set_id']) && is_numeric($_GET['set_id'])) {
             $stmt->execute([$_GET['set_id']]);
             $_SESSION['current_flashcards'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $_SESSION['current_set'] = $currentSet;
+            $_SESSION['is_shared_set'] = $isShared;
         }
     } catch (PDOException $e) {
         $_SESSION['error'] = "Error loading flashcard set: " . $e->getMessage();
@@ -154,6 +168,42 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
     }
 }
 
+// Add this function to display shared sets
+function displaySharedFlashcardSets($pdo, $userId) {
+    try {
+        // Prepare and execute the query to fetch sets shared with the logged-in user
+        $stmt = $pdo->prepare("
+            SELECT s.set_id, s.title, u.username as owner_name 
+            FROM sets s
+            JOIN shared_sets ss ON s.set_id = ss.set_id
+            JOIN users u ON ss.owner_id = u.id
+            WHERE ss.user_id = ? 
+            ORDER BY ss.shared_at DESC
+        ");
+        $stmt->execute([$userId]);
+        
+        // Fetch all results
+        $sharedSets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Check if any shared sets were found
+        if (!empty($sharedSets)) {
+            foreach ($sharedSets as $set) {
+                echo '<div class="library-item-container">';
+                echo '<a href="flashcard.php?set_id=' . $set['set_id'] . '&shared=1" class="library-item shared-item" data-set-id="' . $set['set_id'] . '">';
+                echo '<span class="set-title">' . htmlspecialchars($set['title']) . '</span>';
+                echo '<span class="set-owner">by ' . htmlspecialchars($set['owner_name']) . '</span>';
+                echo '</a>';
+                echo '</div>';
+            }
+        } else {
+            echo '<p class="no-sets-message">No sets have been shared with you yet.</p>';
+        }
+    } catch (PDOException $e) {
+        // Handle database errors
+        error_log("Error fetching shared flashcard sets: " . $e->getMessage());
+        echo '<p style="color:red;">Error loading shared sets.</p>';
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -1192,6 +1242,303 @@ input:checked + .toggle-slider:before {
     visibility: visible !important;
 }
 
+/* Share button styling */
+#share-set-btn {
+        margin-left: 10px;
+        padding: 5px 10px;
+        background-color: var(--accent-color);
+        color: var(--text-color);
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        transition: background-color 0.2s;
+    }
+    
+    #share-set-btn i {
+        margin-right: 5px;
+    }
+    
+    #share-set-btn:hover {
+        background-color: #4a8ede;
+    }
+    
+    /* Friends list styling */
+    .friends-list {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        margin-bottom: 15px;
+        background-color: var(--primary-color);
+    }
+    
+    .friend-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .friend-item:last-child {
+        border-bottom: none;
+    }
+    
+    .friend-item:hover {
+        background-color: var(--hover-color);
+    }
+    
+    .friend-item.selected {
+        background-color: rgba(88, 166, 255, 0.1);
+    }
+    
+    .friend-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-right: 10px;
+        object-fit: cover;
+    }
+    
+    .friend-name {
+        flex-grow: 1;
+    }
+    
+    .friend-checkbox {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    
+    .loading-indicator {
+        padding: 20px;
+        text-align: center;
+        color: #8b949e;
+    }
+    
+    .no-friends {
+        padding: 20px;
+        text-align: center;
+        color: #8b949e;
+    }
+    
+    .selected-friends-count {
+        font-size: 14px;
+        color: #8b949e;
+        margin-bottom: 10px;
+        text-align: right;
+
+        
+    }
+
+    /* Add this to your existing CSS */
+#shared-sets-section {
+    display: none; /* Hidden by default, will be toggled with JS */
+}
+
+.shared-item {
+    position: relative;
+}
+
+.set-owner {
+    font-size: 12px;
+    color: #8b949e;
+    display: block;
+    margin-top: 2px;
+}
+
+.no-sets-message {
+    padding: 10px;
+    color: #8b949e;
+    font-style: italic;
+    font-size: 14px;
+}
+
+/* Shared set indicator */
+.shared-item::before {
+    content: '\f064';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    left: -18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent-color);
+    font-size: 12px;
+}
+/* Add this to your existing CSS */
+.shared-set-notice {
+    padding: 10px;
+    background-color: rgba(88, 166, 255, 0.1);
+    border: 1px solid var(--accent-color);
+    border-radius: 4px;
+    color: var(--accent-color);
+    font-size: 14px;
+    text-align: center;
+}
+
+/* Add this to your existing CSS */
+.shared-by {
+    margin-left: 10px;
+    font-size: 14px;
+    color: #8b949e;
+    font-style: italic;
+}
+/* Mobile responsiveness - for screens under 450px */
+/* Update the mobile sidebar styles in your media query */
+@media (max-width: 450px) {
+    /* Sidebar adjustments - updated */
+    .sidebar {
+        width: 100%;
+        height: auto;
+        max-height: 60px;
+        overflow: hidden;
+        transition: max-height 0.3s ease, width 0s;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+    }
+    
+    .sidebar.expanded {
+        max-height: 100vh;
+        overflow-y: auto;
+        width: 100% !important; /* Force full width */
+    }
+    
+    /* Force sidebar content to be visible when expanded */
+    .sidebar.expanded .sidebar-content,
+    .sidebar.expanded .library-section,
+    .sidebar.expanded .sidebar-bottom {
+        display: block;
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    /* Hide text in collapsed state */
+    .sidebar:not(.expanded) .logo span,
+    .sidebar:not(.expanded) .nav-item span,
+    .sidebar:not(.expanded) .account span,
+    .sidebar:not(.expanded) .library-section {
+        display: none;
+    }
+    
+    /* Show text in expanded state */
+    .sidebar.expanded .logo span,
+    .sidebar.expanded .nav-item span,
+    .sidebar.expanded .account span {
+        display: inline;
+    }
+    
+    /* Ensure toggle button is visible and properly positioned */
+    .toggle-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+    }
+    .sidebar-top {
+        padding: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+    }
+    
+    /* Logo positioning for collapsed state (centered) */
+    .sidebar:not(.expanded) .logo {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        justify-content: center;
+    }
+    
+    /* Logo positioning for expanded state (left aligned) */
+    .sidebar.expanded .logo {
+        position: relative;
+        left: 0;
+        transform: none;
+    }
+    
+    /* Title text styling */
+    .logo-title {
+        display: none;
+        font-weight: bold;
+        text-align: center;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+    }
+    
+    /* Show title in expanded state */
+    .sidebar.expanded .logo-title {
+        display: block;
+    }
+    
+    /* Hide logo text in collapsed state */
+    .sidebar:not(.expanded) .logo span {
+        display: none;
+    }
+    
+    /* Toggle button positioning */
+    .toggle-btn {
+        z-index: 10;
+    }
+    body {
+        padding-top: 0; /* Remove any existing padding */
+    }
+    
+    /* Adjust main content positioning */
+    .main-content {
+        margin-top: 60px; /* Match the height of the collapsed sidebar/navbar */
+        width: 100%;
+        position: relative;
+        z-index: 1; /* Ensure it's below the sidebar but above other content */
+    }
+    
+    /* When sidebar is expanded, push content further down or hide it */
+    .sidebar.expanded + .main-content {
+        margin-top: 60px; /* Keep the same margin when expanded */
+        opacity: 0.3; /* Optional: dim the content when sidebar is expanded */
+        pointer-events: none; /* Optional: prevent interaction with content when sidebar is expanded */
+    }
+    
+    /* Ensure content area has proper padding */
+    .content-area {
+        padding: 12px;
+        padding-top: 15px; /* Add a bit more padding at the top */
+    }
+    
+    /* Ensure the input area at bottom doesn't overlap with content */
+    .input-area {
+        padding: 10px;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 90;
+    }
+    
+    /* Add padding at the bottom to prevent content from being hidden behind the input area */
+    .content-area {
+        padding-bottom: 70px; /* Adjust based on the height of your input area */
+    }
+    
+    /* Quick questions section needs margin to not be hidden by input area */
+    .quick-questions {
+        margin-bottom: 60px; /* Space for fixed input area */
+    }
+
+}
+
+
 
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1212,37 +1559,54 @@ input:checked + .toggle-slider:before {
             </button>
         </div>
         
-        <div class="sidebar-content">
-        <a href="welcome.php" class="nav-item">
-                <i class="fa fa-home"></i>
-                <span>Home</span>
-            </a>
-            <a href="https://docs.google.com/document/d/1rvKo156DPou6UD3AZTfpJEa7ZuKD_uafZSG2bJSty6A/edit?pli=1&tab=t.0" class="nav-item" target="_blank">
-                <i class="fa fa-file-alt"></i>
-                <span>Documentation</span>
-            </a>
-            <a href="#" class="nav-item">
-                    <i class="fa fa-book"></i>
-                    <span>Library</span>
-                </a>
-            
-            <div class="library-section">
-                
-                
-                <div class="library-section">
-                    <div id="library-items">
-                        <?php 
-                        if (isset($_SESSION['user_id'])) {
-                            displayFlashcardSetsFromDatabase($pdo, $_SESSION['user_id']);
-                        } 
-                        else {
-                            echo '<p>Please log in to view your library.</p>';
-                        }
-                        ?>
-                    </div>
-                </div>
-            </div>
+        <!-- Add this to the sidebar-content div, after the existing Library nav item -->
+<div class="sidebar-content">
+    <a href="welcome.php" class="nav-item">
+        <i class="fa fa-home"></i>
+        <span>Home</span>
+    </a>
+    <a href="https://docs.google.com/document/d/1rvKo156DPou6UD3AZTfpJEa7ZuKD_uafZSG2bJSty6A/edit?pli=1&tab=t.0" class="nav-item" target="_blank">
+        <i class="fa fa-file-alt"></i>
+        <span>Documentation</span>
+    </a>
+    <a href="#" class="nav-item">
+        <i class="fa fa-book"></i>
+        <span>Library</span>
+    </a>
+    
+    <div class="library-section">
+        <div id="library-items">
+            <?php 
+            if (isset($_SESSION['user_id'])) {
+                displayFlashcardSetsFromDatabase($pdo, $_SESSION['user_id']);
+            } 
+            else {
+                echo '<p>Please log in to view your library.</p>';
+            }
+            ?>
         </div>
+    </div>
+    
+    <!-- Add Shared Sets section -->
+    <a href="#" class="nav-item" id="shared-sets-toggle">
+        <i class="fa fa-share-alt"></i>
+        <span>Shared Sets</span>
+    </a>
+    
+    <div class="library-section" id="shared-sets-section">
+        <div id="shared-sets-items">
+            <?php 
+            if (isset($_SESSION['user_id'])) {
+                displaySharedFlashcardSets($pdo, $_SESSION['user_id']);
+            } 
+            else {
+                echo '<p>Please log in to view shared sets.</p>';
+            }
+            ?>
+        </div>
+    </div>
+</div>
+
         
         <div class="sidebar-bottom">
             <!-- Add download button above the account button -->
@@ -1283,24 +1647,56 @@ input:checked + .toggle-slider:before {
     <div class="main-content">
         <div class="content-area" id="content-area">
         <?php if (isset($_SESSION['current_flashcards']) && !empty($_SESSION['current_flashcards'])): ?>
-    <div class="flashcard-set-header">
-        <h2><?php echo htmlspecialchars($_SESSION['current_set']['title']); ?></h2>
-        <p>Total cards: <?php echo count($_SESSION['current_flashcards']); ?></p>
-    </div>
+            <div class="flashcard-set-header">
+    <h2><?php echo htmlspecialchars($_SESSION['current_set']['title']); ?></h2>
+    <?php if (!isset($_SESSION['is_shared_set']) || !$_SESSION['is_shared_set']): ?>
+        <button id="share-set-btn" class="action-btn" title="Share this set">
+            <i class="fa fa-share-alt"></i> Share
+        </button>
+    <?php else: ?>
+        <span class="shared-by">
+            Shared by: <?php 
+                // Get the owner's username
+                try {
+                    $stmt = $pdo->prepare("
+                        SELECT u.username 
+                        FROM users u
+                        JOIN shared_sets ss ON u.id = ss.owner_id
+                        WHERE ss.set_id = ? AND ss.user_id = ?
+                    ");
+                    $stmt->execute([$_GET['set_id'], $_SESSION['user_id']]);
+                    $owner = $stmt->fetch();
+                    echo htmlspecialchars($owner['username'] ?? 'Unknown');
+                } catch (PDOException $e) {
+                    echo 'Unknown';
+                }
+            ?>
+        </span>
+    <?php endif; ?>
+    <p>Total cards: <?php echo count($_SESSION['current_flashcards']); ?></p>
+</div>
 
     <div class="flashcard-container">
         <!-- Add this div for the card action buttons above the flashcard -->
-        <div class="card-actions" style="text-align: center; margin-bottom: 15px;">
-            <button id="edit-current-card-btn" class="action-btn">
-                <i class="fa fa-pen"></i> Edit Card
-            </button>
-            <button id="delete-current-card-btn" class="action-btn delete-btn">
-                <i class="fa fa-trash"></i> Delete Card
-            </button>
-            <button id="add-new-card-btn" class="action-btn add-btn">
-                <i class="fa fa-plus"></i> Add Card
-            </button>
+        <!-- Modify the card actions div to check if it's a shared set -->
+<div class="card-actions" style="text-align: center; margin-bottom: 15px;">
+    <?php if (!isset($_SESSION['is_shared_set']) || !$_SESSION['is_shared_set']): ?>
+        <button id="edit-current-card-btn" class="action-btn">
+            <i class="fa fa-pen"></i> Edit Card
+        </button>
+        <button id="delete-current-card-btn" class="action-btn delete-btn">
+            <i class="fa fa-trash"></i> Delete Card
+        </button>
+        <button id="add-new-card-btn" class="action-btn add-btn">
+            <i class="fa fa-plus"></i> Add Card
+        </button>
+    <?php else: ?>
+        <div class="shared-set-notice">
+            <i class="fa fa-info-circle"></i> This is a shared set. You can view but not edit these cards.
         </div>
+    <?php endif; ?>
+</div>
+
 
         <div class="flashcards-wrapper">
             <?php foreach ($_SESSION['current_flashcards'] as $index => $card): ?>
@@ -1564,7 +1960,40 @@ input:checked + .toggle-slider:before {
         </div>
     </div>
 </div>
-
+<div id="share-set-modal" class="auth-modal" style="display: none;">
+    <div class="auth-container" style="width: 450px;">
+        <div class="auth-form active">
+            <div class="form-group" style="text-align: center; margin-bottom: 20px;">
+                <h3>Share Set</h3>
+                <p>Share "<?php echo isset($_SESSION['current_set']) ? htmlspecialchars($_SESSION['current_set']['title']) : ''; ?>" with your friends</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="friend-search">Search Friends</label>
+                <input type="text" id="friend-search" placeholder="Type to search...">
+            </div>
+            
+            <div class="friends-list" id="friends-list">
+                <div class="loading-indicator">
+                    <i class="fa fa-spinner fa-spin"></i> Loading friends...
+                </div>
+                <!-- Friends will be loaded here dynamically -->
+            </div>
+            
+            <div class="selected-friends-count" id="selected-friends-count">
+                0 friends selected
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button id="cancel-share" class="auth-btn" style="background-color: var(--hover-color);">Cancel</button>
+                <button id="confirm-share" class="auth-btn" style="background-color: var(--accent-color);">Share Set</button>
+            </div>
+            
+            <div id="share-error" class="error-message" style="margin-top: 10px; text-align: center;"></div>
+            <div id="share-success" class="success-message" style="margin-top: 10px; text-align: center;"></div>
+        </div>
+    </div>
+</div>
 
 
     <script>
@@ -2691,7 +3120,293 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-
+document.addEventListener('DOMContentLoaded', function() {
+        // Share set functionality
+        const shareSetBtn = document.getElementById('share-set-btn');
+        const shareSetModal = document.getElementById('share-set-modal');
+        const friendSearch = document.getElementById('friend-search');
+        const friendsList = document.getElementById('friends-list');
+        const selectedFriendsCount = document.getElementById('selected-friends-count');
+        const cancelShareBtn = document.getElementById('cancel-share');
+        const confirmShareBtn = document.getElementById('confirm-share');
+        const shareErrorDiv = document.getElementById('share-error');
+        const shareSuccessDiv = document.getElementById('share-success');
+        
+        let friends = []; // Will store all friends
+        let selectedFriends = []; // Will store selected friend IDs
+        
+        // Show share modal when share button is clicked
+        if (shareSetBtn) {
+            shareSetBtn.addEventListener('click', function() {
+                // Reset state
+                selectedFriends = [];
+                shareErrorDiv.textContent = '';
+                shareSuccessDiv.textContent = '';
+                updateSelectedCount();
+                
+                // Show the modal
+                shareSetModal.style.display = 'flex';
+                
+                // Load friends
+                loadFriends();
+            });
+        }
+        
+        // Cancel share
+        if (cancelShareBtn) {
+            cancelShareBtn.addEventListener('click', function() {
+                shareSetModal.style.display = 'none';
+            });
+        }
+        
+        // Search functionality
+        if (friendSearch) {
+            friendSearch.addEventListener('input', function() {
+                loadFriends(this.value);
+            });
+        }
+        
+        // Confirm share
+        if (confirmShareBtn) {
+            confirmShareBtn.addEventListener('click', function() {
+                if (selectedFriends.length === 0) {
+                    shareErrorDiv.textContent = 'Please select at least one friend to share with.';
+                    return;
+                }
+                
+                shareErrorDiv.textContent = '';
+                shareSuccessDiv.textContent = '';
+                
+                // Get the current set ID
+                const urlParams = new URLSearchParams(window.location.search);
+                const setId = urlParams.get('set_id');
+                
+                if (!setId) {
+                    shareErrorDiv.textContent = 'Could not determine the current set ID.';
+                    return;
+                }
+                
+                // Send AJAX request to share the set
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'share_set.php', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                
+                xhr.onload = function() {
+                    if (this.status === 200) {
+                        try {
+                            const response = JSON.parse(this.responseText);
+                            
+                            if (response.success) {
+                                shareSuccessDiv.textContent = response.message;
+                                // Clear selection after successful share
+                                selectedFriends = [];
+                                updateSelectedCount();
+                                renderFriendsList(friends);
+                                
+                                // Close modal after a delay
+                                setTimeout(function() {
+                                    shareSetModal.style.display = 'none';
+                                }, 2000);
+                            } else {
+                                shareErrorDiv.textContent = response.message || 'An unknown error occurred.';
+                            }
+                        } catch (e) {
+                            console.error('Error parsing response:', e);
+                            shareErrorDiv.textContent = 'Error processing server response.';
+                        }
+                    } else {
+                        shareErrorDiv.textContent = `Error sharing set: ${this.statusText}`;
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    shareErrorDiv.textContent = 'Network error occurred while trying to share the set.';
+                };
+                
+                // Format the friend IDs as a comma-separated list
+                const friendIdsParam = selectedFriends.map(id => `friend_ids[]=${encodeURIComponent(id)}`).join('&');
+                const params = `set_id=${encodeURIComponent(setId)}&${friendIdsParam}`;
+                xhr.send(params);
+            });
+        }
+        
+        // Load friends from server
+        function loadFriends(searchTerm = '') {
+            // Show loading indicator
+            friendsList.innerHTML = '<div class="loading-indicator"><i class="fa fa-spinner fa-spin"></i> Loading friends...</div>';
+            // Send AJAX request to get friends
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `get_friends.php${searchTerm ? '?search=' + encodeURIComponent(searchTerm) : ''}`, true);
+            
+            xhr.onload = function() {
+                if (this.status === 200) {
+                    try {
+                        const response = JSON.parse(this.responseText);
+                        
+                        if (response.success) {
+                            friends = response.friends;
+                            renderFriendsList(friends);
+                        } else {
+                            friendsList.innerHTML = `<div class="no-friends">Error: ${response.message}</div>`;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing response:', e);
+                        friendsList.innerHTML = '<div class="no-friends">Error processing server response.</div>';
+                    }
+                } else {
+                    friendsList.innerHTML = `<div class="no-friends">Error fetching friends: ${this.statusText}</div>`;
+                }
+            };
+            
+            xhr.onerror = function() {
+                friendsList.innerHTML = '<div class="no-friends">Network error occurred while trying to fetch friends.</div>';
+            };
+            
+            xhr.send();
+        }
+        
+        // Render friends list
+        function renderFriendsList(friendsArray) {
+            if (friendsArray.length === 0) {
+                friendsList.innerHTML = '<div class="no-friends">No friends found. Add friends to share your flashcard sets!</div>';
+                return;
+            }
+            
+            let html = '';
+            
+            friendsArray.forEach(friend => {
+                const isSelected = selectedFriends.includes(friend.id);
+                html += `
+                    <div class="friend-item ${isSelected ? 'selected' : ''}" data-friend-id="${friend.id}">
+                        <img src="${friend.profile_picture_url}" alt="${friend.username}" class="friend-avatar">
+                        <div class="friend-name">${friend.username}</div>
+                        <input type="checkbox" class="friend-checkbox" ${isSelected ? 'checked' : ''}>
+                    </div>
+                `;
+            });
+            
+            friendsList.innerHTML = html;
+            
+            // Add click event to friend items
+            document.querySelectorAll('.friend-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const friendId = this.dataset.friendId;
+                    const checkbox = this.querySelector('.friend-checkbox');
+                    
+                    // Toggle selection
+                    if (selectedFriends.includes(friendId)) {
+                        selectedFriends = selectedFriends.filter(id => id !== friendId);
+                        this.classList.remove('selected');
+                        checkbox.checked = false;
+                    } else {
+                        selectedFriends.push(friendId);
+                        this.classList.add('selected');
+                        checkbox.checked = true;
+                    }
+                    
+                    updateSelectedCount();
+                });
+            });
+        }
+        
+        // Update selected friends count
+        function updateSelectedCount() {
+            selectedFriendsCount.textContent = `${selectedFriends.length} friend${selectedFriends.length !== 1 ? 's' : ''} selected`;
+        }
+        
+        // Close share modal when clicking outside
+        shareSetModal.addEventListener('click', function(e) {
+            if (e.target === shareSetModal) {
+                shareSetModal.style.display = 'none';
+            }
+        });
+    });
+// Add this to your existing JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle shared sets section
+    const sharedSetsToggle = document.getElementById('shared-sets-toggle');
+    const sharedSetsSection = document.getElementById('shared-sets-section');
+    
+    if (sharedSetsToggle && sharedSetsSection) {
+        sharedSetsToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Toggle display
+            if (sharedSetsSection.style.display === 'none' || sharedSetsSection.style.display === '') {
+                sharedSetsSection.style.display = 'block';
+            } else {
+                sharedSetsSection.style.display = 'none';
+            }
+        });
+    }
+});
+// Replace your existing mobile sidebar toggle code with this improved version
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile sidebar toggle - improved
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    const toggleIcon = toggleBtn.querySelector('i');
+    
+    function handleMobileView() {
+        if (window.innerWidth <= 450) {
+            // Reset any inline styles that might be causing issues
+            sidebar.style.width = '';
+            
+            // For mobile view
+            toggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                
+                // Toggle expanded class
+                sidebar.classList.toggle('expanded');
+                
+                // Update icon
+                if (sidebar.classList.contains('expanded')) {
+                    toggleIcon.classList.remove('fa-chevron-right');
+                    toggleIcon.classList.add('fa-chevron-left');
+                } else {
+                    toggleIcon.classList.remove('fa-chevron-left');
+                    toggleIcon.classList.add('fa-chevron-right');
+                }
+                
+                // Force a reflow to ensure transitions work properly
+                void sidebar.offsetWidth;
+            });
+            
+            // Close sidebar when clicking elsewhere
+            document.addEventListener('click', function(e) {
+                if (!sidebar.contains(e.target) && sidebar.classList.contains('expanded')) {
+                    sidebar.classList.remove('expanded');
+                    toggleIcon.classList.remove('fa-chevron-left');
+                    toggleIcon.classList.add('fa-chevron-right');
+                }
+            });
+            
+            // Prevent sidebar from closing when clicking inside it
+            sidebar.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        } else {
+            // For desktop view, ensure proper icon state
+            if (sidebar.classList.contains('collapsed')) {
+                toggleIcon.classList.remove('fa-chevron-left');
+                toggleIcon.classList.add('fa-chevron-right');
+            } else {
+                toggleIcon.classList.remove('fa-chevron-right');
+                toggleIcon.classList.add('fa-chevron-left');
+            }
+        }
+    }
+    
+    // Run on load
+    handleMobileView();
+    
+    // Run on resize with debounce
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(handleMobileView, 250);
+    });
+});
 
     </script>
 </body>

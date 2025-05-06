@@ -150,9 +150,6 @@ $loadingMessageHtml = '
 <div class="message-container" id="loading-message-container" style="display: none;">
     <div class="message bot-message">
         <div class="loading-content">
-            <div class="loader-container">
-                <div class="loader"></div>
-            </div>
             <p id="loading-stage">Initializing...</p>
             <div class="loading-progress">
                 <div id="loading-bar" class="loading-bar"></div>
@@ -160,6 +157,7 @@ $loadingMessageHtml = '
         </div>
     </div>
 </div>';
+    
 
 function generate_flashcards($content) {
     $prompt = "Convert these notes into Q&A flashcards. Format strictly as: QQQ:questionAAA:answer" . $content;
@@ -294,10 +292,8 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
                 echo '</div>';
             }
         } else {
-            // Display static examples if no sets are found
-            echo '<div class="library-item"><span>PHP Strings</span></div>';
-            echo '<div class="library-item"><span>Server Requests</span></div>';
-            echo '<div class="library-item"><span>Examples</span></div>';
+            // Display message when no sets are found instead of examples
+            echo '<div class="library-item"><span>Your sets will appear here</span></div>';
         }
     } catch (PDOException $e) {
         // Handle database errors
@@ -305,6 +301,7 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
         echo '<p style="color:red;">Error loading library items.</p>';
     }
 }
+
 
 ?>
 <!DOCTYPE html>
@@ -1172,6 +1169,155 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
     width: 100%;
 }
 
+/* Update the mobile sidebar styles in your media query */
+@media (max-width: 450px) {
+    /* Sidebar adjustments - updated */
+    .sidebar {
+        width: 100%;
+        height: auto;
+        max-height: 60px;
+        overflow: hidden;
+        transition: max-height 0.3s ease, width 0s;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+    }
+    
+    .sidebar.expanded {
+        max-height: 100vh;
+        overflow-y: auto;
+        width: 100% !important; /* Force full width */
+    }
+    
+    /* Force sidebar content to be visible when expanded */
+    .sidebar.expanded .sidebar-content,
+    .sidebar.expanded .library-section,
+    .sidebar.expanded .sidebar-bottom {
+        display: block;
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    /* Hide text in collapsed state */
+    .sidebar:not(.expanded) .logo span,
+    .sidebar:not(.expanded) .nav-item span,
+    .sidebar:not(.expanded) .account span,
+    .sidebar:not(.expanded) .library-section {
+        display: none;
+    }
+    
+    /* Show text in expanded state */
+    .sidebar.expanded .logo span,
+    .sidebar.expanded .nav-item span,
+    .sidebar.expanded .account span {
+        display: inline;
+    }
+    
+    /* Ensure toggle button is visible and properly positioned */
+    .toggle-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+    }
+    .sidebar-top {
+        padding: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+    }
+    
+    /* Logo positioning for collapsed state (centered) */
+    .sidebar:not(.expanded) .logo {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        justify-content: center;
+    }
+    
+    /* Logo positioning for expanded state (left aligned) */
+    .sidebar.expanded .logo {
+        position: relative;
+        left: 0;
+        transform: none;
+    }
+    
+    /* Title text styling */
+    .logo-title {
+        display: none;
+        font-weight: bold;
+        text-align: center;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+    }
+    
+    /* Show title in expanded state */
+    .sidebar.expanded .logo-title {
+        display: block;
+    }
+    
+    /* Hide logo text in collapsed state */
+    .sidebar:not(.expanded) .logo span {
+        display: none;
+    }
+    
+    /* Toggle button positioning */
+    .toggle-btn {
+        z-index: 10;
+    }
+    body {
+        padding-top: 0; /* Remove any existing padding */
+    }
+    
+    /* Adjust main content positioning */
+    .main-content {
+        margin-top: 60px; /* Match the height of the collapsed sidebar/navbar */
+        width: 100%;
+        position: relative;
+        z-index: 1; /* Ensure it's below the sidebar but above other content */
+    }
+    
+    /* When sidebar is expanded, push content further down or hide it */
+    .sidebar.expanded + .main-content {
+        margin-top: 60px; /* Keep the same margin when expanded */
+        opacity: 0.3; /* Optional: dim the content when sidebar is expanded */
+        pointer-events: none; /* Optional: prevent interaction with content when sidebar is expanded */
+    }
+    
+    /* Ensure content area has proper padding */
+    .content-area {
+        padding: 12px;
+        padding-top: 15px; /* Add a bit more padding at the top */
+    }
+    
+    /* Ensure the input area at bottom doesn't overlap with content */
+    .input-area {
+        padding: 10px;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 90;
+    }
+    
+    /* Add padding at the bottom to prevent content from being hidden behind the input area */
+    .content-area {
+        padding-bottom: 70px; /* Adjust based on the height of your input area */
+    }
+    
+    /* Quick questions section needs margin to not be hidden by input area */
+    .quick-questions {
+        margin-bottom: 60px; /* Space for fixed input area */
+    }
+
+}
+
 
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -2034,7 +2180,95 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-
+// Add this to your existing JavaScript section
+document.addEventListener('DOMContentLoaded', function() {
+    // Fix for auth tabs switching
+    const authTabs = document.querySelectorAll('.auth-tab');
+    const authForms = document.querySelectorAll('.auth-form');
+    
+    if (authTabs.length > 0) {
+        authTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const targetFormId = this.getAttribute('data-form');
+                
+                // Deactivate all tabs and forms
+                authTabs.forEach(t => t.classList.remove('active'));
+                authForms.forEach(f => f.classList.remove('active'));
+                
+                // Activate clicked tab and corresponding form
+                this.classList.add('active');
+                document.getElementById(targetFormId).classList.add('active');
+            });
+        });
+    }
+});
+// Replace your existing mobile sidebar toggle code with this improved version
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile sidebar toggle - improved
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    const toggleIcon = toggleBtn.querySelector('i');
+    
+    function handleMobileView() {
+        if (window.innerWidth <= 450) {
+            // Reset any inline styles that might be causing issues
+            sidebar.style.width = '';
+            
+            // For mobile view
+            toggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                
+                // Toggle expanded class
+                sidebar.classList.toggle('expanded');
+                
+                // Update icon
+                if (sidebar.classList.contains('expanded')) {
+                    toggleIcon.classList.remove('fa-chevron-right');
+                    toggleIcon.classList.add('fa-chevron-left');
+                } else {
+                    toggleIcon.classList.remove('fa-chevron-left');
+                    toggleIcon.classList.add('fa-chevron-right');
+                }
+                
+                // Force a reflow to ensure transitions work properly
+                void sidebar.offsetWidth;
+            });
+            
+            // Close sidebar when clicking elsewhere
+            document.addEventListener('click', function(e) {
+                if (!sidebar.contains(e.target) && sidebar.classList.contains('expanded')) {
+                    sidebar.classList.remove('expanded');
+                    toggleIcon.classList.remove('fa-chevron-left');
+                    toggleIcon.classList.add('fa-chevron-right');
+                }
+            });
+            
+            // Prevent sidebar from closing when clicking inside it
+            sidebar.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        } else {
+            // For desktop view, ensure proper icon state
+            if (sidebar.classList.contains('collapsed')) {
+                toggleIcon.classList.remove('fa-chevron-left');
+                toggleIcon.classList.add('fa-chevron-right');
+            } else {
+                toggleIcon.classList.remove('fa-chevron-right');
+                toggleIcon.classList.add('fa-chevron-left');
+            }
+        }
+    }
+    
+    // Run on load
+    handleMobileView();
+    
+    // Run on resize with debounce
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(handleMobileView, 250);
+    });
+});
 
     </script>
 </body>
