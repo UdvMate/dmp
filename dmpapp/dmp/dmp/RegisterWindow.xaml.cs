@@ -1,95 +1,72 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 
 namespace dmp
 {
     public partial class RegisterWindow : Window
     {
-        private string connectionString = "Server=localhost;Database=dmproject;UserID=root;";
-        public bool RegistrationSuccessful { get; private set; }
+        public bool RegistrationSuccessful { get; private set; } = false;
 
         public RegisterWindow()
         {
             InitializeComponent();
         }
 
-        private string HashPassword(string password)
-        {
-            using (var sha256 = SHA256.Create())
-            {
-                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                return Convert.ToBase64String(bytes);
-            }
-        }
-
-        private void RegisterButton_Click(object sender, RoutedEventArgs e)
+        private async void RegisterButton_Click(object sender, RoutedEventArgs e)
         {
             string username = UsernameTextBox.Text.Trim();
-            string email = EmailTextBox.Text.Trim();
             string password = PasswordBox.Password.Trim();
 
-            // Input validation
-            if (string.IsNullOrWhiteSpace(username) ||
-                string.IsNullOrWhiteSpace(email) ||
-                string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
-                MessageBox.Show("Please fill in all fields.");
+                MessageBox.Show("Please enter both username and password.");
                 return;
             }
 
-            // Hash the password
-            string hashedPassword = HashPassword(password);
+            var httpClient = new HttpClient();
+            var requestUrl = "http://localhost/dmp/registerApi.php"; // helyi útvonalad
 
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            var jsonPayload = JsonConvert.SerializeObject(new { username, password });
+            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+            try
             {
-                try
-                {
-                    connection.Open();
-                    string query = "INSERT INTO users (username, email, password) VALUES (@username, @email, @password)";
+                var response = await httpClient.PostAsync(requestUrl, content);
+                var responseBody = await response.Content.ReadAsStringAsync();
 
-                    MySqlCommand command = new MySqlCommand(query, connection);
-                    command.Parameters.AddWithValue("@username", username);
-                    command.Parameters.AddWithValue("@email", email);
-                    command.Parameters.AddWithValue("@password", hashedPassword);
+                var result = JsonConvert.DeserializeObject<RegisterResult>(responseBody);
 
-                    int result = command.ExecuteNonQuery();
-                    if (result > 0)
-                    {
-                        RegistrationSuccessful = true;
-                        MessageBox.Show("Registration successful!");
-                        this.Close();
-                    }
-                }
-                catch (MySqlException ex)
+
+                if (result != null && result.success)
                 {
-                    // Handle duplicate username/email errors
-                    if (ex.Number == 1062)
-                    {
-                        MessageBox.Show("Username or email already exists.");
-                    }
-                    else
-                    {
-                        MessageBox.Show($"Database error: {ex.Message}");
-                    }
+                    MessageBox.Show("Registration successful!");
+                    RegistrationSuccessful = true;
+                    this.Close();
                 }
-                catch (Exception ex)
+                else
                 {
-                    MessageBox.Show($"Error: {ex.Message}");
+                    MessageBox.Show(result?.error ?? "Registration failed.");
+
                 }
+
             }
+            catch (Exception ex)
+            {
+                
+
+                MessageBox.Show($"Registration error: {ex.Message}");
+            }
+        }
+
+
+        private class RegisterResult
+        {
+            public bool success { get; set; }
+            public string error { get; set; }
         }
     }
 }

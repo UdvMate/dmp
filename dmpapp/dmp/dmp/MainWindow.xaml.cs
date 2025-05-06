@@ -1,21 +1,25 @@
 ﻿using System;
-using System.Windows;
-using MySql.Data.MySqlClient;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media.Effects;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
+using Newtonsoft.Json;
+using static System.Net.WebRequestMethods;
 
 namespace dmp
 {
     public partial class MainWindow : Window
     {
         private string currentUsername;
-        private string connectionString = "Server=localhost;Database=dmproject;UserID=root;Password=;";
         private int currentPage = 1;
         private int cardsPerPage = 6;
         private List<Flashcard> allFlashcards;
+        private readonly HttpClient httpClient = new HttpClient();
+        private readonly string apiBaseUrl = "http://localhost/dmp/get_flashcards.php"; // <-- IDE majd az API cím kell!
 
         public MainWindow(string username)
         {
@@ -24,17 +28,9 @@ namespace dmp
             UserInfoText.Text = $"Logged in as: {currentUsername}";
             PageNumberText.Text = currentPage.ToString();
 
-            if (currentUsername != "Vendég")
+            if (currentUsername != "Guest")
             {
-                try
-                {
-                    allFlashcards = GetFlashcardsFromDatabase();
-                    DisplayPage(currentPage);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Hiba a kártyák betöltésekor: {ex.Message}");
-                }
+                LoadFlashcardsAsync();
             }
             else
             {
@@ -42,30 +38,66 @@ namespace dmp
             }
         }
 
-        public MainWindow() : this("Vendég") { }
+        public MainWindow() : this("Guest") { }
 
-        private List<Flashcard> GetFlashcardsFromDatabase()
+        private async void LoadFlashcardsAsync()
         {
-            List<Flashcard> flashcards = new List<Flashcard>();
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            try
             {
-                connection.Open();
-                string query = "SELECT flashcard_id, question, answer FROM flashcards";
-                MySqlCommand command = new MySqlCommand(query, connection);
-                MySqlDataReader reader = command.ExecuteReader();
-
-                while (reader.Read())
-                {
-                    flashcards.Add(new Flashcard
-                    {
-                        Id = reader.GetInt32("flashcard_id"),
-                        Question = reader.GetString("question"),
-                        Answer = reader.GetString("answer")
-                    });
-                }
+                allFlashcards = await GetFlashcardsFromApi();
+                DisplayPage(currentPage);
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Hiba a kártyák betöltésekor: {ex.Message}");
+            }
+        }
+
+        private async Task<List<Flashcard>> GetFlashcardsFromApi()
+        {
+            HttpResponseMessage response = await httpClient.GetAsync($"{apiBaseUrl}/flashcards");
+            response.EnsureSuccessStatusCode();
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            var flashcards = JsonConvert.DeserializeObject<List<Flashcard>>(responseBody);
             return flashcards;
         }
+
+        private async Task DeleteFlashcardAsync(int flashcardId)
+        {
+            var result = MessageBox.Show("Do you want to delete this card?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    string url = $"http://localhost/dmp/delete_flashcard.php?id={flashcardId}";
+                    HttpResponseMessage response = await httpClient.GetAsync(url);
+                    response.EnsureSuccessStatusCode();
+
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    var resultJson = JsonConvert.DeserializeObject<Dictionary<string, string>>(responseBody);
+
+                    if (resultJson.ContainsKey("success"))
+                    {
+                        MessageBox.Show("Kártya sikeresen törölve!");
+                        allFlashcards = await GetFlashcardsFromApi();
+                        int maxPage = (int)Math.Ceiling(allFlashcards.Count / (double)cardsPerPage);
+                        if (currentPage > maxPage) currentPage = maxPage;
+                        DisplayPage(currentPage);
+                    }
+                    else if (resultJson.ContainsKey("error"))
+                    {
+                        MessageBox.Show("Hiba: " + resultJson["error"]);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Hiba a törlés közben: " + ex.Message);
+                }
+            }
+        }
+
 
         private void DisplayPage(int pageNumber)
         {
@@ -89,19 +121,19 @@ namespace dmp
             {
                 Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0e1116")),
                 CornerRadius = new CornerRadius(12),
-                Padding = new Thickness(20),
+                Padding = new Thickness(10),
                 Margin = new Thickness(15),
                 Width = 240,
                 Height = 160,
                 Effect = new DropShadowEffect { Color = Colors.Black, BlurRadius = 12, ShadowDepth = 2, Opacity = 0.4 }
             };
 
-            StackPanel stackPanel = new StackPanel { Margin = new Thickness(0, 20, 0, 0) };
+            Grid cardGrid = new Grid();
+            cardGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            cardGrid.RowDefinitions.Add(new RowDefinition());
 
             Button moreButton = new Button
             {
-                HorizontalAlignment = HorizontalAlignment.Right,
-                VerticalAlignment = VerticalAlignment.Top,
                 Content = "⋯",
                 FontSize = 16,
                 Width = 28,
@@ -109,8 +141,29 @@ namespace dmp
                 Background = Brushes.Transparent,
                 Foreground = Brushes.White,
                 BorderBrush = Brushes.Transparent,
-                Cursor = Cursors.Hand
+                Cursor = Cursors.Hand,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(0, 0, 0, 5)
             };
+
+            ContextMenu contextMenu = new ContextMenu();
+            MenuItem deleteItem = new MenuItem { Header = "Delete" };
+            deleteItem.Click += async (s, e) => await DeleteFlashcardAsync(flashcard.Id);
+            contextMenu.Items.Add(deleteItem);
+            moreButton.ContextMenu = contextMenu;
+            moreButton.Click += (s, e) => moreButton.ContextMenu.IsOpen = true;
+
+            Grid.SetRow(moreButton, 0);
+            cardGrid.Children.Add(moreButton);
+
+            ScrollViewer scrollViewer = new ScrollViewer
+            {
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                Margin = new Thickness(0, 5, 0, 0)
+            };
+
+            StackPanel contentPanel = new StackPanel();
 
             TextBlock questionText = new TextBlock
             {
@@ -118,7 +171,8 @@ namespace dmp
                 FontSize = 16,
                 FontWeight = FontWeights.Bold,
                 Foreground = Brushes.White,
-                Margin = new Thickness(0, 10, 0, 4)
+                Margin = new Thickness(0, 5, 0, 4),
+                TextWrapping = TextWrapping.Wrap
             };
 
             TextBlock answerText = new TextBlock
@@ -129,11 +183,15 @@ namespace dmp
                 TextWrapping = TextWrapping.Wrap
             };
 
-            stackPanel.Children.Add(moreButton);
-            stackPanel.Children.Add(questionText);
-            stackPanel.Children.Add(answerText);
+            contentPanel.Children.Add(questionText);
+            contentPanel.Children.Add(answerText);
 
-            card.Child = stackPanel;
+            scrollViewer.Content = contentPanel;
+
+            Grid.SetRow(scrollViewer, 1);
+            cardGrid.Children.Add(scrollViewer);
+
+            card.Child = cardGrid;
             return card;
         }
 
@@ -167,7 +225,7 @@ namespace dmp
 
         private void PrevPage_Click(object sender, RoutedEventArgs e)
         {
-            if (currentUsername == "Vendég") return;
+            if (currentUsername == "Guest") return;
             if (currentPage > 1)
             {
                 currentPage--;
@@ -177,7 +235,7 @@ namespace dmp
 
         private void NextPage_Click(object sender, RoutedEventArgs e)
         {
-            if (currentUsername == "Vendég") return;
+            if (currentUsername == "Guest") return;
             int maxPage = (int)Math.Ceiling(allFlashcards.Count / (double)cardsPerPage);
             if (currentPage < maxPage)
             {

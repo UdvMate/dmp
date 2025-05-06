@@ -1,14 +1,14 @@
-﻿using MySql.Data.MySqlClient;
-using System;
+﻿using System;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
-using System.Security.Cryptography;
+using Newtonsoft.Json;
 
 namespace dmp
 {
     public partial class LoginWindow : Window
     {
-        private string connectionString = "Server=localhost;Database=dmproject;UserID=root;";
         public bool IsLoggedIn { get; private set; } = false;
 
         public LoginWindow()
@@ -16,16 +16,7 @@ namespace dmp
             InitializeComponent();
         }
 
-        private string HashPassword(string password)
-        {
-            using (var sha256 = SHA256.Create())
-            {
-                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                return Convert.ToBase64String(bytes);
-            }
-        }
-
-        private void LoginButton_Click(object sender, RoutedEventArgs e)
+        private async void LoginButton_Click(object sender, RoutedEventArgs e)
         {
             string username = UsernameTextBox.Text.Trim();
             string password = PasswordBox.Password.Trim();
@@ -36,36 +27,48 @@ namespace dmp
                 return;
             }
 
-            string hashedInputPassword = HashPassword(password);
+            var httpClient = new HttpClient();
+            var requestUrl = "http://localhost/dmp/loginApi.php";
 
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            var payload = new
             {
-                try
-                {
-                    connection.Open();
-                    string query = "SELECT COUNT(*) FROM users WHERE username=@username AND password=@password";
-                    MySqlCommand command = new MySqlCommand(query, connection);
-                    command.Parameters.AddWithValue("@username", username);
-                    command.Parameters.AddWithValue("@password", hashedInputPassword);
+                username = username,
+                password = password
+            };
 
-                    int userExists = Convert.ToInt32(command.ExecuteScalar());
-                    if (userExists > 0)
-                    {
-                        IsLoggedIn = true;
-                        MainWindow main = new MainWindow(username);
-                        main.Show();
-                        this.Close();
-                    }
-                    else
-                    {
-                        MessageBox.Show("Invalid username or password.");
-                    }
-                }
-                catch (Exception ex)
+            var jsonPayload = JsonConvert.SerializeObject(payload);
+            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+            try
+            {
+                var response = await httpClient.PostAsync(requestUrl, content);
+                var responseBody = await response.Content.ReadAsStringAsync();
+                MessageBox.Show("Response: " + responseBody);
+
+                var result = JsonConvert.DeserializeObject<LoginResult>(responseBody);
+
+                if (result != null && result.success)
                 {
-                    MessageBox.Show($"Error: {ex.Message}");
+                    IsLoggedIn = true;
+                    MainWindow main = new MainWindow(username);
+                    main.Show();
+                    this.Close();
+                }
+                else
+                {
+                    MessageBox.Show("Login failed: " + result?.error ?? "Unknown error");
                 }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Login failed: {ex.Message}");
+            }
+        }
+
+        private class LoginResult
+        {
+            public bool success { get; set; }
+            public string error { get; set; }
         }
 
         private void RegisterButton_Click(object sender, RoutedEventArgs e)
