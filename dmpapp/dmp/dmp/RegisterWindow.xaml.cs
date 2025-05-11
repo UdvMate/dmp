@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using Newtonsoft.Json;
 
@@ -9,8 +8,6 @@ namespace dmp
 {
     public partial class RegisterWindow : Window
     {
-        public bool RegistrationSuccessful { get; private set; } = false;
-
         public RegisterWindow()
         {
             InitializeComponent();
@@ -19,54 +16,57 @@ namespace dmp
         private async void RegisterButton_Click(object sender, RoutedEventArgs e)
         {
             string username = UsernameTextBox.Text.Trim();
+            string email = EmailTextBox.Text.Trim();
             string password = PasswordBox.Password.Trim();
 
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             {
-                MessageBox.Show("Please enter both username and password.");
+                MessageBox.Show("Please fill in all fields.");
+                return;
+            }
+
+            if (!IsValidEmail(email))
+            {
+                MessageBox.Show("Please enter a valid email address.");
                 return;
             }
 
             var httpClient = new HttpClient();
-            var requestUrl = "http://localhost/dmp/registerApi.php"; // helyi útvonalad
+            var payload = new
+            {
+                username = username,
+                email = email,
+                password = password // nem hash-eljük itt!
+            };
 
-            var jsonPayload = JsonConvert.SerializeObject(new { username, password });
+            var jsonPayload = JsonConvert.SerializeObject(payload);
             var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
             try
             {
-                var response = await httpClient.PostAsync(requestUrl, content);
+                var response = await httpClient.PostAsync("http://localhost/dmp/registerApi.php", content);
                 var responseBody = await response.Content.ReadAsStringAsync();
 
-                var result = JsonConvert.DeserializeObject<RegisterResult>(responseBody);
-
-
-                if (result != null && result.success)
-                {
-                    MessageBox.Show("Registration successful!");
-                    RegistrationSuccessful = true;
-                    this.Close();
-                }
-                else
-                {
-                    MessageBox.Show(result?.error ?? "Registration failed.");
-
-                }
-
+                MessageBox.Show(responseBody);
+                this.Close();
             }
             catch (Exception ex)
             {
-                
-
-                MessageBox.Show($"Registration error: {ex.Message}");
+                MessageBox.Show($"Registration failed: {ex.Message}");
             }
         }
 
-
-        private class RegisterResult
+        private bool IsValidEmail(string email)
         {
-            public bool success { get; set; }
-            public string error { get; set; }
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

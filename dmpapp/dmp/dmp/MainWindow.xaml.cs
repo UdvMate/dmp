@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -8,23 +9,24 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using Newtonsoft.Json;
-using static System.Net.WebRequestMethods;
 
 namespace dmp
 {
     public partial class MainWindow : Window
     {
         private string currentUsername;
+        private int currentUserId;
         private int currentPage = 1;
         private int cardsPerPage = 6;
         private List<Flashcard> allFlashcards;
         private readonly HttpClient httpClient = new HttpClient();
-        private readonly string apiBaseUrl = "http://localhost/dmp/get_flashcards.php"; // <-- IDE majd az API cím kell!
+        private readonly string apiBaseUrl = "http://localhost/dmp/get_flashcards.php";
 
-        public MainWindow(string username)
+        public MainWindow(string username, int userId)
         {
             InitializeComponent();
             currentUsername = username;
+            currentUserId = userId;
             UserInfoText.Text = $"Logged in as: {currentUsername}";
             PageNumberText.Text = currentPage.ToString();
 
@@ -38,7 +40,7 @@ namespace dmp
             }
         }
 
-        public MainWindow() : this("Guest") { }
+        public MainWindow() : this("Guest", -1) { }
 
         private async void LoadFlashcardsAsync()
         {
@@ -55,12 +57,16 @@ namespace dmp
 
         private async Task<List<Flashcard>> GetFlashcardsFromApi()
         {
-            HttpResponseMessage response = await httpClient.GetAsync($"{apiBaseUrl}/flashcards");
+            var postData = new { user_id = currentUserId };
+            var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await httpClient.PostAsync(apiBaseUrl, content);
             response.EnsureSuccessStatusCode();
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            var flashcards = JsonConvert.DeserializeObject<List<Flashcard>>(responseBody);
-            return flashcards;
+            var result = JsonConvert.DeserializeObject<FlashcardResponse>(responseBody);
+
+            return result.flashcards ?? new List<Flashcard>();
         }
 
         private async Task DeleteFlashcardAsync(int flashcardId)
@@ -97,7 +103,6 @@ namespace dmp
                 }
             }
         }
-
 
         private void DisplayPage(int pageNumber)
         {
@@ -250,5 +255,11 @@ namespace dmp
         public int Id { get; set; }
         public string Question { get; set; }
         public string Answer { get; set; }
+    }
+
+    public class FlashcardResponse
+    {
+        public bool success { get; set; }
+        public List<Flashcard> flashcards { get; set; }
     }
 }

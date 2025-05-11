@@ -12,17 +12,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'];
 
     try {
-        // Get stored hash from database
+        // Lekérjük a felhasználót
         $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch();
 
         if ($user) {
-            // Hash input password using SHA-256 + Base64
-            $hashedInput = base64_encode(hash('sha256', $password, true));
-            
-            // Compare hashes
-            if (hash_equals($user['password'], $hashedInput)) {
+            // Ellenőrizzük a jelszót
+            if (password_verify($password, $user['password'])) {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['success'] = "Logged in successfully!";
@@ -40,8 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 include('includes/header.php');
-
 ?>
+
 
 
 <body>

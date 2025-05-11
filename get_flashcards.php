@@ -1,32 +1,41 @@
 <?php
-header('Content-Type: application/json');
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
 
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "dmproject";
+$input = json_decode(file_get_contents("php://input"), true);
 
-// Csatlakozás
-$conn = new mysqli($servername, $username, $password, $dbname);
-if ($conn->connect_error) {
-    http_response_code(500);
-    echo json_encode(["error" => "Connection failed: " . $conn->connect_error]);
+if (!isset($input['user_id'])) {
+    echo json_encode(["error" => "Missing user_id"]);
     exit;
 }
 
-// Lekérdezés
-$sql = "SELECT flashcard_id AS Id, question AS Question, answer AS Answer FROM flashcards";
-$result = $conn->query($sql);
+$user_id = $input['user_id'];
 
-$flashcards = [];
-
-if ($result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
-        $flashcards[] = $row;
-    }
+$conn = new mysqli("localhost", "root", "", "dmproject");
+if ($conn->connect_error) {
+    echo json_encode(["error" => "Database connection failed"]);
+    exit;
 }
 
-echo json_encode($flashcards);
+// Csak a saját set-eket és flashcardokat kérdezzük le
+$sql = "
+    SELECT flashcards.flashcard_id, flashcards.question, flashcards.answer, sets.title
+    FROM flashcards
+    JOIN sets ON flashcards.set_id = sets.set_id
+    WHERE sets.user_id = ?
+";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
 
+$cards = [];
+while ($row = $result->fetch_assoc()) {
+    $cards[] = $row;
+}
+
+echo json_encode(["success" => true, "flashcards" => $cards]);
+
+$stmt->close();
 $conn->close();
 ?>

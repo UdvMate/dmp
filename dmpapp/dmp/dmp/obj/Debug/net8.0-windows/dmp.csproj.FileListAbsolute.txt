@@ -274,3 +274,9 @@ C:\Users\matel\OneDrive\történelem\Dokumentumok\dmp\dmp\dmpapp\dmp\dmp\obj\Deb
 C:\Users\matel\OneDrive\történelem\Dokumentumok\dmp\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\dmp.pdb
 C:\Users\matel\OneDrive\történelem\Dokumentumok\dmp\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\dmp.genruntimeconfig.cache
 C:\Users\matel\OneDrive\történelem\Dokumentumok\dmp\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\ref\dmp.dll
+C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\bin\Debug\net8.0-windows\Newtonsoft.Json.dll
+C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\AdminWindow.baml
+C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\AdminWindow.g.cs
+C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\dmp_Content.g.cs
+C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\dmp_MarkupCompile.lref
+C:\Users\Dan\Documents\GitHub\dmp\dmpapp\dmp\dmp\obj\Debug\net8.0-windows\App.baml

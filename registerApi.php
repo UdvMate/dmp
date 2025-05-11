@@ -1,57 +1,57 @@
 <?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+header("Content-Type: application/json");
 
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
+$host = "localhost";
+$dbname = "dmproject";
+$username = "root";
+$password = "";
 
-// Decode JSON payload
-$rawInput = file_get_contents("php://input");
-$data = json_decode($rawInput, true);
-
-// Validate input
-if (!isset($data['username']) || !isset($data['password'])) {
-    echo json_encode(["success" => false, "error" => "Missing username or password"]);
-    exit;
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    echo json_encode(["success" => false, "error" => "Database connection failed: " . $e->getMessage()]);
+    exit();
 }
 
-$username = $data['username'];
-$password = $data['password'];
+$data = json_decode(file_get_contents("php://input"), true);
 
-// Hash the password securely
-$hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+$username = trim($data["username"]);
+$email = trim($data["email"]);
+$password = trim($data["password"]);
 
-// DB connection
-$conn = new mysqli("localhost", "root", "", "dmproject");
-if ($conn->connect_error) {
-    echo json_encode(["success" => false, "error" => "Database connection failed"]);
-    exit;
+
+if (!isset($data["username"], $data["email"], $data["password"])) {
+    echo json_encode(["success" => false, "error" => "Missing required fields."]);
+    exit();
 }
 
-// Check if username already exists
-$checkStmt = $conn->prepare("SELECT user_id FROM users WHERE username = ?");
-$checkStmt->bind_param("s", $username);
-$checkStmt->execute();
-$checkResult = $checkStmt->get_result();
 
-if ($checkResult->num_rows > 0) {
-    echo json_encode(["success" => false, "error" => "Username already taken"]);
-    $checkStmt->close();
-    $conn->close();
-    exit;
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    echo json_encode(["success" => false, "error" => "Invalid email format."]);
+    exit();
 }
-$checkStmt->close();
 
-// Insert new user
-$stmt = $conn->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
-$stmt->bind_param("ss", $username, $hashedPassword);
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE username = :username OR email = :email");
+$stmt->execute(["username" => $username, "email" => $email]);
+if ($stmt->fetchColumn() > 0) {
+    echo json_encode(["success" => false, "error" => "Username or email already exists."]);
+    exit();
+}
 
-if ($stmt->execute()) {
+// Jelszó hash-elése itt történik biztonságosan
+$hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+try {
+    $stmt = $pdo->prepare("INSERT INTO users (username, email, password, created_at) VALUES (:username, :email, :password, NOW())");
+    $stmt->execute([
+        "username" => $username,
+        "email" => $email,
+        "password" => $hashedPassword
+    ]);
+
     echo json_encode(["success" => true]);
-} else {
-    echo json_encode(["success" => false, "error" => "Registration failed"]);
+} catch (PDOException $e) {
+    echo json_encode(["success" => false, "error" => "Registration failed: " . $e->getMessage()]);
 }
-
-$stmt->close();
-$conn->close();
 ?>

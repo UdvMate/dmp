@@ -50,17 +50,30 @@ namespace dmp
                 if (result != null && result.success)
                 {
                     IsLoggedIn = true;
-                    MainWindow main = new MainWindow(username);
-                    main.Show();
+                    int userId = result.user_id;
+
+                    if (username.ToLower() == "admin")
+                    {
+                        var adminWindow = new AdminWindow();
+                        adminWindow.Show();
+                    }
+                    else
+                    {
+                        var mainWindow = new MainWindow(username, userId);
+                        mainWindow.Show();
+                    }
+
                     this.Close();
                 }
                 else
                 {
                     MessageBox.Show("Login failed: " + result?.error ?? "Unknown error");
                 }
+
             }
             catch (Exception ex)
             {
+
                 MessageBox.Show($"Login failed: {ex.Message}");
             }
         }
@@ -69,18 +82,16 @@ namespace dmp
         {
             public bool success { get; set; }
             public string error { get; set; }
+            public int user_id { get; set; } // új mező
+            public string username { get; set; }
         }
+
+
 
         private void RegisterButton_Click(object sender, RoutedEventArgs e)
         {
             RegisterWindow registerWindow = new RegisterWindow();
-            registerWindow.ShowDialog();
-
-            if (registerWindow.RegistrationSuccessful)
-            {
-                IsLoggedIn = true;
-                this.Close();
-            }
+            registerWindow.ShowDialog(); 
         }
     }
 }

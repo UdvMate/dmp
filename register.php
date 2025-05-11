@@ -2,7 +2,6 @@
 include 'includes/config.php';
 session_start();
 
-// Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -12,35 +11,30 @@ if (isset($_SESSION['user_id'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Retrieve and sanitize inputs
-    $username = trim($_POST['username']); // Changed from 'form_username'
+    $username = trim($_POST['username']);
     $email = trim($_POST['email']);
     $password = $_POST['password'];
     $passwordConfirm = $_POST['passwordConfirm'];
 
-    // Validate required fields
     if (empty($username) || empty($email) || empty($password)) {
         $error = "All fields are required!";
     } elseif ($password !== $passwordConfirm) {
         $error = "Passwords do not match!";
     } else {
-        // Hash password using SHA-256 + Base64
-        $hashedPassword = base64_encode(hash('sha256', $password, true));
+        // Hash password securely
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
         try {
-            // Insert into database
             $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
             $stmt->execute([$username, $email, $hashedPassword]);
 
-            // Set session and redirect
             $_SESSION['user_id'] = $pdo->lastInsertId();
             $_SESSION['username'] = $username;
             $_SESSION['success'] = "Registration successful!";
             header("Location: welcome.php");
             exit();
         } catch (PDOException $e) {
-            // Handle duplicate entries or other errors
-            if ($e->getCode() == '23000') { // MySQL duplicate entry error code
+            if ($e->getCode() == '23000') {
                 $error = "Username or email already exists!";
             } else {
                 $error = "Registration failed: " . $e->getMessage();
@@ -50,8 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 include('includes/header.php');
-
 ?>
+
 
 
 <body>
