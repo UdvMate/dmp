@@ -1,6 +1,8 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
 using System.Windows;
+using System.Windows.Controls;
+using dmp.Models;
 
 namespace dmp
 {
@@ -45,11 +47,36 @@ namespace dmp
                 MessageBox.Show("Error loading users: " + ex.Message);
             }
         }
+        private void ViewSetsButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender is Button button && button.DataContext is UserInfo user)
+                {
+                    MessageBox.Show($"Beléptetés: {user.Username} (ID: {user.UserId})");
+
+                    var mainWindow = new MainWindow(user.Username, user.UserId);
+                    mainWindow.Show();
+                    this.Close();
+                }
+                else
+                {
+                    MessageBox.Show("Nem sikerült beolvasni a felhasználót a DataContextből.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Hiba történt:\n" + ex.Message);
+            }
+        }
+
+
+
 
         // Felhasználó törlése
         private void DeleteUserButton_Click(object sender, RoutedEventArgs e)
         {
-            if (UserListBox.SelectedItem is UserInfo user)
+            if (sender is Button button && button.DataContext is UserInfo user)
             {
                 var result = MessageBox.Show($"Are you sure you want to delete {user.Username}?", "Delete User", MessageBoxButton.YesNo);
                 if (result == MessageBoxResult.Yes)
@@ -75,6 +102,7 @@ namespace dmp
                 }
             }
         }
+
 
         // Felhasználók listájának frissítése
         private void RefreshButton_Click(object sender, RoutedEventArgs e)

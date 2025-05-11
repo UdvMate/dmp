@@ -108,6 +108,32 @@ namespace dmp
         {
             FlashcardsPanel.Children.Clear();
 
+            if (allFlashcards == null || allFlashcards.Count == 0)
+            {
+                FlashcardsPanel.Children.Clear();
+
+                Grid centerGrid = new Grid
+                {
+                    VerticalAlignment = VerticalAlignment.Stretch,
+                    HorizontalAlignment = HorizontalAlignment.Stretch
+                };
+
+                TextBlock noCardsText = new TextBlock
+                {
+                    Text = "You don't have any cards yet.",
+                    Foreground = Brushes.White,
+                    FontSize = 22,
+                    FontWeight = FontWeights.Bold,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    TextAlignment = TextAlignment.Center,
+                };
+
+                centerGrid.Children.Add(noCardsText);
+                FlashcardsPanel.Children.Add(centerGrid);
+
+            }
+
             int startIndex = (pageNumber - 1) * cardsPerPage;
             int endIndex = Math.Min(startIndex + cardsPerPage, allFlashcards.Count);
 
@@ -119,6 +145,7 @@ namespace dmp
 
             PageNumberText.Text = currentPage.ToString();
         }
+
 
         private Border CreateFlashcard(Flashcard flashcard)
         {

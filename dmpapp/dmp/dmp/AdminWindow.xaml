@@ -52,14 +52,22 @@
                 <DataTemplate>
                     <Border Style="{StaticResource DarkCardStyle}">
                         <DockPanel LastChildFill="False">
-                            <StackPanel Orientation="Vertical" DockPanel.Dock="Left" Width="500">
+                            <StackPanel Orientation="Vertical" DockPanel.Dock="Left" Width="400">
                                 <TextBlock Text="{Binding Username}" FontSize="18" FontWeight="Bold" Foreground="White"/>
                                 <TextBlock Text="{Binding Email}" FontSize="14" Foreground="#aaa"/>
                             </StackPanel>
-                            <Button Content="Delete" Style="{StaticResource BlueDeleteButtonStyle}" Click="DeleteUserButton_Click" DockPanel.Dock="Right"/>
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
+                                <Button Content="Sets" Background="#facc15" Foreground="Black"
+                        Padding="8,5" Margin="5"
+                        FontSize="14" Cursor="Hand"
+                        Click="ViewSetsButton_Click"/>
+                                <Button Content="Delete" Style="{StaticResource BlueDeleteButtonStyle}"
+                        Click="DeleteUserButton_Click"/>
+                            </StackPanel>
                         </DockPanel>
                     </Border>
                 </DataTemplate>
+
             </ListBox.ItemTemplate>
         </ListBox>
 
