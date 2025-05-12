@@ -1537,6 +1537,32 @@ input:checked + .toggle-slider:before {
     }
 
 }
+/* Add this to your existing CSS section */
+.sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 10px 0;
+}
+
+.sidebar.collapsed .nav-item i {
+    margin-right: 0;
+    margin-left: 0;
+    text-align: center;
+    width: 100%;
+}
+
+/* Ensure all icons have consistent width/alignment */
+.nav-item i {
+    min-width: 24px;
+    text-align: center;
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+/* Specifically target the shared sets icon if needed */
+#shared-sets-toggle i {
+    min-width: 24px;
+    text-align: center;
+}
 
 
 
@@ -1554,9 +1580,7 @@ input:checked + .toggle-slider:before {
                 <span>Flashcard.ai</span>
                 
             </div>
-            <button class="toggle-btn" id="toggle-sidebar">
-                <i class="fa fa-chevron-left"></i>
-            </button>
+            
         </div>
         
         <!-- Add this to the sidebar-content div, after the existing Library nav item -->
@@ -1569,6 +1593,10 @@ input:checked + .toggle-slider:before {
         <i class="fa fa-file-alt"></i>
         <span>Documentation</span>
     </a>
+    <a href="connect.php" class="nav-item">
+                <i class="fa fa-users"></i>
+                <span>Friends</span>
+            </a>
     <a href="#" class="nav-item">
         <i class="fa fa-book"></i>
         <span>Library</span>
@@ -1585,9 +1613,7 @@ input:checked + .toggle-slider:before {
             }
             ?>
         </div>
-    </div>
-    
-    <!-- Add Shared Sets section -->
+        <!-- Add Shared Sets section -->
     <a href="#" class="nav-item" id="shared-sets-toggle">
         <i class="fa fa-share-alt"></i>
         <span>Shared Sets</span>
@@ -1605,16 +1631,13 @@ input:checked + .toggle-slider:before {
             ?>
         </div>
     </div>
+    </div>
+    
+    
 </div>
 
         
-        <div class="sidebar-bottom">
-            <!-- Add download button above the account button -->
-            <a href="#" class="nav-item" id="download-btn">
-                <i class="fa fa-download"></i>
-                <span>Download</span>
-            </a>
-        </div>
+        
         
         <div class="sidebar-bottom">
     <div class="account" id="account-btn">
@@ -1997,6 +2020,8 @@ input:checked + .toggle-slider:before {
 
 
     <script>
+
+        
  document.addEventListener('DOMContentLoaded', function() {
     // ... (existing sidebar, auth modal, delete/edit set, download modal, flashcard navigation code) ...
 
@@ -2319,35 +2344,7 @@ document.addEventListener('DOMContentLoaded', function() {
 //     }
 // });
 
-const downloadBtn = document.getElementById('download-btn');
-const downloadModal = document.getElementById('download-modal');
-const cancelDownload = document.getElementById('cancel-download');
-const confirmDownload = document.getElementById('confirm-download');
 
-// Show download modal when download button is clicked
-downloadBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    downloadModal.style.display = 'flex';
-});
-
-// Cancel download
-cancelDownload.addEventListener('click', function() {
-    downloadModal.style.display = 'none';
-});
-
-// Confirm download (currently does nothing)
-confirmDownload.addEventListener('click', function() {
-    // This is where you would add the actual download functionality in the future
-    alert('Download functionality will be implemented in the future.');
-    downloadModal.style.display = 'none';
-});
-
-// Close download modal when clicking outside
-downloadModal.addEventListener('click', function(e) {
-    if (e.target === downloadModal) {
-        downloadModal.style.display = 'none';
-    }
-});
 
 document.addEventListener('DOMContentLoaded', function() {
     // Flashcard navigation

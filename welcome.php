@@ -80,25 +80,45 @@ if (isset($_POST['register_submit'])) {
         // Hash password using SHA-256 + Base64
         $hashedPassword = base64_encode(hash('sha256', $password, true));
 
-        try {
-            // Insert into database
-            $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-            $stmt->execute([$username, $email, $hashedPassword]);
+        // In the register logic section, update the catch block:
+try {
+    // Insert into database
+    $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+    $stmt->execute([$username, $email, $hashedPassword]);
 
-            // Set session and redirect
-            $_SESSION['user_id'] = $pdo->lastInsertId();
-            $_SESSION['username'] = $username;
-            $_SESSION['success'] = "Registration successful!";
-            header("Location: welcome.php");
-            exit();
-        } catch (PDOException $e) {
-            // Handle duplicate entries or other errors
-            if ($e->getCode() == '23000') { // MySQL duplicate entry error code
-                $register_error = "Username or email already exists!";
-            } else {
-                $register_error = "Registration failed: " . $e->getMessage();
-            }
+    // Set session and redirect
+    $_SESSION['user_id'] = $pdo->lastInsertId();
+    $_SESSION['username'] = $username;
+    $_SESSION['success'] = "Registration successful!";
+    header("Location: welcome.php");
+    exit();
+} catch (PDOException $e) {
+    // Handle duplicate entries or other errors
+    if ($e->getCode() == '23000') { // MySQL duplicate entry error code
+        if (strpos($e->getMessage(), 'username') !== false) {
+            $register_error = "Username already exists!";
+            // Add a JavaScript snippet to highlight the username field
+            echo "<script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const usernameInput = document.getElementById('reg_username');
+                    const usernameValidationMessage = document.querySelector('.username-validation-message');
+                    if (usernameInput) {
+                        usernameInput.classList.add('invalid');
+                        usernameInput.focus();
+                    }
+                    if (usernameValidationMessage) {
+                        usernameValidationMessage.classList.add('visible');
+                    }
+                });
+            </script>";
+        } else {
+            $register_error = "Email already exists!";
         }
+    } else {
+        $register_error = "Registration failed: " . $e->getMessage();
+    }
+}
+
     }
 }
 
@@ -301,6 +321,42 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
         echo '<p style="color:red;">Error loading library items.</p>';
     }
 }
+// Add this function to display shared sets
+function displaySharedFlashcardSets($pdo, $userId) {
+    try {
+        // Prepare and execute the query to fetch sets shared with the logged-in user
+        $stmt = $pdo->prepare("
+            SELECT s.set_id, s.title, u.username as owner_name 
+            FROM sets s
+            JOIN shared_sets ss ON s.set_id = ss.set_id
+            JOIN users u ON ss.owner_id = u.id
+            WHERE ss.user_id = ? 
+            ORDER BY ss.shared_at DESC
+        ");
+        $stmt->execute([$userId]);
+        
+        // Fetch all results
+        $sharedSets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Check if any shared sets were found
+        if (!empty($sharedSets)) {
+            foreach ($sharedSets as $set) {
+                echo '<div class="library-item-container">';
+                echo '<a href="flashcard.php?set_id=' . $set['set_id'] . '&shared=1" class="library-item shared-item" data-set-id="' . $set['set_id'] . '">';
+                echo '<span class="set-title">' . htmlspecialchars($set['title']) . '</span>';
+                echo '<span class="set-owner">by ' . htmlspecialchars($set['owner_name']) . '</span>';
+                echo '</a>';
+                echo '</div>';
+            }
+        } else {
+            echo '<p class="no-sets-message">No sets have been shared with you yet.</p>';
+        }
+    } catch (PDOException $e) {
+        // Handle database errors
+        error_log("Error fetching shared flashcard sets: " . $e->getMessage());
+        echo '<p style="color:red;">Error loading shared sets.</p>';
+    }
+}
 
 
 ?>
@@ -480,132 +536,17 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
             padding: 20px;
         }
 
-        .message-container {
-            margin-bottom: 20px;
-        }
+        
 
-        .message {
-            background-color: var(--secondary-color);
-            border-radius: 8px;
-            padding: 12px 16px;
-            margin-bottom: 10px;
-            max-width: 80%;
-        }
+        
+        
 
-        .user-message {
-            margin-left: auto;
-            background-color: #304054;
-        }
+        
+        
 
-        .bot-message {
-            margin-right: auto;
-            background-color: var(--secondary-color);
-        }
+        
 
-        /* Flashcard styles */
-        .flashcard {
-            background-color: var(--secondary-color);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 16px;
-            border: 1px solid var(--border-color);
-            position: relative;
-            cursor: pointer;
-        }
-
-        .flashcard h3 {
-            margin-bottom: 8px;
-            color: var(--accent-color);
-        }
-
-        .flashcard p {
-            margin-bottom: 4px;
-        }
-
-        .flashcard-content {
-            display: none;
-        }
-
-        .flashcard.flipped .flashcard-content {
-            display: block;
-        }
-
-        .flashcard-question {
-            cursor: pointer;
-        }
-
-        .flashcard-set-header {
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        /* Input area styles */
-        .input-area {
-            padding: 16px;
-            background-color: var(--secondary-color);
-            border-top: 1px solid var(--border-color);
-            position: relative;
-        }
-
-        .message-form {
-            display: flex;
-            align-items: center;
-            background-color: var(--primary-color);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            padding: 8px 12px;
-        }
-
-        .message-input {
-            flex: 1;
-            background: none;
-            border: none;
-            color: var(--text-color);
-            font-size: 14px;
-            padding: 8px;
-            outline: none;
-            resize: none;
-            min-height: 20px;
-            max-height: 150px;
-        }
-
-        .input-buttons {
-            display: flex;
-            align-items: center;
-        }
-
-        .file-upload {
-            position: relative;
-            margin-right: 8px;
-        }
-
-        .file-upload input {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        .upload-btn, .send-btn {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            cursor: pointer;
-            font-size: 16px;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-        }
-
-        .upload-btn:hover, .send-btn:hover {
-            background-color: var(--hover-color);
-        }
+        
 
         /* For collapsible sidebar content */
         .sidebar.collapsed .logo span,
@@ -615,17 +556,7 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
             display: none;
         }
 
-        /* File name display */
-        .file-name {
-            display: none;
-            font-size: 12px;
-            color: #8b949e;
-            margin-top: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 200px;
-        }
+        
 
         /* Auth modal styles */
         .auth-modal {
@@ -750,28 +681,7 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
             cursor: pointer;
         }
 
-        .message-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-            margin-top: 8px;
-        }
-
-        .message-action-btn {
-            background: none;
-            border: none;
-            color: #8b949e;
-            font-size: 14px;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-
-        .message-action-btn:hover {
-            background-color: var(--hover-color);
-            color: var(--text-color);
-        }
+        
 
         .create-flashcards-btn {
             background: none;
@@ -1013,73 +923,7 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
         .sidebar-bottom .nav-item {
             padding: 8px 12px;
         }
-        /* Add to your CSS */
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-
-        .typing::after {
-            content: '|';
-            margin-left: 2px;
-            animation: blink 1s infinite;
-        }
-
-        .quick-questions {
-            display: flex;
-            gap: 10px;
-            padding: 10px 16px;
-            background-color: var(--secondary-color);
-            border-top: 1px solid var(--border-color);
-            overflow-x: auto;
-        }
-
-        .quick-question-btn {
-            background: none;
-            border: 1px solid var(--accent-color);
-            color: var(--accent-color);
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-
-        .quick-question-btn i {
-            margin-right: 6px;
-        }
-
-        .quick-question-btn:hover {
-            background-color: rgba(88, 166, 255, 0.1);
-        }
-
-        /* Make sure horizontal scrolling works smoothly */
-        .quick-questions::-webkit-scrollbar {
-            height: 4px;
-        }
-
-        .quick-questions::-webkit-scrollbar-thumb {
-            background: #3b4351;
-            border-radius: 4px;
-        }
-        .user-message {
-    margin-left: auto;
-    margin-right: 0;
-    background-color: #304054;
-    align-self: flex-end;
-    text-align: right;
-}
-
-.bot-message {
-    margin-right: auto;
-    margin-left: 0;
-    background-color: var(--secondary-color);
-    align-self: flex-start;
-    text-align: left;
-}
+        
 
 /* Make sure the message container uses flexbox */
 .message-container {
@@ -1118,13 +962,16 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
     margin-top: 10px;
 }
 
+/* Update the loading-bar CSS to ensure transitions work properly */
 .loading-bar {
     height: 100%;
-    width: 0%;
+    width: 0%; /* Start at 0% */
     background-color: var(--accent-color);
-    border-radius: 2px;
-    transition: width 0.5s ease;
+    border-radius: 4px;
+    transition: width 0.5s ease-in-out !important; /* Ensure transition is applied */
+    will-change: width; /* Optimize for animations */
 }
+
 /* Profile picture styles */
 .profile-picture-section {
     margin: 20px 0;
@@ -1317,7 +1164,751 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
     }
 
 }
+/* Add this to your existing CSS */
+#shared-sets-section {
+    display: none; /* Hidden by default, will be toggled with JS */
+}
 
+.shared-item {
+    position: relative;
+}
+
+.set-owner {
+    font-size: 12px;
+    color: #8b949e;
+    display: block;
+    margin-top: 2px;
+}
+
+.no-sets-message {
+    padding: 10px;
+    color: #8b949e;
+    font-style: italic;
+    font-size: 14px;
+}
+
+/* Shared set indicator */
+.shared-item::before {
+    content: '\f064';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    left: -18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent-color);
+    font-size: 12px;
+}
+
+/* Add these styles to your existing CSS */
+.main-container {
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+    height: 100%;
+    padding: 20px;
+}
+
+.upload-container {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+}
+
+.video-container {
+    flex: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drag-drop-area {
+    background-color: var(--secondary-color);
+    border: 2px dashed var(--border-color);
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.drag-drop-area.active {
+    border-color: var(--accent-color);
+    background-color: rgba(88, 166, 255, 0.05);
+}
+
+.drag-drop-area i {
+    font-size: 48px;
+    color: var(--accent-color);
+    margin-bottom: 15px;
+}
+
+.drag-drop-area h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
+
+.instructions {
+    color: #8b949e;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+#notes-input {
+    width: 100%;
+    min-height: 150px;
+    background-color: var(--primary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 12px;
+    color: var(--text-color);
+    font-size: 14px;
+    resize: vertical;
+    margin-bottom: 20px;
+}
+
+.upload-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.action-button {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.action-button i {
+    margin-right: 8px;
+}
+
+.action-button:hover {
+    background-color: var(--hover-color);
+}
+
+.primary-button {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: #fff;
+}
+
+.primary-button:hover {
+    background-color: #4a8ede;
+}
+
+.video-placeholder {
+    background-color: var(--secondary-color);
+    border-radius: 10px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #8b949e;
+}
+
+.video-placeholder i {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.success-message {
+    background-color: rgba(86, 211, 100, 0.1);
+    border: 1px solid var(--success-color);
+    border-radius: 5px;
+    padding: 15px;
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.view-flashcards-btn {
+    background-color: var(--success-color);
+    color: var(--primary-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+.view-flashcards-btn i {
+    margin-right: 5px;
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(13, 17, 23, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loading-content {
+    background-color: var(--secondary-color);
+    border-radius: 8px;
+    padding: 20px;
+    width: 80%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.loading-progress {
+    height: 6px;
+    width: 100%;
+    background-color: var(--border-color);
+    border-radius: 3px;
+    margin-top: 15px;
+    overflow: hidden;
+}
+
+.loading-bar {
+    height: 100%;
+    width: 0%;
+    background-color: var(--accent-color);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .main-container {
+        flex-direction: column;
+    }
+    
+    .video-container {
+        height: 200px;
+    }
+}
+/* Add these styles to your existing CSS */
+.main-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.upload-section {
+    width: 100%;
+    text-align: center;
+}
+
+.main-heading {
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--text-color);
+    margin-bottom: 10px;
+}
+
+.sub-heading {
+    font-size: 16px;
+    color: #8b949e;
+    margin-bottom: 30px;
+}
+
+.content-layout {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-container {
+    flex: 1;
+    max-width: 300px;
+}
+
+.upload-container {
+    flex: 1;
+    max-width: 350px;
+}
+
+.video-placeholder {
+    background-color: var(--secondary-color);
+    border-radius: 10px;
+    width: 100%;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #8b949e;
+}
+
+.video-placeholder i {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.drag-drop-area {
+    background-color: var(--secondary-color);
+    border: 2px dashed var(--border-color);
+    border-radius: 10px;
+    padding: 25px;
+    text-align: center;
+    transition: all 0.3s ease;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.drag-drop-area.active {
+    border-color: var(--accent-color);
+    background-color: rgba(88, 166, 255, 0.05);
+}
+
+.drag-drop-area i {
+    font-size: 36px;
+    color: var(--accent-color);
+    margin-bottom: 15px;
+}
+
+.drop-instructions {
+    color: #8b949e;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.action-button {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.action-button i {
+    margin-right: 8px;
+}
+
+.action-button:hover {
+    background-color: var(--hover-color);
+}
+
+.success-message {
+    background-color: rgba(86, 211, 100, 0.1);
+    border: 1px solid var(--success-color);
+    border-radius: 5px;
+    padding: 15px;
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.view-flashcards-btn {
+    background-color: var(--success-color);
+    color: var(--primary-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+.view-flashcards-btn i {
+    margin-right: 5px;
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(13, 17, 23, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loading-content {
+    background-color: var(--secondary-color);
+    border-radius: 8px;
+    padding: 20px;
+    width: 80%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.loading-progress {
+    height: 6px;
+    width: 100%;
+    background-color: var(--border-color);
+    border-radius: 3px;
+    margin-top: 15px;
+    overflow: hidden;
+}
+
+.loading-bar {
+    height: 100%;
+    width: 0%;
+    background-color: var(--accent-color);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .content-layout {
+        flex-direction: column;
+    }
+    
+    .video-container, .upload-container {
+        max-width: 100%;
+    }
+}
+/* Add to your existing CSS section */
+.password-requirements {
+    margin-top: 8px;
+    font-size: 12px;
+    background-color: var(--primary-color);
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.password-requirements p {
+    margin-bottom: 5px;
+    color: var(--text-color);
+}
+
+.requirement {
+    margin-bottom: 3px;
+    color: var(--error-color);
+    transition: color 0.2s;
+}
+
+.requirement.valid {
+    color: var(--success-color);
+}
+
+.requirement i {
+    margin-right: 5px;
+}
+
+.requirement.valid i.fa-times-circle {
+    display: none;
+}
+
+.requirement.valid i.fa-check-circle {
+    display: inline;
+}
+
+.requirement i.fa-check-circle {
+    display: none;
+}
+/* Add this to your existing CSS section */
+.sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 10px 0;
+}
+
+.sidebar.collapsed .nav-item i {
+    margin-right: 0;
+    margin-left: 0;
+    text-align: center;
+    width: 100%;
+}
+
+/* Ensure all icons have consistent width/alignment */
+.nav-item i {
+    min-width: 24px;
+    text-align: center;
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+/* Specifically target the shared sets icon if needed */
+#shared-sets-toggle i {
+    min-width: 24px;
+    text-align: center;
+}
+/* Add or update these styles in your CSS section */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(13, 17, 23, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loading-content {
+    background-color: var(--secondary-color);
+    border-radius: 8px;
+    padding: 25px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.loading-content h3 {
+    margin-bottom: 15px;
+    color: var(--text-color);
+}
+
+#loading-stage {
+    margin-bottom: 20px;
+    color: var(--accent-color);
+    font-size: 16px;
+}
+
+.loading-progress {
+    height: 8px;
+    width: 100%;
+    background-color: var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 15px;
+}
+
+.loading-bar {
+    height: 100%;
+    width: 0%;
+    background-color: var(--accent-color);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+/* Replace or update the loading overlay CSS */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(13, 17, 23, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loading-content {
+    background-color: var(--secondary-color);
+    border-radius: 8px;
+    padding: 30px;
+    width: 200px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.loading-content p {
+    margin-top: 20px;
+    color: var(--text-color);
+    font-size: 16px;
+}
+
+/* Loading spinner animation */
+.loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 5px solid var(--border-color);
+    border-radius: 50%;
+    border-top-color: var(--accent-color);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+/* Add to your existing CSS section */
+input#reg_username.invalid {
+    border-color: var(--error-color);
+}
+
+.username-validation-message.visible {
+    display: block !important;
+}
+/* Add to your existing CSS section if not already present */
+.password-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-container input {
+    flex: 1;
+    padding-right: 40px; /* Make room for the button */
+}
+
+.toggle-password {
+    position: absolute;
+    right: 5px;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    padding: 5px 10px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.toggle-password:hover {
+    opacity: 1;
+}
+/* Video styling */
+.video-container {
+    flex: 1;
+    max-width: 300px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.video-container video {
+    width: 100%;
+    height: auto;
+    display: block;
+    background-color: var(--secondary-color);
+    border-radius: 10px;
+}
+/* Video play button overlay */
+.video-container {
+    position: relative;
+}
+
+.video-play-button {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    border-radius: 10px;
+}
+
+.video-play-button i {
+    font-size: 48px;
+    color: white;
+    opacity: 0.9;
+}
+
+.video-play-button:hover i {
+    opacity: 1;
+    transform: scale(1.1);
+    transition: all 0.2s ease;
+}
+/* Update the video container styling */
+.video-container {
+    flex: 1;
+    max-width: 400px; /* Increased from 300px */
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    position: relative;
+    /* Add glow effect */
+    filter: drop-shadow(0 0 15px rgba(88, 166, 255, 0.4));
+    transition: all 0.3s ease;
+}
+
+/* Add hover effect to enhance the glow */
+.video-container:hover {
+    filter: drop-shadow(0 0 20px rgba(88, 166, 255, 0.6));
+    transform: translateY(-3px);
+}
+
+.video-container video {
+    width: 100%;
+    height: auto;
+    display: block;
+    background-color: var(--secondary-color);
+    border-radius: 10px;
+}
+
+/* Enhance the play button with glow */
+.video-play-button i {
+    font-size: 54px; /* Increased from 48px */
+    color: white;
+    opacity: 0.9;
+    /* Add glow to the play button */
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+    transition: all 0.3s ease;
+}
+
+.video-play-button:hover i {
+    opacity: 1;
+    transform: scale(1.1);
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.9);
+}
+/* Update the content layout to better handle the larger video */
+.content-layout {
+    display: flex;
+    gap: 40px; /* Increased from 30px */
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    margin: 30px 0;
+}
+
+/* Make sure the upload container balances with the larger video */
+.upload-container {
+    flex: 1;
+    max-width: 400px; /* Match the video container */
+}
+
+/* Ensure the drag-drop area is tall enough to balance with the video */
+.drag-drop-area {
+    height: 225px; /* Increased height to better balance with larger video */
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+    .content-layout {
+        flex-direction: column;
+    }
+    
+    .video-container, .upload-container {
+        max-width: 100%;
+        width: 100%;
+    }
+}
 
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1333,9 +1924,7 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
                 <span>Flashcard.ai</span>
                 
             </div>
-            <button class="toggle-btn" id="toggle-sidebar">
-                <i class="fa fa-chevron-left"></i>
-            </button>
+            
         </div>
         
         <div class="sidebar-content">
@@ -1372,15 +1961,29 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
                         ?>
                     </div>
                 </div>
+
+                <!-- Add this after the Library nav item in welcome.php -->
+<a href="#" class="nav-item" id="shared-sets-toggle">
+    <i class="fa fa-share-alt"></i>
+    <span>Shared Sets</span>
+</a>
+
+<div class="library-section" id="shared-sets-section">
+    <div id="shared-sets-items">
+        <?php 
+        if (isset($_SESSION['user_id'])) {
+            displaySharedFlashcardSets($pdo, $_SESSION['user_id']);
+        } 
+        else {
+            echo '<p>Please log in to view shared sets.</p>';
+        }
+        ?>
+    </div>
+</div>
+
             </div>
         </div>
-        <div class="sidebar-bottom">
-            <!-- Add download button above the account button -->
-            <a href="#" class="nav-item" id="download-btn">
-                <i class="fa fa-download"></i>
-                <span>Download</span>
-            </a>
-        </div>
+        
         
         <div class="sidebar-bottom">
     <div class="account" id="account-btn">
@@ -1411,85 +2014,62 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
 
     <!-- Main Content -->
     <div class="main-content">
-        <div class="content-area" id="content-area">
-                
-        <div class="message-container">
-    <div class="message bot-message">
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-            <?php if (isset($_SESSION['user_id'])): ?>
-                <p id="welcome-message" 
-                   data-text="Hello! How can I help you today? You can ask me questions or generate flashcards from your notes.">
-                   <!-- Remove the conditional content display -->
-                </p>
-            <?php else: ?>
-                <p id="welcome-message" 
-                   data-text="Log in to get started with Flashcard.ai">
-                   <!-- Remove the conditional content display -->
-                </p>
-            <?php endif; ?>
+        <!-- Replace the content-area div in welcome.php with this -->
+<div class="content-area" id="content-area">
+    <div class="main-container">
+        <div class="upload-section">
+            <h1 class="main-heading">Turn your notes into flashcards with Flashcard.ai</h1>
+            <p class="sub-heading">Upload your study materials and we'll automatically generate flashcards to help you learn</p>
             
-        </div>
-    </div>
-    <?php echo $loadingMessageHtml; ?>
+            <div class="content-layout">
+                <div class="video-container">
+                    <video id="demo-video" controls poster="media/images/thumbnailll.png">
+                        <source src="media/videos/tut.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
 
-</div>
-        <?php if (isset($_SESSION['success'])): ?>
-            <div class="message-container">
-                <div class="message bot-message">
-                    <?php if ($_SESSION['success'] === "Flashcards created!" && isset($_SESSION['last_created_set_id'])): ?>
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <p id="success-message" data-text="Flashcards created! Click the button to view them.  "></p>
-                            <a href="flashcard.php?set_id=<?php echo $_SESSION['last_created_set_id']; ?>" class="create-flashcards-btn" style="margin-left: 10px;">
-                                <i class="fa fa-eye"></i> View Flashcards
-                            </a>
-                        </div>
-                    <?php else: ?>
-                        <p id="success-message" data-text="<?php echo $_SESSION['success']; ?>"></p>
-                    <?php endif; ?>
+                
+                <div class="upload-container">
+                    <div class="drag-drop-area" id="drag-drop-area">
+                        <i class="fa fa-cloud-upload-alt"></i>
+                        <p class="drop-instructions">Drag & drop a text file here</p>
+                        <form id="notes-form" method="POST" action="" enctype="multipart/form-data">
+                            <input type="file" id="file-upload" name="message_file" accept=".txt" style="display: none;">
+                            <button type="button" id="browse-btn" class="action-button">
+                                <i class="fa fa-file-alt"></i> Browse Files
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
-            <?php 
-            // Clean up session variables after displaying the message
-            unset($_SESSION['success']); 
-            if (isset($_SESSION['last_created_set_id'])) {
-                unset($_SESSION['last_created_set_id']);
-            }
-            ?>
-        <?php endif; ?>
-                
-                
             
-        </div>
-        <div class="quick-questions">
-            <button class="quick-question-btn" data-question="What can you do?">
-                <i class="fa fa-question-circle"></i> What can you do?
-            </button>
-            <button class="quick-question-btn" data-question="How do I create flashcards?">
-                <i class="fa fa-magic"></i> How do I create flashcards?
-            </button>
-            <button class="quick-question-btn" data-question="How do I study effectively?">
-                <i class="fa fa-brain"></i> How do I study effectively?
-            </button>
-        </div>
-        
-        <div class="input-area">
-            <form class="message-form" id="message-form" method="POST" action="" enctype="multipart/form-data">
-                <textarea class="message-input" id="message-input" name="message_text" placeholder="Paste or Upload your notes here . . ." rows="1"></textarea>
-                <div class="input-buttons">
-                    <div class="file-upload">
-                        <input type="file" id="file-upload" name="message_file" accept=".txt">
-                        <button type="button" class="upload-btn" id="uploadBtn">
-                            <i class="fa fa-paperclip"></i>
-                        </button>
-                    </div>
-                    <button type="submit" name="process_message" class="send-btn" id="sendBtn">
-                        <i class="fa fa-paper-plane"></i>
-                    </button>
+            <?php if (isset($_SESSION['success'])): ?>
+                <div class="success-message">
+                    <?php if ($_SESSION['success'] === "Flashcards created!" && isset($_SESSION['last_created_set_id'])): ?>
+                        <p><?php echo $_SESSION['success']; ?></p>
+                        <a href="flashcard.php?set_id=<?php echo $_SESSION['last_created_set_id']; ?>" class="view-flashcards-btn">
+                            <i class="fa fa-eye"></i> View Flashcards
+                        </a>
+                    <?php else: ?>
+                        <p><?php echo $_SESSION['success']; ?></p>
+                    <?php endif; ?>
                 </div>
-            </form>
-            <div class="file-name" id="file-name"></div>
+                <?php 
+                // Clean up session variables after displaying the message
+                unset($_SESSION['success']); 
+                if (isset($_SESSION['last_created_set_id'])) {
+                    unset($_SESSION['last_created_set_id']);
+                }
+                ?>
+            <?php endif; ?>
         </div>
     </div>
+    
+    <?php echo $loadingMessageHtml; ?>
+</div>
+
+
 
     <!-- Authentication Modal -->
 <div class="auth-modal" id="auth-modal">
@@ -1542,7 +2122,12 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
+                    <div class="password-input-container">
+                        <input type="password" id="password" name="password" required>
+                        <button type="button" class="toggle-password" aria-label="Toggle password visibility">
+                            <i class="fa fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
                 <?php if (isset($login_error)): ?>
                     <div class="error-message"><?php echo $login_error; ?></div>
@@ -1552,22 +2137,44 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
             
             <!-- Register form -->
             <form method="POST" action="" class="auth-form" id="register-form">
-                <div class="form-group">
-                    <label for="reg_username">Username</label>
-                    <input type="text" id="reg_username" name="reg_username" required>
-                </div>
+                <!-- In the register form, update the username input group: -->
+<div class="form-group">
+    <label for="reg_username">Username</label>
+    <input type="text" id="reg_username" name="reg_username" required>
+    <div class="username-validation-message" style="display: none; color: var(--error-color); font-size: 12px; margin-top: 5px;">
+        <i class="fa fa-exclamation-circle"></i> Username already exists
+    </div>
+</div>
+
                 <div class="form-group">
                     <label for="reg_email">Email</label>
                     <input type="email" id="reg_email" name="reg_email" required>
                 </div>
                 <div class="form-group">
-                    <label for="reg_password">Password</label>
-                    <input type="password" id="reg_password" name="reg_password" required>
-                </div>
-                <div class="form-group">
-                    <label for="reg_passwordConfirm">Confirm Password</label>
-                    <input type="password" id="reg_passwordConfirm" name="reg_passwordConfirm" required>
-                </div>
+    <label for="reg_password">Password</label>
+    <div class="password-input-container">
+        <input type="password" id="reg_password" name="reg_password" required>
+        <button type="button" class="toggle-password" aria-label="Toggle password visibility">
+            <i class="fa fa-eye"></i>
+        </button>
+    </div>
+    <div class="password-requirements">
+        <p>Password must contain:</p>
+        <div class="requirement" id="length-req"><i class="fa fa-times-circle"></i> At least 8 characters</div>
+        <div class="requirement" id="capital-req"><i class="fa fa-times-circle"></i> At least one capital letter</div>
+        <div class="requirement" id="number-req"><i class="fa fa-times-circle"></i> At least one number</div>
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="reg_passwordConfirm">Confirm Password</label>
+    <div class="password-input-container">
+        <input type="password" id="reg_passwordConfirm" name="reg_passwordConfirm" required>
+        <button type="button" class="toggle-password" aria-label="Toggle password visibility">
+            <i class="fa fa-eye"></i>
+        </button>
+    </div>
+</div>
                 <?php if (isset($register_error)): ?>
                     <div class="error-message"><?php echo $register_error; ?></div>
                 <?php endif; ?>
@@ -1630,6 +2237,16 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
         </div>
     </div>
 </div>
+<!-- Add this right before the closing </body> tag -->
+<!-- Replace the existing loading-overlay div with this simplified version -->
+<div class="loading-overlay" id="loading-overlay" style="display: none;">
+    <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p>Generating flashcards...</p>
+    </div>
+</div>
+
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1657,51 +2274,11 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
                 this.style.height = (this.scrollHeight) + 'px';
             });
             
-            // File upload handling
-            const fileUpload = document.getElementById('file-upload');
-            const fileName = document.getElementById('file-name');
             
-            fileUpload.addEventListener('change', function() {
-                if (this.files && this.files[0]) {
-                    const file = this.files[0];
-                    const fileExtension = file.name.split('.').pop().toLowerCase();
-                    
-                    if (fileExtension !== 'txt') {
-                        alert('Only .txt files are allowed');
-                        this.value = '';
-                        fileName.textContent = '';
-                        fileName.style.display = 'none';
-                        return;
-                    }
-                    
-                    fileName.textContent = file.name;
-                    fileName.style.display = 'block';
-                } else {
-                    fileName.textContent = '';
-                    fileName.style.display = 'none';
-                }
-            });
             
-            // Check login status when clicking message box
-            messageInput.addEventListener('click', function() {
-                <?php if (!isset($_SESSION['user_id'])): ?>
-                authModal.style.display = 'flex';
-                <?php endif; ?>
-            });
-            FCbtn.addEventListener('click', function() {
-                <?php if (!isset($_SESSION['user_id'])): ?>
-                authModal.style.display = 'flex';
-                <?php endif; ?>
-            });
             
-            // "Create Flashcards" button just focuses on input field
-            const createFlashcardsBtn = document.querySelector('.create-flashcards-btn');
-            if (createFlashcardsBtn) {
-                createFlashcardsBtn.addEventListener('click', function() {
-                    messageInput.focus();
-                    messageInput.placeholder = 'Paste or upload your notes here';
-                });
-            }
+            
+            
             
             // Authentication modal
             const authModal = document.getElementById('auth-modal');
@@ -1874,198 +2451,13 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
         }
     });
     });
-    const downloadBtn = document.getElementById('download-btn');
-    const downloadModal = document.getElementById('download-modal');
-    const cancelDownload = document.getElementById('cancel-download');
-    const confirmDownload = document.getElementById('confirm-download');
     
-    // Show download modal when download button is clicked
-    downloadBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        downloadModal.style.display = 'flex';
-    });
     
-    // Cancel download
-    cancelDownload.addEventListener('click', function() {
-        downloadModal.style.display = 'none';
-    });
     
-    // Confirm download (currently does nothing)
-    confirmDownload.addEventListener('click', function() {
-        // This is where you would add the actual download functionality in the future
-        alert('Download functionality will be implemented in the future.');
-        downloadModal.style.display = 'none';
-    });
-    
-    // Close download modal when clicking outside
-    downloadModal.addEventListener('click', function(e) {
-        if (e.target === downloadModal) {
-            downloadModal.style.display = 'none';
-        }
-    });
-    
-    // Typing animation function
-    function typeMessage(element, text, speed = 30) {
-        let i = 0;
-        element.textContent = '';
-        element.classList.add('typing');
-        
-        function type() {
-            if (i < text.length) {
-                element.textContent += text.charAt(i);
-                i++;
-                setTimeout(type, speed);
-            } else {
-                // Remove the cursor when typing is complete
-                element.classList.remove('typing');
-            }
-        }
-        
-        type();
-    }
 
-    document.addEventListener('DOMContentLoaded', function() {
-    // Existing code...
     
-    // Always animate welcome message (like in fff.php)
-    const welcomeMessage = document.getElementById('welcome-message');
-    if (welcomeMessage) {
-        const text = welcomeMessage.getAttribute('data-text');
-        typeMessage(welcomeMessage, text);
-    }
-
-    // Always animate success and error messages as they are new
-    const successMessage = document.getElementById('success-message');
-    if (successMessage) {
-        const text = successMessage.getAttribute('data-text');
-        typeMessage(successMessage, text);
-    }
-
-    const errorMessage = document.getElementById('error-message');
-    if (errorMessage) {
-        const text = errorMessage.getAttribute('data-text');
-        typeMessage(errorMessage, text);
-    }
-
-    // Existing code...
-});
 
 
-    // Add to your existing JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    // Existing code...
-    
-    // Quick question buttons
-    const quickQuestionBtns = document.querySelectorAll('.quick-question-btn');
-    const contentArea = document.getElementById('content-area');
-    
-    quickQuestionBtns.forEach(button => {
-        button.addEventListener('click', function() {
-            const question = this.getAttribute('data-question');
-            let answer = '';
-            
-            // Define answers for each question
-            switch(question) {
-                case 'What can you do?':
-                    answer = "I can help you create flashcards from your notes, organize your study materials, and provide a platform for effective learning. Just paste your notes in the input box below or upload a text file, and I'll convert them into question-answer flashcards for you to study.";
-                    break;
-                case 'How do I create flashcards?':
-                    answer = "To create flashcards, simply type or paste your notes in the text box below, or upload a text file using the paperclip icon. Then click the send button, and I'll analyze your content and generate flashcards automatically. You can view, edit, and organize these flashcards in your library.";
-                    break;
-                case 'How do I study effectively?':
-                    answer = "Effective studying involves active recall and spaced repetition. Use the flashcards to test yourself regularly rather than just reading them. Space out your study sessions over time instead of cramming. Focus on the cards you find difficult, and review your material in different environments to strengthen memory associations.";
-                    break;
-                default:
-                    answer = "I don't have a specific answer for that question. Please try one of the other options or ask me something else.";
-            }
-            
-            // Create user message
-            const userMessageContainer = document.createElement('div');
-            userMessageContainer.className = 'message-container';
-            userMessageContainer.innerHTML = `
-                <div class="message user-message">
-                    <p>${question}</p>
-                </div>
-            `;
-            contentArea.appendChild(userMessageContainer);
-            
-            // Create bot message with typing effect
-            const botMessageContainer = document.createElement('div');
-            botMessageContainer.className = 'message-container';
-            botMessageContainer.innerHTML = `
-                <div class="message bot-message">
-                    <p id="bot-response-${Date.now()}"></p>
-                </div>
-            `;
-            contentArea.appendChild(botMessageContainer);
-            
-            // Scroll to the bottom
-            contentArea.scrollTop = contentArea.scrollHeight;
-            
-            // Apply typing effect to the bot response
-            const botResponseElement = botMessageContainer.querySelector('p');
-            typeMessage(botResponseElement, answer);
-        });
-    });
-    
-    // Existing code...
-});
-
-// Add this to your existing JavaScript section
-document.addEventListener('DOMContentLoaded', function() {
-    // Existing code...
-    
-    // Form submission handling with loading animation
-    const messageForm = document.getElementById('message-form');
-    const loadingContainer = document.getElementById('loading-message-container');
-    const loadingStage = document.getElementById('loading-stage');
-    const loadingBar = document.getElementById('loading-bar');
-    
-    if (messageForm) {
-        messageForm.addEventListener('submit', function(e) {
-            // Only show loading if there's content to process
-            const messageInput = document.getElementById('message-input');
-            const fileUpload = document.getElementById('file-upload');
-            
-            if ((messageInput && messageInput.value.trim()) || 
-                (fileUpload && fileUpload.files && fileUpload.files.length > 0)) {
-                
-                // Show loading message
-                loadingContainer.style.display = 'block';
-                
-                // Scroll to the loading message
-                const contentArea = document.getElementById('content-area');
-                contentArea.scrollTop = contentArea.scrollHeight;
-                
-                // Simulate the loading stages
-                updateLoadingStage('Processing your notes...', 20);
-                
-                setTimeout(() => {
-                    updateLoadingStage('Sending to AI for analysis...', 40);
-                    
-                    setTimeout(() => {
-                        updateLoadingStage('Generating flashcards...', 70);
-                        
-                        setTimeout(() => {
-                            updateLoadingStage('Finalizing and saving...', 90);
-                        }, 2000);
-                    }, 2000);
-                }, 1500);
-                
-                // The form will naturally submit and redirect, so the loading
-                // animation will be visible until the page reloads
-            }
-        });
-    }
-    
-    // Function to update loading stage text and progress bar
-    function updateLoadingStage(text, progress) {
-        loadingStage.textContent = text;
-        loadingBar.style.width = progress + '%';
-    }
-    
-    // Existing code...
-});
 
 // Profile picture upload handling
 document.addEventListener('DOMContentLoaded', function() {
@@ -2270,7 +2662,430 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Add this JavaScript to replace the existing form handling code
+document.addEventListener('DOMContentLoaded', function() {
+    const dragDropArea = document.getElementById('drag-drop-area');
+    const fileUpload = document.getElementById('file-upload');
+    const browseBtn = document.getElementById('browse-btn');
+    const notesForm = document.getElementById('notes-form');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingStage = document.getElementById('loading-stage');
+    const loadingBar = document.getElementById('loading-bar');
+    const authModal = document.getElementById('auth-modal');
+    
+    // Check if user is logged in
+    const isLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
+    
+    // Browse button functionality
+    browseBtn.addEventListener('click', function(e) {
+        if (!isLoggedIn) {
+            e.preventDefault();
+            alert('Please log in to upload files and create flashcards.');
+            // Show the auth modal
+            if (authModal) {
+                authModal.style.display = 'flex';
+            }
+            return;
+        }
+        fileUpload.click();
+    });
+    
+    // File upload change event
+    fileUpload.addEventListener('change', function() {
+        if (!isLoggedIn) {
+            alert('Please log in to upload files and create flashcards.');
+            this.value = '';
+            // Show the auth modal
+            if (authModal) {
+                authModal.style.display = 'flex';
+            }
+            return;
+        }
+        
+        if (this.files && this.files[0]) {
+            const file = this.files[0];
+            if (file.type !== 'text/plain') {
+                alert('Please select a text (.txt) file');
+                this.value = '';
+                return;
+            }
+            
+            // Submit the form automatically when file is selected
+            notesForm.submit();
+            showLoading();
+        }
+    });
+    
+    // Drag and drop functionality
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dragDropArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dragDropArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        dragDropArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+        if (isLoggedIn) {
+            dragDropArea.classList.add('active');
+        }
+    }
+    
+    function unhighlight() {
+        dragDropArea.classList.remove('active');
+    }
+    
+    dragDropArea.addEventListener('drop', handleDrop, false);
+    
+    function handleDrop(e) {
+        if (!isLoggedIn) {
+            alert('Please log in to upload files and create flashcards.');
+            // Show the auth modal
+            if (authModal) {
+                authModal.style.display = 'flex';
+            }
+            return;
+        }
+        
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files.length) {
+            const file = files[0];
+            if (file.type !== 'text/plain') {
+                alert('Please drop a text (.txt) file');
+                return;
+            }
+            
+            // Set the file input value and submit the form
+            fileUpload.files = files;
+            notesForm.submit();
+            showLoading();
+        }
+    }
+    
+    function showLoading() {
+        // Show loading overlay
+        loadingOverlay.style.display = 'flex';
+        
+        // Simulate loading progress
+        updateLoadingStage('Processing your notes...', 20);
+        
+        setTimeout(() => {
+            updateLoadingStage('Analyzing content...', 40);
+            
+            setTimeout(() => {
+                updateLoadingStage('Generating flashcards...', 70);
+                
+                setTimeout(() => {
+                    updateLoadingStage('Finalizing...', 90);
+                }, 1500);
+            }, 1500);
+        }, 1000);
+    }
+    
+    function updateLoadingStage(text, progress) {
+        loadingStage.textContent = text;
+        loadingBar.style.width = progress + '%';
+    }
+});
 
+// Add this to your existing JavaScript section
+document.addEventListener('DOMContentLoaded', function() {
+    // Password validation
+    const passwordInput = document.getElementById('reg_password');
+    const lengthReq = document.getElementById('length-req');
+    const capitalReq = document.getElementById('capital-req');
+    const numberReq = document.getElementById('number-req');
+    const registerBtn = document.querySelector('button[name="register_submit"]');
+    
+    if (passwordInput) {
+        passwordInput.addEventListener('input', validatePassword);
+        
+        // Add check icons to requirements
+        document.querySelectorAll('.requirement').forEach(req => {
+            const icon = req.querySelector('i');
+            if (icon) {
+                const checkIcon = document.createElement('i');
+                checkIcon.className = 'fa fa-check-circle';
+                req.insertBefore(checkIcon, icon.nextSibling);
+            }
+        });
+    }
+    
+    function validatePassword() {
+        const password = passwordInput.value;
+        
+        // Check length requirement
+        if (password.length >= 8) {
+            lengthReq.classList.add('valid');
+        } else {
+            lengthReq.classList.remove('valid');
+        }
+        
+        // Check capital letter requirement
+        if (/[A-Z]/.test(password)) {
+            capitalReq.classList.add('valid');
+        } else {
+            capitalReq.classList.remove('valid');
+        }
+        
+        // Check number requirement
+        if (/[0-9]/.test(password)) {
+            numberReq.classList.add('valid');
+        } else {
+            numberReq.classList.remove('valid');
+        }
+        
+        // Update register button state
+        if (password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password)) {
+            registerBtn.disabled = false;
+        } else {
+            registerBtn.disabled = true;
+        }
+    }
+});
+
+// Add this to your existing JavaScript section
+document.addEventListener('DOMContentLoaded', function() {
+    // Shared sets toggle functionality
+    const sharedSetsToggle = document.getElementById('shared-sets-toggle');
+    const sharedSetsSection = document.getElementById('shared-sets-section');
+    
+    if (sharedSetsToggle && sharedSetsSection) {
+        sharedSetsToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Toggle visibility of shared sets section
+            if (sharedSetsSection.style.display === 'block') {
+                sharedSetsSection.style.display = 'none';
+            } else {
+                sharedSetsSection.style.display = 'block';
+            }
+            
+            // Optional: Add visual indicator that the section is expanded
+            this.classList.toggle('active');
+        });
+    }
+});
+// Add or update this in your JavaScript section
+document.addEventListener('DOMContentLoaded', function() {
+    const fileUpload = document.getElementById('file-upload');
+    const notesForm = document.getElementById('notes-form');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingStage = document.getElementById('loading-stage');
+    const loadingBar = document.getElementById('loading-bar');
+    
+    // File upload change event
+    if (fileUpload) {
+        fileUpload.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                if (file.type !== 'text/plain') {
+                    alert('Please select a text (.txt) file');
+                    this.value = '';
+                    return;
+                }
+                
+                // Show loading overlay before form submission
+                showLoadingProgress();
+                
+                // Submit the form after a short delay to allow the loading overlay to appear
+                setTimeout(() => {
+                    notesForm.submit();
+                }, 100);
+            }
+        });
+    }
+    
+    // Also update the drag and drop handler to show loading progress
+    const dragDropArea = document.getElementById('drag-drop-area');
+    if (dragDropArea) {
+        dragDropArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length) {
+                const file = files[0];
+                if (file.type !== 'text/plain') {
+                    alert('Please drop a text (.txt) file');
+                    return;
+                }
+                
+                // Set the file input value
+                fileUpload.files = files;
+                
+                // Show loading overlay
+                showLoadingProgress();
+                
+                // Submit the form after a short delay
+                setTimeout(() => {
+                    notesForm.submit();
+                }, 100);
+            }
+            
+            // Remove highlight
+            this.classList.remove('active');
+        });
+    }
+    
+    // Replace your existing showLoadingProgress function with this simplified version
+function showLoadingProgress() {
+    // Show loading overlay
+    loadingOverlay.style.display = 'flex';
+    
+    // Submit the form after a short delay to ensure the overlay is visible
+    setTimeout(() => {
+        notesForm.submit();
+    }, 100);
+}
+
+// No need for updateProgress function anymore since we're using a simple spinner
+
+    
+    
+});
+// Add to your existing JavaScript section
+document.addEventListener('DOMContentLoaded', function() {
+    // Username availability check
+    const usernameInput = document.getElementById('reg_username');
+    const usernameValidationMessage = document.querySelector('.username-validation-message');
+    let usernameCheckTimeout;
+    
+    if (usernameInput) {
+        usernameInput.addEventListener('input', function() {
+            // Clear any existing timeout
+            clearTimeout(usernameCheckTimeout);
+            
+            // Get the username value
+            const username = this.value.trim();
+            
+            // Reset validation state
+            this.classList.remove('invalid');
+            usernameValidationMessage.classList.remove('visible');
+            
+            // Don't check if username is empty
+            if (!username) return;
+            
+            // Set a timeout to avoid too many requests while typing
+            usernameCheckTimeout = setTimeout(function() {
+                checkUsernameAvailability(username);
+            }, 500);
+        });
+    }
+    
+    function checkUsernameAvailability(username) {
+        // Create form data
+        const formData = new FormData();
+        formData.append('username', username);
+        
+        // Send AJAX request
+        fetch('check_username.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.exists) {
+                // Username exists, show error
+                usernameInput.classList.add('invalid');
+                usernameValidationMessage.classList.add('visible');
+                
+                // Disable register button if username exists
+                const registerBtn = document.querySelector('button[name="register_submit"]');
+                if (registerBtn) {
+                    registerBtn.disabled = true;
+                }
+            } else {
+                // Username is available
+                usernameInput.classList.remove('invalid');
+                usernameValidationMessage.classList.remove('visible');
+                
+                // Re-enable register button if other conditions are met
+                const registerBtn = document.querySelector('button[name="register_submit"]');
+                if (registerBtn) {
+                    // Only enable if password requirements are met
+                    const passwordInput = document.getElementById('reg_password');
+                    if (passwordInput && passwordInput.value.length >= 8 && 
+                        /[A-Z]/.test(passwordInput.value) && 
+                        /[0-9]/.test(passwordInput.value)) {
+                        registerBtn.disabled = false;
+                    }
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error checking username:', error);
+        });
+    }
+});
+// Add to your existing JavaScript section
+document.addEventListener('DOMContentLoaded', function() {
+    // Password toggle functionality for all password fields
+    const togglePasswordButtons = document.querySelectorAll('.toggle-password');
+    
+    togglePasswordButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent form submission
+            
+            // Find the password input that is a sibling of this button
+            const passwordInput = this.previousElementSibling;
+            const icon = this.querySelector('i');
+            
+            // Toggle password visibility
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
+});
+// Add to your existing JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('demo-video');
+    
+    if (video) {
+        // Add play button overlay
+        const videoContainer = video.parentElement;
+        const playButton = document.createElement('div');
+        playButton.className = 'video-play-button';
+        playButton.innerHTML = '<i class="fa fa-play"></i>';
+        videoContainer.appendChild(playButton);
+        
+        // Play video when clicking the play button
+        playButton.addEventListener('click', function() {
+            video.play();
+            playButton.style.display = 'none';
+        });
+        
+        // Show play button when video is paused
+        video.addEventListener('pause', function() {
+            playButton.style.display = 'flex';
+        });
+        
+        // Hide play button when video is playing
+        video.addEventListener('play', function() {
+            playButton.style.display = 'none';
+        });
+    }
+});
 
     </script>
 </body>
