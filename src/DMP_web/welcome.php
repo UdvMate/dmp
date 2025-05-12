@@ -3363,6 +3363,24 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Only use .open for mobile sidebar
+const sidebar = document.getElementById('sidebar');
+const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+const overlay = document.querySelector('.sidebar-overlay');
+
+mobileMenuBtn.addEventListener('click', function() {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('active');
+    document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+});
+
+// Close sidebar on overlay click
+overlay.addEventListener('click', function() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+});
+
     </script>
 </body>
 </html>
