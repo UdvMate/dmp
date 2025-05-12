@@ -40,7 +40,7 @@ if ($stmt->fetchColumn() > 0) {
 }
 
 // Jelszó hash-elése itt történik biztonságosan
-$hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+$hashedPassword = base64_encode(hash('sha256', $password, true));
 
 try {
     $stmt = $pdo->prepare("INSERT INTO users (username, email, password, created_at) VALUES (:username, :email, :password, NOW())");

@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = "Passwords do not match!";
     } else {
         // Hash password securely
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $hashedPassword = base64_encode(hash('sha256', $password, true));;
 
         try {
             $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
