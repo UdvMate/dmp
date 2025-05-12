@@ -39,7 +39,7 @@ if ($stmt->fetchColumn() > 0) {
     exit();
 }
 
-// Jelszó hash-elése itt történik biztonságosan
+// Jelszó hash
 $hashedPassword = base64_encode(hash('sha256', $password, true));
 
 try {

@@ -43,7 +43,7 @@ namespace dmp
             {
                 var response = await httpClient.PostAsync(requestUrl, content);
                 var responseBody = await response.Content.ReadAsStringAsync();
-                MessageBox.Show("Response: " + responseBody);
+                
 
                 var result = JsonConvert.DeserializeObject<LoginResult>(responseBody);
 
@@ -82,7 +82,7 @@ namespace dmp
         {
             public bool success { get; set; }
             public string error { get; set; }
-            public int id { get; set; } // új mező
+            public int id { get; set; } 
             public string username { get; set; }
         }
 
