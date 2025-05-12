@@ -4,12 +4,12 @@ header("Content-Type: application/json; charset=UTF-8");
 
 $input = json_decode(file_get_contents("php://input"), true);
 
-if (!isset($input['user_id'])) {
-    echo json_encode(["error" => "Missing user_id"]);
+if (!isset($input['id'])) {
+    echo json_encode(["error" => "Missing id"]);
     exit;
 }
 
-$user_id = $input['user_id'];
+$user_id = $input['id'];
 
 $conn = new mysqli("localhost", "root", "", "dmproject");
 if ($conn->connect_error) {

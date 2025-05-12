@@ -50,7 +50,7 @@ namespace dmp
                 if (result != null && result.success)
                 {
                     IsLoggedIn = true;
-                    int userId = result.user_id;
+                    int Id = result.id;
 
                     if (username.ToLower() == "admin")
                     {
@@ -59,7 +59,7 @@ namespace dmp
                     }
                     else
                     {
-                        var mainWindow = new MainWindow(username, userId);
+                        var mainWindow = new MainWindow(username, Id);
                         mainWindow.Show();
                     }
 
@@ -82,7 +82,7 @@ namespace dmp
         {
             public bool success { get; set; }
             public string error { get; set; }
-            public int user_id { get; set; } // új mező
+            public int id { get; set; } // új mező
             public string username { get; set; }
         }
 

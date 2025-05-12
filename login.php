@@ -2,6 +2,7 @@
 include 'includes/config.php';
 session_start();
 
+
 if (isset($_SESSION['user_id'])) {
     header("Location: welcome.php");
     exit();
@@ -18,8 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $user = $stmt->fetch();
 
         if ($user) {
+            // Hash input password to match stored format
+            $inputHash = base64_encode(hash('sha256', $password, true));
+
             // Ellenőrizzük a jelszót
-            if (password_verify($password, $user['password'])) {
+            if ($inputHash === $user['password']) {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['success'] = "Logged in successfully!";
@@ -38,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 include('includes/header.php');
 ?>
+
 
 
 

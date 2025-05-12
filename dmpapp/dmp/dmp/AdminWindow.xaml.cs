@@ -24,7 +24,7 @@ namespace dmp
                 using (var conn = new MySqlConnection(connectionString))
                 {
                     conn.Open();
-                    string query = "SELECT user_id, username, email FROM users WHERE username != 'admin'";
+                    string query = "SELECT id, username, email FROM users WHERE username != 'admin'";
                     using (var cmd = new MySqlCommand(query, conn))
                     using (var reader = cmd.ExecuteReader())
                     {
@@ -33,7 +33,7 @@ namespace dmp
                         {
                             var user = new UserInfo
                             {
-                                UserId = reader.GetInt32("user_id"),
+                                UserId = reader.GetInt32("id"),
                                 Username = reader.GetString("username"),
                                 Email = reader.GetString("email")
                             };
@@ -86,7 +86,7 @@ namespace dmp
                         using (var conn = new MySqlConnection(connectionString))
                         {
                             conn.Open();
-                            string query = "DELETE FROM users WHERE user_id = @UserId";
+                            string query = "DELETE FROM users WHERE id = @UserId";
                             using (var cmd = new MySqlCommand(query, conn))
                             {
                                 cmd.Parameters.AddWithValue("@UserId", user.UserId);
