@@ -1737,35 +1737,38 @@ function displaySharedFlashcardSets($pdo, $userId) {
     </div>
 
     <script>
-       document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener('DOMContentLoaded', function() {
     // Toggle sidebar
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggle-sidebar');
-    const toggleIcon = toggleBtn.querySelector('i');
     
-    toggleBtn.addEventListener('click', function() {
-        sidebar.classList.toggle('collapsed');
-        if (sidebar.classList.contains('collapsed')) {
-            toggleIcon.classList.remove('fa-chevron-left');
-            toggleIcon.classList.add('fa-chevron-right');
-        } else {
-            toggleIcon.classList.remove('fa-chevron-right');
-            toggleIcon.classList.add('fa-chevron-left');
-        }
-    });
-            
-            // Authentication modal
-            const authModal = document.getElementById('auth-modal');
-            const accountBtn = document.getElementById('account-btn');
-            const closeAuthModal = document.getElementById('close-auth-modal');
-            const loginPromptBtn = document.getElementById('login-prompt-btn');
-            
-            // Open modal on account click
-            if (accountBtn) {
-                accountBtn.addEventListener('click', function() {
-                    authModal.style.display = 'flex';
-                });
+    if (toggleBtn) {
+        const toggleIcon = toggleBtn.querySelector('i');
+        
+        toggleBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            if (sidebar.classList.contains('collapsed')) {
+                toggleIcon.classList.remove('fa-chevron-left');
+                toggleIcon.classList.add('fa-chevron-right');
+            } else {
+                toggleIcon.classList.remove('fa-chevron-right');
+                toggleIcon.classList.add('fa-chevron-left');
             }
+        });
+    }
+    
+    // Authentication modal
+    const authModal = document.getElementById('auth-modal');
+    const accountBtn = document.getElementById('account-btn');
+    const closeAuthModal = document.getElementById('close-auth-modal');
+    const loginPromptBtn = document.getElementById('login-prompt-btn');
+    
+    // Open modal on account click
+    if (accountBtn) {
+        accountBtn.addEventListener('click', function() {
+            authModal.style.display = 'flex';
+        });
+    }
             
             // Open modal on login prompt click
             if (loginPromptBtn) {
