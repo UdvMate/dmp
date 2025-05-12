@@ -57,7 +57,7 @@ namespace dmp
 
         private async Task<List<Flashcard>> GetFlashcardsFromApi()
         {
-            var postData = new { user_id = currentUserId };
+            var postData = new { id = currentUserId };
             var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await httpClient.PostAsync(apiBaseUrl, content);

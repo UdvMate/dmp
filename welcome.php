@@ -2,7 +2,9 @@
 // Start a session only if one isn't already active
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
+    
 }
+
 
 include 'includes/config.php';
 
