@@ -2438,53 +2438,57 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Replace your existing mobile sidebar toggle code with this improved version
+// Replace the existing sidebar toggle code in connect.php with this improved version
 document.addEventListener('DOMContentLoaded', function() {
-    // Mobile sidebar toggle - improved
+    // Sidebar toggle functionality
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggle-sidebar');
     const toggleIcon = toggleBtn.querySelector('i');
     
-    function handleMobileView() {
+    // Function to handle sidebar toggle for both desktop and mobile
+    function handleSidebarToggle(e) {
+        if (e) e.stopPropagation();
+        
         if (window.innerWidth <= 450) {
-            // Reset any inline styles that might be causing issues
-            sidebar.style.width = '';
+            // Mobile behavior - expand/collapse vertically
+            sidebar.classList.toggle('expanded');
+        } else {
+            // Desktop behavior - collapse/expand horizontally
+            sidebar.classList.toggle('collapsed');
+        }
+        
+        // Update icon based on sidebar state
+        if ((window.innerWidth <= 450 && sidebar.classList.contains('expanded')) || 
+            (window.innerWidth > 450 && !sidebar.classList.contains('collapsed'))) {
+            toggleIcon.classList.remove('fa-chevron-right');
+            toggleIcon.classList.add('fa-chevron-left');
+        } else {
+            toggleIcon.classList.remove('fa-chevron-left');
+            toggleIcon.classList.add('fa-chevron-right');
+        }
+    }
+    
+    // Initialize sidebar state based on screen size
+    function initSidebar() {
+        if (window.innerWidth <= 450) {
+            // Mobile view - start collapsed (not expanded)
+            sidebar.classList.remove('collapsed', 'expanded');
+            toggleIcon.classList.remove('fa-chevron-left');
+            toggleIcon.classList.add('fa-chevron-right');
             
-            // For mobile view
-            toggleBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                
-                // Toggle expanded class
-                sidebar.classList.toggle('expanded');
-                
-                // Update icon
-                if (sidebar.classList.contains('expanded')) {
-                    toggleIcon.classList.remove('fa-chevron-right');
-                    toggleIcon.classList.add('fa-chevron-left');
-                } else {
-                    toggleIcon.classList.remove('fa-chevron-left');
-                    toggleIcon.classList.add('fa-chevron-right');
-                }
-                
-                // Force a reflow to ensure transitions work properly
-                void sidebar.offsetWidth;
-            });
-            
-            // Close sidebar when clicking elsewhere
+            // Add click outside to close for mobile
             document.addEventListener('click', function(e) {
                 if (!sidebar.contains(e.target) && sidebar.classList.contains('expanded')) {
-                    sidebar.classList.remove('expanded');
-                    toggleIcon.classList.remove('fa-chevron-left');
-                    toggleIcon.classList.add('fa-chevron-right');
+                    handleSidebarToggle();
                 }
             });
             
-            // Prevent sidebar from closing when clicking inside it
+            // Prevent clicks inside sidebar from closing it
             sidebar.addEventListener('click', function(e) {
                 e.stopPropagation();
             });
         } else {
-            // For desktop view, ensure proper icon state
+            // Desktop view - check if it should be collapsed
             if (sidebar.classList.contains('collapsed')) {
                 toggleIcon.classList.remove('fa-chevron-left');
                 toggleIcon.classList.add('fa-chevron-right');
@@ -2495,16 +2499,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Run on load
-    handleMobileView();
+    // Add toggle button event listener
+    toggleBtn.addEventListener('click', handleSidebarToggle);
     
-    // Run on resize with debounce
+    // Initialize on page load
+    initSidebar();
+    
+    // Handle window resize
     let resizeTimer;
     window.addEventListener('resize', function() {
         clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(handleMobileView, 250);
+        resizeTimer = setTimeout(initSidebar, 250);
     });
 });
+
 
     </script>
 </body>
