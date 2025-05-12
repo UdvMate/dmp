@@ -195,7 +195,7 @@ namespace dmp
             FlashcardsPanel.Visibility = Visibility.Visible;
             NoCardsText.Visibility = Visibility.Collapsed;
 
-            
+            // 3 cella, középsőben a szöveg, hogy UniformGrid-ben középen legyen
             for (int i = 0; i < 3; i++)
             {
                 if (i == 1)

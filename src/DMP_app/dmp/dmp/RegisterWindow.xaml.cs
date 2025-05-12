@@ -47,7 +47,7 @@ namespace dmp
                 var response = await httpClient.PostAsync("http://localhost/dmp/src/DMP_web/API/registerApi.php", content);
                 var responseBody = await response.Content.ReadAsStringAsync();
 
-                MessageBox.Show("Registration succesful");
+                MessageBox.Show(responseBody);
                 this.Close();
             }
             catch (Exception ex)
