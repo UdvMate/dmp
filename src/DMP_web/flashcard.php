@@ -1505,9 +1505,9 @@ input:checked + .toggle-slider:before {
     
     /* When sidebar is expanded, push content further down or hide it */
     .sidebar.expanded + .main-content {
-        margin-top: 60px; /* Keep the same margin when expanded */
-        opacity: 0.3; /* Optional: dim the content when sidebar is expanded */
-        pointer-events: none; /* Optional: prevent interaction with content when sidebar is expanded */
+        margin-top: 60px; 
+        opacity: 0.3; 
+        pointer-events: none;
     }
     
     /* Ensure content area has proper padding */
@@ -3404,7 +3404,35 @@ document.addEventListener('DOMContentLoaded', function() {
         resizeTimer = setTimeout(handleMobileView, 250);
     });
 });
-
+document.addEventListener('DOMContentLoaded', function() {
+    // Fix flashcard flipping without breaking other functionality
+    const flashcards = document.querySelectorAll('.flashcard');
+    
+    flashcards.forEach(card => {
+        // Get the inner part that should trigger flipping
+        const cardInner = card.querySelector('.flashcard-inner');
+        
+        if (cardInner) {
+            // Add click event specifically to the inner part
+            cardInner.addEventListener('click', function(event) {
+                // Only flip if we're not clicking on a button
+                if (!event.target.closest('button')) {
+                    card.classList.toggle('flipped');
+                    // Don't stop propagation completely, but prevent default
+                    event.preventDefault();
+                }
+            });
+        }
+    });
+    
+    // Make sure buttons inside cards don't trigger flipping
+    document.querySelectorAll('.card-actions button, .flashcard button').forEach(button => {
+        button.addEventListener('click', function(event) {
+            // Just prevent this click from bubbling to the card
+            event.stopPropagation();
+        });
+    });
+});
     </script>
 </body>
 </html>
