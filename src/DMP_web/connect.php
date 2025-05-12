@@ -2228,7 +2228,6 @@ function loadFriends() {
                                 <img src="${profilePic}" alt="${friend.username}" class="user-avatar">
                                 <div class="user-info">
                                     <div class="user-name">${friend.username}</div>
-                                    <div class="friend-since">Friends since ${friend.friends_since}</div>
                                 </div>
                                 <button class="remove-friend-btn" data-id="${friend.id}">Remove</button>
                             </div>

@@ -372,6 +372,88 @@ function displaySharedFlashcardSets($pdo, $userId) {
 
     
     <style>
+        /* Keep all your existing CSS, but replace the mobile-specific CSS with this: */
+    
+    /* Mobile styles */
+    @media (max-width: 768px) {
+        body {
+            padding-top: 60px; /* Space for fixed mobile header */
+        }
+        
+        /* Mobile header */
+        .mobile-header {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background-color: var(--secondary-color);
+            z-index: 1000;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 22px;
+            cursor: pointer;
+        }
+        
+        .mobile-logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .mobile-logo img {
+            height: 30px;
+            width: auto;
+            margin-right: 10px;
+        }
+        
+        /* Hide desktop sidebar by default on mobile */
+        .sidebar {
+            position: fixed;
+            top: 60px;
+            left: -280px;
+            width: 280px;
+            height: calc(100vh - 60px);
+            z-index: 999;
+            transition: left 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        /* Show sidebar when active */
+        .sidebar.mobile-active {
+            left: 0;
+        }
+        
+        /* Overlay for when sidebar is open */
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+        }
+        
+        .mobile-overlay.active {
+            display: block;
+        }
+        
+        /* Adjust main content */
+        .main-content {
+            margin-left: 0;
+            width: 100%;
+        }
+    }
         :root {
             --sidebar-width: 180px;
             --sidebar-collapsed-width: 60px;
@@ -1911,86 +1993,224 @@ input#reg_username.invalid {
         width: 100%;
     }
 }
+/* Add these styles to your existing CSS section */
+.mobile-navbar {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background-color: var(--secondary-color);
+    z-index: 1000;
+    padding: 0 15px;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.mobile-menu-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px;
+}
+
+.mobile-logo {
+    display: flex;
+    align-items: center;
+}
+
+.mobile-logo a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-color);
+}
+
+.mobile-logo img {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+}
+
+.mobile-account {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.mobile-account img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Update the media query for mobile devices */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -250px;
+        width: 250px;
+        height: 100vh;
+        z-index: 1001;
+        transition: left 0.3s ease;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .sidebar.open {
+        left: 0;
+    }
+    
+    .mobile-navbar {
+        display: flex;
+    }
+    
+    .main-content {
+        margin-top: 60px;
+        width: 100%;
+    }
+    
+    .content-area {
+        padding: 15px;
+    }
+    
+    /* Overlay when sidebar is open */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+    }
+    
+    /* Ensure the sidebar content is scrollable on mobile */
+    .sidebar-content {
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+    }
+}
 
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-top">
-            <div class="logo">
+    <!-- Replace the existing sidebar with this updated version -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+        <button class="toggle-btn" id="toggle-sidebar">
+            <i class="fa fa-bars"></i>
+        </button>
+        <div class="logo">
             <a href="welcome.php">    
-            <img src="media/images/icon2.png" alt="Logo">
+                <img src="media/images/icon2.png" alt="Logo">
             </a>
-                <span>Flashcard.ai</span>
-                
-            </div>
-            
+            <span class="logo-text">Flashcard.ai</span>
         </div>
-        
-        <div class="sidebar-content">
-            <a href="welcome.php" class="nav-item">
-                <i class="fa fa-home"></i>
-                <span>Home</span>
-            </a>
-            <a href="https://docs.google.com/document/d/1rvKo156DPou6UD3AZTfpJEa7ZuKD_uafZSG2bJSty6A/edit?pli=1&tab=t.0" class="nav-item" target="_blank">
-                <i class="fa fa-file-alt"></i>
-                <span>Documentation</span>
-            </a>
-            <a href="connect.php" class="nav-item">
-                <i class="fa fa-users"></i>
-                <span>Friends</span>
-            </a>
+    </div>
+    
+    <div class="sidebar-content">
+        <a href="welcome.php" class="nav-item">
+            <i class="fa fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="https://docs.google.com/document/d/1rvKo156DPou6UD3AZTfpJEa7ZuKD_uafZSG2bJSty6A/edit?pli=1&tab=t.0" class="nav-item" target="_blank">
+            <i class="fa fa-file-alt"></i>
+            <span>Documentation</span>
+        </a>
+        <a href="connect.php" class="nav-item">
+            <i class="fa fa-users"></i>
+            <span>Friends</span>
+        </a>
 
-            <a href="#" class="nav-item">
-                    <i class="fa fa-book"></i>
-                    <span>Library</span>
-                </a>
+        <a href="#" class="nav-item">
+            <i class="fa fa-book"></i>
+            <span>Library</span>
+        </a>
 
-            <div class="library-section">
-                
+        <div class="library-section">
+            <div id="library-items">
+                <?php 
+                if (isset($_SESSION['user_id'])) {
+                    displayFlashcardSetsFromDatabase($pdo, $_SESSION['user_id']);
+                } 
+                else {
+                    echo '<p>Please log in to view your library.</p>';
+                }
+                ?>
+            </div>
+        </div>
 
-                <div class="library-section">
-                    <div id="library-items">
-                        <?php 
-                        if (isset($_SESSION['user_id'])) {
-                            displayFlashcardSetsFromDatabase($pdo, $_SESSION['user_id']);
-                        } 
-                        else {
-                            echo '<p>Please log in to view your library.</p>';
-                        }
-                        ?>
-                    </div>
-                </div>
+        <a href="#" class="nav-item" id="shared-sets-toggle">
+            <i class="fa fa-share-alt"></i>
+            <span>Shared Sets</span>
+        </a>
 
-                <!-- Add this after the Library nav item in welcome.php -->
-<a href="#" class="nav-item" id="shared-sets-toggle">
-    <i class="fa fa-share-alt"></i>
-    <span>Shared Sets</span>
-</a>
-
-<div class="library-section" id="shared-sets-section">
-    <div id="shared-sets-items">
-        <?php 
-        if (isset($_SESSION['user_id'])) {
-            displaySharedFlashcardSets($pdo, $_SESSION['user_id']);
-        } 
-        else {
-            echo '<p>Please log in to view shared sets.</p>';
-        }
-        ?>
+        <div class="library-section" id="shared-sets-section">
+            <div id="shared-sets-items">
+                <?php 
+                if (isset($_SESSION['user_id'])) {
+                    displaySharedFlashcardSets($pdo, $_SESSION['user_id']);
+                } 
+                else {
+                    echo '<p>Please log in to view shared sets.</p>';
+                }
+                ?>
+            </div>
+        </div>
+    </div>
+    
+    <div class="sidebar-bottom">
+        <div class="account" id="account-btn">
+            <img src="<?php 
+                // Get profile picture URL from database or use default
+                if (isset($_SESSION['user_id'])) {
+                    try {
+                        $stmt = $pdo->prepare("SELECT profile_picture_url FROM users WHERE id = ?");
+                        $stmt->execute([$_SESSION['user_id']]);
+                        $user = $stmt->fetch();
+                        echo !empty($user['profile_picture_url']) ? htmlspecialchars($user['profile_picture_url']) : 'media/images/pfp.png';
+                    } catch (PDOException $e) {
+                        echo 'media/images/pfp.png';
+                    }
+                } else {
+                    echo 'media/images/pfp.png';
+                }
+            ?>" alt="User">
+            <span>
+                <?php 
+                echo isset($_SESSION['username']) ? $_SESSION['username'] : 'Guest'; 
+                ?>
+            </span>
+        </div>
     </div>
 </div>
 
-            </div>
-        </div>
-        
-        
-        <div class="sidebar-bottom">
-    <div class="account" id="account-btn">
+<!-- Add this mobile navbar that will only show on small screens -->
+<div class="mobile-navbar" id="mobile-navbar">
+    <button class="mobile-menu-btn" id="mobile-menu-btn">
+        <i class="fa fa-bars"></i>
+    </button>
+    <div class="mobile-logo">
+        <a href="welcome.php">
+            <img src="media/images/icon2.png" alt="Logo">
+            <span>Flashcard.ai</span>
+        </a>
+    </div>
+    <div class="mobile-account" id="mobile-account-btn">
         <img src="<?php 
-            // Get profile picture URL from database or use default
             if (isset($_SESSION['user_id'])) {
                 try {
                     $stmt = $pdo->prepare("SELECT profile_picture_url FROM users WHERE id = ?");
@@ -2004,15 +2224,9 @@ input#reg_username.invalid {
                 echo 'media/images/pfp.png';
             }
         ?>" alt="User">
-        <span>
-            <?php 
-            echo isset($_SESSION['username']) ? $_SESSION['username'] : 'Guest'; 
-            ?>
-        </span>
     </div>
 </div>
 
-    </div>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -3087,6 +3301,66 @@ document.addEventListener('DOMContentLoaded', function() {
             playButton.style.display = 'none';
         });
     }
+});
+// Add this to your existing JavaScript section
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile navigation functionality
+    const sidebar = document.getElementById('sidebar');
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileAccountBtn = document.getElementById('mobile-account-btn');
+    const authModal = document.getElementById('auth-modal');
+    
+    // Create overlay element for mobile sidebar
+    const overlay = document.createElement('div');
+    overlay.className = 'sidebar-overlay';
+    document.body.appendChild(overlay);
+    
+    // Toggle sidebar on mobile
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+        });
+    }
+    
+    // Close sidebar when clicking on overlay
+    overlay.addEventListener('click', function() {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    });
+    
+    // Open auth modal from mobile account button
+    if (mobileAccountBtn) {
+        mobileAccountBtn.addEventListener('click', function() {
+            if (authModal) {
+                authModal.style.display = 'flex';
+            }
+        });
+    }
+    
+    // Close sidebar when clicking on a nav item (on mobile)
+    const navItems = document.querySelectorAll('.sidebar .nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('click', function() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+    });
+    
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768) {
+            // Reset styles for desktop view
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
 });
 
     </script>
