@@ -67,6 +67,16 @@
             </Popup>
         </Grid>
 
+        <TextBlock x:Name="NoCardsText"
+           Text="You don't have any cards yet."
+           FontSize="22"
+           FontWeight="Bold"
+           Foreground="White"
+           Visibility="Collapsed"
+           HorizontalAlignment="Center"
+           VerticalAlignment="Center"
+           TextAlignment="Center"/>
+
         <!-- Flashcards Area -->
         <DockPanel Margin="0,60,0,50">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
