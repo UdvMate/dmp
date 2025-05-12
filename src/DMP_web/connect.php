@@ -130,14 +130,48 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
             }
         } else {
             // Display static examples if no sets are found
-            echo '<div class="library-item"><span>PHP Strings</span></div>';
-            echo '<div class="library-item"><span>Server Requests</span></div>';
-            echo '<div class="library-item"><span>Examples</span></div>';
+            echo '<div class="library-item"><span>Your sets will appear here</span></div>';
         }
     } catch (PDOException $e) {
         // Handle database errors
         error_log("Error fetching flashcard sets: " . $e->getMessage());
         echo '<p style="color:red;">Error loading library items.</p>';
+    }
+}
+// Add this function to display shared sets
+function displaySharedFlashcardSets($pdo, $userId) {
+    try {
+        // Prepare and execute the query to fetch sets shared with the logged-in user
+        $stmt = $pdo->prepare("
+            SELECT s.set_id, s.title, u.username as owner_name 
+            FROM sets s
+            JOIN shared_sets ss ON s.set_id = ss.set_id
+            JOIN users u ON ss.owner_id = u.id
+            WHERE ss.user_id = ? 
+            ORDER BY ss.shared_at DESC
+        ");
+        $stmt->execute([$userId]);
+        
+        // Fetch all results
+        $sharedSets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Check if any shared sets were found
+        if (!empty($sharedSets)) {
+            foreach ($sharedSets as $set) {
+                echo '<div class="library-item-container">';
+                echo '<a href="flashcard.php?set_id=' . $set['set_id'] . '&shared=1" class="library-item shared-item" data-set-id="' . $set['set_id'] . '">';
+                echo '<span class="set-title">' . htmlspecialchars($set['title']) . '</span>';
+                echo '<span class="set-owner">by ' . htmlspecialchars($set['owner_name']) . '</span>';
+                echo '</a>';
+                echo '</div>';
+            }
+        } else {
+            echo '<p class="no-sets-message">No sets have been shared with you yet.</p>';
+        }
+    } catch (PDOException $e) {
+        // Handle database errors
+        error_log("Error fetching shared flashcard sets: " . $e->getMessage());
+        echo '<p style="color:red;">Error loading shared sets.</p>';
     }
 }
 
@@ -1355,7 +1389,68 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
 
 }
 
+/* Add this to your existing CSS */
+#shared-sets-section {
+    display: none; /* Hidden by default, will be toggled with JS */
+}
 
+.shared-item {
+    position: relative;
+}
+
+.set-owner {
+    font-size: 12px;
+    color: #8b949e;
+    display: block;
+    margin-top: 2px;
+}
+
+.no-sets-message {
+    padding: 10px;
+    color: #8b949e;
+    font-style: italic;
+    font-size: 14px;
+}
+
+/* Shared set indicator */
+.shared-item::before {
+    content: '\f064';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    left: -18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent-color);
+    font-size: 12px;
+}
+
+/* Add this to your existing CSS section */
+.sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 10px 0;
+}
+
+.sidebar.collapsed .nav-item i {
+    margin-right: 0;
+    margin-left: 0;
+    text-align: center;
+    width: 100%;
+}
+
+/* Ensure all icons have consistent width/alignment */
+.nav-item i {
+    min-width: 24px;
+    text-align: center;
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+/* Specifically target the shared sets icon if needed */
+#shared-sets-toggle i {
+    min-width: 24px;
+    text-align: center;
+}
 
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1371,9 +1466,7 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
                 <span>Flashcard.ai</span>
                 
             </div>
-            <button class="toggle-btn" id="toggle-sidebar">
-                <i class="fa fa-chevron-left"></i>
-            </button>
+            
         </div>
         
         <div class="sidebar-content">
@@ -1406,7 +1499,27 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
                     }
                     ?>
                 </div>
+                <!-- Add this after the Library nav item in welcome.php -->
+<a href="#" class="nav-item" id="shared-sets-toggle">
+    <i class="fa fa-share-alt"></i>
+    <span>Shared Sets</span>
+</a>
+
+<div class="library-section" id="shared-sets-section">
+    <div id="shared-sets-items">
+        <?php 
+        if (isset($_SESSION['user_id'])) {
+            displaySharedFlashcardSets($pdo, $_SESSION['user_id']);
+        } 
+        else {
+            echo '<p>Please log in to view shared sets.</p>';
+        }
+        ?>
+    </div>
+</div>
+
             </div>
+            
         </div>
         
         
@@ -1624,22 +1737,22 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Toggle sidebar
-            const sidebar = document.getElementById('sidebar');
-            const toggleBtn = document.getElementById('toggle-sidebar');
-            const toggleIcon = toggleBtn.querySelector('i');
-            
-            toggleBtn.addEventListener('click', function() {
-                sidebar.classList.toggle('collapsed');
-                if (sidebar.classList.contains('collapsed')) {
-                    toggleIcon.classList.remove('fa-chevron-left');
-                    toggleIcon.classList.add('fa-chevron-right');
-                } else {
-                    toggleIcon.classList.remove('fa-chevron-right');
-                    toggleIcon.classList.add('fa-chevron-left');
-                }
-            });
+       document.addEventListener('DOMContentLoaded', function() {
+    // Toggle sidebar
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    const toggleIcon = toggleBtn.querySelector('i');
+    
+    toggleBtn.addEventListener('click', function() {
+        sidebar.classList.toggle('collapsed');
+        if (sidebar.classList.contains('collapsed')) {
+            toggleIcon.classList.remove('fa-chevron-left');
+            toggleIcon.classList.add('fa-chevron-right');
+        } else {
+            toggleIcon.classList.remove('fa-chevron-right');
+            toggleIcon.classList.add('fa-chevron-left');
+        }
+    });
             
             // Authentication modal
             const authModal = document.getElementById('auth-modal');
@@ -2513,6 +2626,25 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Add this to your existing JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle shared sets section
+    const sharedSetsToggle = document.getElementById('shared-sets-toggle');
+    const sharedSetsSection = document.getElementById('shared-sets-section');
+    
+    if (sharedSetsToggle && sharedSetsSection) {
+        sharedSetsToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Toggle display
+            if (sharedSetsSection.style.display === 'none' || sharedSetsSection.style.display === '') {
+                sharedSetsSection.style.display = 'block';
+            } else {
+                sharedSetsSection.style.display = 'none';
+            }
+        });
+    }
+});
 
     </script>
 </body>
