@@ -26,16 +26,13 @@ if (isset($_POST['login_submit'])) {
     $password = $_POST['password'];
 
     try {
-        // Get stored hash from database
         $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch();
 
         if ($user) {
-            // Hash input password using SHA-256 + Base64
             $hashedInput = base64_encode(hash('sha256', $password, true));
             
-            // Compare hashes
             if (hash_equals($user['password'], $hashedInput)) {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
@@ -59,7 +56,6 @@ if (isset($_POST['login_submit'])) {
             $stmt->execute([$_SESSION['user_id']]);
             $flashcardSets = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
-            // Silently log error but continue
             error_log("Error loading flashcard sets: " . $e->getMessage());
         }
     }
@@ -67,28 +63,23 @@ if (isset($_POST['login_submit'])) {
 
 // Register logic
 if (isset($_POST['register_submit'])) {
-    // Retrieve and sanitize inputs
     $username = trim($_POST['reg_username']);
     $email = trim($_POST['reg_email']);
     $password = $_POST['reg_password'];
     $passwordConfirm = $_POST['reg_passwordConfirm'];
 
-    // Validate required fields
     if (empty($username) || empty($email) || empty($password)) {
         $register_error = "All fields are required!";
     } elseif ($password !== $passwordConfirm) {
         $register_error = "Passwords do not match!";
     } else {
-        // Hash password using SHA-256 + Base64
         $hashedPassword = base64_encode(hash('sha256', $password, true));
 
-        // In the register logic section, update the catch block:
 try {
     // Insert into database
     $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
     $stmt->execute([$username, $email, $hashedPassword]);
 
-    // Set session and redirect
     $_SESSION['user_id'] = $pdo->lastInsertId();
     $_SESSION['username'] = $username;
     $_SESSION['success'] = "Registration successful!";
@@ -96,10 +87,9 @@ try {
     exit();
 } catch (PDOException $e) {
     // Handle duplicate entries or other errors
-    if ($e->getCode() == '23000') { // MySQL duplicate entry error code
+    if ($e->getCode() == '23000') {
         if (strpos($e->getMessage(), 'username') !== false) {
             $register_error = "Username already exists!";
-            // Add a JavaScript snippet to highlight the username field
             echo "<script>
                 document.addEventListener('DOMContentLoaded', function() {
                     const usernameInput = document.getElementById('reg_username');
@@ -124,19 +114,14 @@ try {
     }
 }
 
-// Load user flashcard sets for sidebar
-
-
 // View specific flashcard set
 if (isset($_GET['set_id']) && is_numeric($_GET['set_id'])) {
     try {
-        // Verify the set belongs to the user
         $stmt = $pdo->prepare("SELECT * FROM sets WHERE id = ? AND user_id = ?");
         $stmt->execute([$_GET['set_id'], $_SESSION['user_id']]);
         $currentSet = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($currentSet) {
-            // Get all flashcards in this set
             $stmt = $pdo->prepare("SELECT * FROM flashcards WHERE set_id = ?");
             $stmt->execute([$_GET['set_id']]);
             $_SESSION['current_flashcards'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -150,7 +135,7 @@ if (isset($_GET['set_id']) && is_numeric($_GET['set_id'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $content = '';
 
-    if (!empty($_FILES['message_file']['tmp_name'])) {//get notes from message box
+    if (!empty($_FILES['message_file']['tmp_name'])) {
         $content = file_get_contents($_FILES['message_file']['tmp_name']);
     } elseif (!empty($_POST['message_text'])) {
         $content = $_POST['message_text'];
@@ -203,28 +188,22 @@ function generate_flashcards($content) {
     return $response;
 }
 
-// Decode Unicode escape sequences in JSON response
 function decode_unicode_escape_sequences($string) {
     return preg_replace_callback('/\\\\u([0-9a-fA-F]{4})/', function ($matches) {
         return mb_convert_encoding(pack('H*', $matches[1]), 'UTF-8', 'UCS-2BE');
     }, $string);
 }
 
-// Process API response into dictionary format with proper decoding
 function processStringToDict($contentText) {
-    // Decode Unicode characters
     $contentText = decode_unicode_escape_sequences($contentText);
 
-    // Remove everything after first newline
     $newlinePos = strpos($contentText, "\n");
     if ($newlinePos !== false) {
         $contentText = substr($contentText, 0, $newlinePos);
     }
 
-    // Remove all asterisks and trim
     $contentText = str_replace(['**', '*','\n'], '', trim($contentText));
 
-    // Split into dictionary
     $dict = [];
     $remaining = substr($contentText, strpos($contentText, 'QQQ:') + 4);
     $parts = preg_split('/(QQQ:|AAA:)/', $remaining, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
@@ -246,13 +225,12 @@ function processStringToDict($contentText) {
         }
     }
 
-    // Process last value to end at first period
     if (!empty($dict)) {
         $lastKey = array_key_last($dict);
         $lastValue = $dict[$lastKey];
         $periodPos = strpos($lastValue, '.');
         if ($periodPos !== false) {
-            $dict[$lastKey] = substr($lastValue, 0, $periodPos + 1); // Include the period
+            $dict[$lastKey] = substr($lastValue, 0, $periodPos + 1);
         }
     }
 
@@ -262,21 +240,19 @@ function processStringToDict($contentText) {
 // Display results
 if (isset($_SESSION['rawResponse'])) {
     try {
-        // Decode and process the raw response into flashcards dictionary
         $flashcards = processStringToDict($_SESSION['rawResponse']);
         $firstQuestion = array_key_first($flashcards);
-        $setTitle = substr($firstQuestion, 0, 7); // Get first 7 characters of the first question
+        $setTitle = substr($firstQuestion, 0, 7);
 
         $stmt = $pdo->prepare("INSERT INTO sets (user_id, title, generated_at) VALUES (?, ?, NOW())");
         $stmt->execute([$_SESSION['user_id'], $setTitle]);
-        $setId = $pdo->lastInsertId(); // Get the ID of the newly created set
+        $setId = $pdo->lastInsertId();
         $stmt = $pdo->prepare("INSERT INTO flashcards (set_id, question, answer) VALUES (?, ?, ?)");
         
         foreach ($flashcards as $q => $a) {
             $stmt->execute([$setId, $q, $a]);
         }
         
-        // Store the set ID in a session variable for the success message
         $_SESSION['last_created_set_id'] = $setId;
         $_SESSION['success'] = "Flashcards created!";
         
@@ -289,14 +265,11 @@ if (isset($_SESSION['rawResponse'])) {
 
 function displayFlashcardSetsFromDatabase($pdo, $userId) {
     try {
-        // Prepare and execute the query to fetch sets for the logged-in user
         $stmt = $pdo->prepare("SELECT set_id, title FROM sets WHERE user_id = ? ORDER BY generated_at DESC");
         $stmt->execute([$userId]);
         
-        // Fetch all results
         $sets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Check if any sets were found
         if (!empty($sets)) {
             foreach ($sets as $set) {
                 echo '<div class="library-item-container">';
@@ -314,19 +287,15 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
                 echo '</div>';
             }
         } else {
-            // Display message when no sets are found instead of examples
             echo '<div class="library-item"><span>Your sets will appear here</span></div>';
         }
     } catch (PDOException $e) {
-        // Handle database errors
         error_log("Error fetching flashcard sets: " . $e->getMessage());
         echo '<p style="color:red;">Error loading library items.</p>';
     }
 }
-// Add this function to display shared sets
 function displaySharedFlashcardSets($pdo, $userId) {
     try {
-        // Prepare and execute the query to fetch sets shared with the logged-in user
         $stmt = $pdo->prepare("
             SELECT s.set_id, s.title, u.username as owner_name 
             FROM sets s
@@ -337,10 +306,8 @@ function displaySharedFlashcardSets($pdo, $userId) {
         ");
         $stmt->execute([$userId]);
         
-        // Fetch all results
         $sharedSets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Check if any shared sets were found
         if (!empty($sharedSets)) {
             foreach ($sharedSets as $set) {
                 echo '<div class="library-item-container">';
@@ -354,7 +321,6 @@ function displaySharedFlashcardSets($pdo, $userId) {
             echo '<p class="no-sets-message">No sets have been shared with you yet.</p>';
         }
     } catch (PDOException $e) {
-        // Handle database errors
         error_log("Error fetching shared flashcard sets: " . $e->getMessage());
         echo '<p style="color:red;">Error loading shared sets.</p>';
     }
@@ -372,12 +338,11 @@ function displaySharedFlashcardSets($pdo, $userId) {
 
     
     <style>
-        /* Keep all your existing CSS, but replace the mobile-specific CSS with this: */
     
     /* Mobile styles */
     @media (max-width: 768px) {
         body {
-            padding-top: 60px; /* Space for fixed mobile header */
+            padding-top: 60px;
         }
         
         /* Mobile header */
@@ -1203,28 +1168,28 @@ function displaySharedFlashcardSets($pdo, $userId) {
         z-index: 10;
     }
     body {
-        padding-top: 0; /* Remove any existing padding */
+        padding-top: 0; 
     }
     
     /* Adjust main content positioning */
     .main-content {
-        margin-top: 60px; /* Match the height of the collapsed sidebar/navbar */
+        margin-top: 60px;
         width: 100%;
         position: relative;
-        z-index: 1; /* Ensure it's below the sidebar but above other content */
+        z-index: 1;
     }
     
     /* When sidebar is expanded, push content further down or hide it */
     .sidebar.expanded + .main-content {
-        margin-top: 60px; /* Keep the same margin when expanded */
-        opacity: 0.3; /* Optional: dim the content when sidebar is expanded */
-        pointer-events: none; /* Optional: prevent interaction with content when sidebar is expanded */
+        margin-top: 60px;
+        opacity: 0.3;
+        pointer-events: none;
     }
     
     /* Ensure content area has proper padding */
     .content-area {
         padding: 12px;
-        padding-top: 15px; /* Add a bit more padding at the top */
+        padding-top: 15px;
     }
     
     /* Ensure the input area at bottom doesn't overlap with content */
@@ -1239,18 +1204,13 @@ function displaySharedFlashcardSets($pdo, $userId) {
     
     /* Add padding at the bottom to prevent content from being hidden behind the input area */
     .content-area {
-        padding-bottom: 70px; /* Adjust based on the height of your input area */
-    }
-    
-    /* Quick questions section needs margin to not be hidden by input area */
-    .quick-questions {
-        margin-bottom: 60px; /* Space for fixed input area */
+        padding-bottom: 70px;
     }
 
 }
-/* Add this to your existing CSS */
+
 #shared-sets-section {
-    display: none; /* Hidden by default, will be toggled with JS */
+    display: none;
 }
 
 .shared-item {
@@ -1484,7 +1444,7 @@ function displaySharedFlashcardSets($pdo, $userId) {
         height: 200px;
     }
 }
-/* Add these styles to your existing CSS */
+
 .main-container {
     display: flex;
     flex-direction: column;
@@ -1676,7 +1636,7 @@ function displaySharedFlashcardSets($pdo, $userId) {
         max-width: 100%;
     }
 }
-/* Add to your existing CSS section */
+
 .password-requirements {
     margin-top: 8px;
     font-size: 12px;
@@ -1715,7 +1675,7 @@ function displaySharedFlashcardSets($pdo, $userId) {
 .requirement i.fa-check-circle {
     display: none;
 }
-/* Add this to your existing CSS section */
+
 .sidebar.collapsed .nav-item {
     justify-content: center;
     padding: 10px 0;
@@ -1728,7 +1688,7 @@ function displaySharedFlashcardSets($pdo, $userId) {
     width: 100%;
 }
 
-/* Ensure all icons have consistent width/alignment */
+
 .nav-item i {
     min-width: 24px;
     text-align: center;
@@ -1736,12 +1696,12 @@ function displaySharedFlashcardSets($pdo, $userId) {
     font-size: 18px;
 }
 
-/* Specifically target the shared sets icon if needed */
+
 #shared-sets-toggle i {
     min-width: 24px;
     text-align: center;
 }
-/* Add or update these styles in your CSS section */
+
 .loading-overlay {
     position: fixed;
     top: 0;
@@ -1792,7 +1752,7 @@ function displaySharedFlashcardSets($pdo, $userId) {
     border-radius: 4px;
     transition: width 0.5s ease;
 }
-/* Replace or update the loading overlay CSS */
+
 .loading-overlay {
     position: fixed;
     top: 0;
@@ -1838,7 +1798,7 @@ function displaySharedFlashcardSets($pdo, $userId) {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
-/* Add to your existing CSS section */
+
 input#reg_username.invalid {
     border-color: var(--error-color);
 }
@@ -1846,7 +1806,7 @@ input#reg_username.invalid {
 .username-validation-message.visible {
     display: block !important;
 }
-/* Add to your existing CSS section if not already present */
+
 .password-input-container {
     position: relative;
     display: flex;
@@ -1855,7 +1815,7 @@ input#reg_username.invalid {
 
 .password-input-container input {
     flex: 1;
-    padding-right: 40px; /* Make room for the button */
+    padding-right: 40px;
 }
 
 .toggle-password {
@@ -1919,10 +1879,9 @@ input#reg_username.invalid {
     transform: scale(1.1);
     transition: all 0.2s ease;
 }
-/* Update the video container styling */
 .video-container {
     flex: 1;
-    max-width: 400px; /* Increased from 300px */
+    max-width: 400px; 
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
@@ -1948,10 +1907,9 @@ input#reg_username.invalid {
 
 /* Enhance the play button with glow */
 .video-play-button i {
-    font-size: 54px; /* Increased from 48px */
+    font-size: 54px; 
     color: white;
     opacity: 0.9;
-    /* Add glow to the play button */
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
     transition: all 0.3s ease;
 }
@@ -1961,25 +1919,22 @@ input#reg_username.invalid {
     transform: scale(1.1);
     text-shadow: 0 0 20px rgba(255, 255, 255, 0.9);
 }
-/* Update the content layout to better handle the larger video */
 .content-layout {
     display: flex;
-    gap: 40px; /* Increased from 30px */
+    gap: 40px;
     align-items: center;
     justify-content: center;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    flex-wrap: wrap; 
     margin: 30px 0;
 }
 
-/* Make sure the upload container balances with the larger video */
 .upload-container {
     flex: 1;
-    max-width: 400px; /* Match the video container */
+    max-width: 400px;
 }
 
-/* Ensure the drag-drop area is tall enough to balance with the video */
 .drag-drop-area {
-    height: 225px; /* Increased height to better balance with larger video */
+    height: 225px; 
 }
 
 /* Responsive adjustments */
@@ -1993,7 +1948,6 @@ input#reg_username.invalid {
         width: 100%;
     }
 }
-/* Add these styles to your existing CSS section */
 .mobile-navbar {
     display: none;
     position: fixed;
@@ -2050,7 +2004,6 @@ input#reg_username.invalid {
     object-fit: cover;
 }
 
-/* Update the media query for mobile devices */
 @media (max-width: 768px) {
     .sidebar {
         position: fixed;
@@ -2080,7 +2033,6 @@ input#reg_username.invalid {
         padding: 15px;
     }
     
-    /* Overlay when sidebar is open */
     .sidebar-overlay {
         display: none;
         position: fixed;
@@ -2096,23 +2048,252 @@ input#reg_username.invalid {
         display: block;
     }
     
-    /* Ensure the sidebar content is scrollable on mobile */
     .sidebar-content {
         max-height: calc(100vh - 120px);
         overflow-y: auto;
     }
 }
+.floating-menu-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    z-index: 999;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.floating-menu-btn:hover {
+    transform: scale(1.05);
+    background-color: #4a8ede;
+}
+
+.floating-menu-btn:active {
+    transform: scale(0.95);
+}
+
+/* Navigation modal */
+.nav-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-modal-content {
+    background-color: var(--secondary-color);
+    border-radius: 8px;
+    width: 90%;
+    max-width: 350px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.nav-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.nav-modal-header h3 {
+    margin: 0;
+    color: var(--text-color);
+}
+
+.close-nav-modal {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.nav-modal-body {
+    padding: 16px;
+}
+
+.nav-modal-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    color: var(--text-color);
+    text-decoration: none;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    transition: background-color 0.2s;
+}
+
+.nav-modal-item:hover {
+    background-color: var(--hover-color);
+    text-decoration: none;
+}
+
+.nav-modal-item i {
+    margin-right: 12px;
+    font-size: 20px;
+    width: 24px;
+    text-align: center;
+}
+
+.nav-modal-account {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin-top: 16px;
+    border-top: 1px solid var(--border-color);
+    cursor: pointer;
+}
+
+.nav-modal-account img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 12px;
+}
+
+/* Hide the mobile navbar */
+.mobile-navbar {
+    display: none !important;
+}
+
+/* Only show floating button on mobile */
+@media (min-width: 769px) {
+    .floating-menu-btn {
+        display: none;
+    }
+}
+/* Navigation modal section styles */
+.nav-modal-section {
+    margin-bottom: 12px;
+}
+
+.nav-modal-section-header {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    color: var(--text-color);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    position: relative;
+}
+
+.nav-modal-section-header:hover {
+    background-color: var(--hover-color);
+}
+
+.nav-modal-section-header i:first-child {
+    margin-right: 12px;
+    font-size: 20px;
+    width: 24px;
+    text-align: center;
+}
+
+.toggle-icon {
+    margin-left: auto;
+    transition: transform 0.3s;
+}
+
+.nav-modal-section-header.active .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.nav-modal-section-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.nav-modal-section-content.active {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.nav-modal-subitem {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 10px 10px 42px;
+    color: #8b949e;
+    text-decoration: none;
+    font-size: 14px;
+    border-left: 2px solid var(--border-color);
+    margin-left: 24px;
+    transition: all 0.2s;
+}
+
+.nav-modal-subitem:hover {
+    color: var(--text-color);
+    background-color: var(--hover-color);
+    border-left-color: var(--accent-color);
+    text-decoration: none;
+}
+
+.nav-modal-subitem.shared {
+    position: relative;
+}
+
+.nav-modal-subitem.shared:before {
+    content: '\f064';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    left: 24px;
+    top: 10px;
+    color: var(--accent-color);
+    font-size: 12px;
+}
+
+.nav-modal-subitem .owner {
+    font-size: 12px;
+    color: #8b949e;
+    margin-top: 2px;
+}
+
+.nav-modal-subitem-empty {
+    padding: 10px 10px 10px 42px;
+    color: #8b949e;
+    font-size: 14px;
+    font-style: italic;
+    margin-left: 24px;
+}
+
+/* Adjust modal content for better scrolling with many items */
+.nav-modal-content {
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.nav-modal-body {
+    padding: 16px;
+    overflow-y: visible;
+}
+
 
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Replace the existing sidebar with this updated version -->
 <div class="sidebar" id="sidebar">
     <div class="sidebar-top">
-        <button class="toggle-btn" id="toggle-sidebar">
-            <i class="fa fa-bars"></i>
-        </button>
+        
         <div class="logo">
             <a href="welcome.php">    
                 <img src="media/images/icon2.png" alt="Logo">
@@ -2151,9 +2332,7 @@ input#reg_username.invalid {
                 }
                 ?>
             </div>
-        </div>
-
-        <a href="#" class="nav-item" id="shared-sets-toggle">
+            <a href="#" class="nav-item" id="shared-sets-toggle">
             <i class="fa fa-share-alt"></i>
             <span>Shared Sets</span>
         </a>
@@ -2170,12 +2349,14 @@ input#reg_username.invalid {
                 ?>
             </div>
         </div>
+        </div>
+
+        
     </div>
     
     <div class="sidebar-bottom">
         <div class="account" id="account-btn">
             <img src="<?php 
-                // Get profile picture URL from database or use default
                 if (isset($_SESSION['user_id'])) {
                     try {
                         $stmt = $pdo->prepare("SELECT profile_picture_url FROM users WHERE id = ?");
@@ -2198,92 +2379,188 @@ input#reg_username.invalid {
     </div>
 </div>
 
-<!-- Add this mobile navbar that will only show on small screens -->
-<div class="mobile-navbar" id="mobile-navbar">
-    <button class="mobile-menu-btn" id="mobile-menu-btn">
-        <i class="fa fa-bars"></i>
-    </button>
-    <div class="mobile-logo">
-        <a href="welcome.php">
-            <img src="media/images/icon2.png" alt="Logo">
-            <span>Flashcard.ai</span>
-        </a>
-    </div>
-    <div class="mobile-account" id="mobile-account-btn">
-        <img src="<?php 
-            if (isset($_SESSION['user_id'])) {
-                try {
-                    $stmt = $pdo->prepare("SELECT profile_picture_url FROM users WHERE id = ?");
-                    $stmt->execute([$_SESSION['user_id']]);
-                    $user = $stmt->fetch();
-                    echo !empty($user['profile_picture_url']) ? htmlspecialchars($user['profile_picture_url']) : 'media/images/pfp.png';
-                } catch (PDOException $e) {
-                    echo 'media/images/pfp.png';
-                }
-            } else {
-                echo 'media/images/pfp.png';
-            }
-        ?>" alt="User">
+<div class="floating-menu-btn" id="floating-menu-btn">
+    <i class="fa fa-bars"></i>
+</div>
+
+<div class="nav-modal" id="nav-modal">
+    <div class="nav-modal-content">
+        <div class="nav-modal-header">
+            <h3>Navigation</h3>
+            <button class="close-nav-modal" id="close-nav-modal">&times;</button>
+        </div>
+        <div class="nav-modal-body">
+            <a href="welcome.php" class="nav-modal-item">
+                <i class="fa fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="https://docs.google.com/document/d/1rvKo156DPou6UD3AZTfpJEa7ZuKD_uafZSG2bJSty6A/edit?pli=1&tab=t.0" class="nav-modal-item" target="_blank">
+                <i class="fa fa-file-alt"></i>
+                <span>Documentation</span>
+            </a>
+            <a href="connect.php" class="nav-modal-item">
+                <i class="fa fa-users"></i>
+                <span>Friends</span>
+            </a>
+            
+            <div class="nav-modal-section">
+                <div class="nav-modal-section-header" id="library-toggle">
+                    <i class="fa fa-book"></i>
+                    <span>Library</span>
+                    <i class="fa fa-chevron-down toggle-icon"></i>
+                </div>
+                
+                <div class="nav-modal-section-content" id="library-content">
+                    <?php 
+                    if (isset($_SESSION['user_id'])) {
+                        try {
+                            $stmt = $pdo->prepare("SELECT set_id, title FROM sets WHERE user_id = ? ORDER BY generated_at DESC");
+                            $stmt->execute([$_SESSION['user_id']]);
+                            $sets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            
+                            if (!empty($sets)) {
+                                foreach ($sets as $set) {
+                                    echo '<a href="flashcard.php?set_id=' . $set['set_id'] . '" class="nav-modal-subitem">';
+                                    echo htmlspecialchars($set['title']);
+                                    echo '</a>';
+                                }
+                            } else {
+                                echo '<div class="nav-modal-subitem-empty">No sets found</div>';
+                            }
+                        } catch (PDOException $e) {
+                            echo '<div class="nav-modal-subitem-empty">Error loading sets</div>';
+                        }
+                    } else {
+                        echo '<div class="nav-modal-subitem-empty">Please log in to view sets</div>';
+                    }
+                    ?>
+                </div>
+            </div>
+            
+            <!-- Shared Sets section -->
+            <div class="nav-modal-section">
+                <div class="nav-modal-section-header" id="shared-toggle">
+                    <i class="fa fa-share-alt"></i>
+                    <span>Shared Sets</span>
+                    <i class="fa fa-chevron-down toggle-icon"></i>
+                </div>
+                
+                <div class="nav-modal-section-content" id="shared-content">
+                    <?php 
+                    if (isset($_SESSION['user_id'])) {
+                        try {
+                            $stmt = $pdo->prepare("
+                                SELECT s.set_id, s.title, u.username as owner_name 
+                                FROM sets s
+                                JOIN shared_sets ss ON s.set_id = ss.set_id
+                                JOIN users u ON ss.owner_id = u.id
+                                WHERE ss.user_id = ? 
+                                ORDER BY ss.shared_at DESC
+                            ");
+                            $stmt->execute([$_SESSION['user_id']]);
+                            $sharedSets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            
+                            if (!empty($sharedSets)) {
+                                foreach ($sharedSets as $set) {
+                                    echo '<a href="flashcard.php?set_id=' . $set['set_id'] . '&shared=1" class="nav-modal-subitem shared">';
+                                    echo htmlspecialchars($set['title']) . ' <span class="owner">by ' . htmlspecialchars($set['owner_name']) . '</span>';
+                                    echo '</a>';
+                                }
+                            } else {
+                                echo '<div class="nav-modal-subitem-empty">No shared sets found</div>';
+                            }
+                        } catch (PDOException $e) {
+                            echo '<div class="nav-modal-subitem-empty">Error loading shared sets</div>';
+                        }
+                    } else {
+                        echo '<div class="nav-modal-subitem-empty">Please log in to view shared sets</div>';
+                    }
+                    ?>
+                </div>
+            </div>
+            
+            <div class="nav-modal-account" id="nav-modal-account">
+                <img src="<?php 
+                    if (isset($_SESSION['user_id'])) {
+                        try {
+                            $stmt = $pdo->prepare("SELECT profile_picture_url FROM users WHERE id = ?");
+                            $stmt->execute([$_SESSION['user_id']]);
+                            $user = $stmt->fetch();
+                            echo !empty($user['profile_picture_url']) ? htmlspecialchars($user['profile_picture_url']) : 'media/images/pfp.png';
+                        } catch (PDOException $e) {
+                            echo 'media/images/pfp.png';
+                        }
+                    } else {
+                        echo 'media/images/pfp.png';
+                    }
+                ?>" alt="User">
+                <span>
+                    <?php 
+                    echo isset($_SESSION['username']) ? $_SESSION['username'] : 'Guest'; 
+                    ?>
+                </span>
+            </div>
+        </div>
     </div>
 </div>
+
+
 
 
     <!-- Main Content -->
     <div class="main-content">
-        <!-- Replace the content-area div in welcome.php with this -->
-<div class="content-area" id="content-area">
-    <div class="main-container">
-        <div class="upload-section">
-            <h1 class="main-heading">Turn your notes into flashcards with Flashcard.ai</h1>
-            <p class="sub-heading">Upload your study materials and we'll automatically generate flashcards to help you learn</p>
-            
-            <div class="content-layout">
-                <div class="video-container">
-                    <video id="demo-video" controls poster="media/images/thumbnailll.png">
-                        <source src="media/videos/tut.mp4" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                </div>
+        <div class="content-area" id="content-area">
+            <div class="main-container">
+                <div class="upload-section">
+                    <h1 class="main-heading">Turn your notes into flashcards with Flashcard.ai</h1>
+                    <p class="sub-heading">Upload your study materials and we'll automatically generate flashcards to help you learn</p>
 
-                
-                <div class="upload-container">
-                    <div class="drag-drop-area" id="drag-drop-area">
-                        <i class="fa fa-cloud-upload-alt"></i>
-                        <p class="drop-instructions">Drag & drop a text file here</p>
-                        <form id="notes-form" method="POST" action="" enctype="multipart/form-data">
-                            <input type="file" id="file-upload" name="message_file" accept=".txt" style="display: none;">
-                            <button type="button" id="browse-btn" class="action-button">
-                                <i class="fa fa-file-alt"></i> Browse Files
-                            </button>
-                        </form>
+                    <div class="content-layout">
+                        <div class="video-container">
+                            <video id="demo-video" controls poster="media/images/thumbnailll.png">
+                                <source src="media/videos/tut.mp4" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+
+
+                        <div class="upload-container">
+                            <div class="drag-drop-area" id="drag-drop-area">
+                                <i class="fa fa-cloud-upload-alt"></i>
+                                <p class="drop-instructions">Drag & drop a text file here</p>
+                                <form id="notes-form" method="POST" action="" enctype="multipart/form-data">
+                                    <input type="file" id="file-upload" name="message_file" accept=".txt" style="display: none;">
+                                    <button type="button" id="browse-btn" class="action-button">
+                                        <i class="fa fa-file-alt"></i> Browse Files
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-            
-            <?php if (isset($_SESSION['success'])): ?>
-                <div class="success-message">
-                    <?php if ($_SESSION['success'] === "Flashcards created!" && isset($_SESSION['last_created_set_id'])): ?>
-                        <p><?php echo $_SESSION['success']; ?></p>
-                        <a href="flashcard.php?set_id=<?php echo $_SESSION['last_created_set_id']; ?>" class="view-flashcards-btn">
-                            <i class="fa fa-eye"></i> View Flashcards
-                        </a>
-                    <?php else: ?>
-                        <p><?php echo $_SESSION['success']; ?></p>
+
+                    <?php if (isset($_SESSION['success'])): ?>
+                        <div class="success-message">
+                            <?php if ($_SESSION['success'] === "Flashcards created!" && isset($_SESSION['last_created_set_id'])): ?>
+                                <p><?php echo $_SESSION['success']; ?></p>
+                                <a href="flashcard.php?set_id=<?php echo $_SESSION['last_created_set_id']; ?>" class="view-flashcards-btn">
+                                    <i class="fa fa-eye"></i> View Flashcards
+                                </a>
+                            <?php else: ?>
+                                <p><?php echo $_SESSION['success']; ?></p>
+                            <?php endif; ?>
+                        </div>
+                        <?php 
+                        unset($_SESSION['success']); 
+                        if (isset($_SESSION['last_created_set_id'])) {
+                            unset($_SESSION['last_created_set_id']);
+                        }
+                        ?>
                     <?php endif; ?>
                 </div>
-                <?php 
-                // Clean up session variables after displaying the message
-                unset($_SESSION['success']); 
-                if (isset($_SESSION['last_created_set_id'])) {
-                    unset($_SESSION['last_created_set_id']);
-                }
-                ?>
-            <?php endif; ?>
+            </div>
+                    
+            <?php echo $loadingMessageHtml; ?>
         </div>
-    </div>
-    
-    <?php echo $loadingMessageHtml; ?>
-</div>
 
 
 
@@ -2301,7 +2578,6 @@ input#reg_username.invalid {
                     <!-- Profile picture section -->
                     <div class="profile-picture-section">
                         <img src="<?php 
-                            // Get profile picture URL from database or use default
                             try {
                                 $stmt = $pdo->prepare("SELECT profile_picture_url FROM users WHERE id = ?");
                                 $stmt->execute([$_SESSION['user_id']]);
@@ -2353,7 +2629,6 @@ input#reg_username.invalid {
             
             <!-- Register form -->
             <form method="POST" action="" class="auth-form" id="register-form">
-                <!-- In the register form, update the username input group: -->
 <div class="form-group">
     <label for="reg_username">Username</label>
     <input type="text" id="reg_username" name="reg_username" required>
@@ -2453,8 +2728,6 @@ input#reg_username.invalid {
         </div>
     </div>
 </div>
-<!-- Add this right before the closing </body> tag -->
-<!-- Replace the existing loading-overlay div with this simplified version -->
 <div class="loading-overlay" id="loading-overlay" style="display: none;">
     <div class="loading-content">
         <div class="loading-spinner"></div>
@@ -2482,7 +2755,6 @@ input#reg_username.invalid {
                 }
             });
             
-            // Auto-resize textarea
             const messageInput = document.getElementById('message-input');
             
             messageInput.addEventListener('input', function() {
@@ -2557,35 +2829,28 @@ input#reg_username.invalid {
     const confirmEdit = document.getElementById('confirm-edit');
     
     let currentSetId = null;
-    
-    // Add event listeners to delete buttons
+    // Delete set functionality
     document.querySelectorAll('.delete-set-btn').forEach(button => {
         button.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation(); // Prevent triggering the parent link
+            e.stopPropagation(); 
             
-            // Store the set ID and title for deletion
             currentSetId = this.dataset.setId;
             setTitleToDelete.textContent = this.dataset.setTitle;
             
-            // Show confirmation dialog
             confirmationModal.style.display = 'flex';
         });
     });
     
-    // Add event listeners to edit buttons
     document.querySelectorAll('.edit-set-btn').forEach(button => {
         button.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation(); // Prevent triggering the parent link
+            e.stopPropagation(); 
             
-            // Store the set ID for editing
             currentSetId = this.dataset.setId;
             
-            // Pre-fill the input with current title
             newSetTitleInput.value = this.dataset.setTitle;
             
-            // Show edit dialog
             editModal.style.display = 'flex';
             newSetTitleInput.focus();
             newSetTitleInput.select();
@@ -2599,13 +2864,11 @@ input#reg_username.invalid {
     
     // Confirm deletion
     confirmDelete.addEventListener('click', function() {
-        // Send AJAX request to delete the set
         const xhr = new XMLHttpRequest();
         xhr.open('POST', 'delete_set.php', true);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
         xhr.onload = function() {
             if (this.status === 200) {
-                // Reload the page to refresh the library
                 window.location.reload();
             } else {
                 alert('Error deleting set: ' + this.responseText);
@@ -2613,7 +2876,6 @@ input#reg_username.invalid {
         };
         xhr.send('set_id=' + currentSetId);
         
-        // Hide the confirmation modal
         confirmationModal.style.display = 'none';
     });
     
@@ -2637,7 +2899,6 @@ input#reg_username.invalid {
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
         xhr.onload = function() {
             if (this.status === 200) {
-                // Reload the page to refresh the library
                 window.location.reload();
             } else {
                 alert('Error updating set title: ' + this.responseText);
@@ -2645,7 +2906,6 @@ input#reg_username.invalid {
         };
         xhr.send('set_id=' + currentSetId + '&title=' + encodeURIComponent(newTitle));
         
-        // Hide the edit modal
         editModal.style.display = 'none';
     });
     
@@ -2686,20 +2946,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.files && this.files[0]) {
                 const file = this.files[0];
                 
-                // Check file type
                 const fileType = file.type;
                 if (!fileType.match('image.*')) {
                     alert('Please select an image file');
                     return;
                 }
                 
-                // Check file size (max 5MB)
                 if (file.size > 5 * 1024 * 1024) {
                     alert('File size should be less than 5MB');
                     return;
                 }
                 
-                // Preview the image
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     profilePicture.src = e.target.result;
@@ -2751,17 +3008,13 @@ document.addEventListener('DOMContentLoaded', function() {
         accountBtn.addEventListener('click', function(e) {
             e.preventDefault();
             if (authModal) {
-                // Force layout recalculation before showing the modal
                 void authModal.offsetWidth;
                 
-                // Show the modal
                 authModal.style.display = 'flex';
                 
-                // Add debugging
                 console.log('Auth modal opened');
                 console.log('Modal style:', window.getComputedStyle(authModal).display);
                 
-                // Force the browser to repaint
                 setTimeout(function() {
                     authModal.style.opacity = '1';
                 }, 10);
@@ -2773,14 +3026,12 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Account button element not found');
     }
     
-    // Close modal on X click
     if (closeAuthModal) {
         closeAuthModal.addEventListener('click', function() {
             authModal.style.display = 'none';
         });
     }
     
-    // Close modal on outside click
     window.addEventListener('click', function(e) {
         if (e.target === authModal) {
             authModal.style.display = 'none';
@@ -2788,9 +3039,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Add this to your existing JavaScript section
 document.addEventListener('DOMContentLoaded', function() {
-    // Fix for auth tabs switching
     const authTabs = document.querySelectorAll('.auth-tab');
     const authForms = document.querySelectorAll('.auth-form');
     
@@ -2799,37 +3048,29 @@ document.addEventListener('DOMContentLoaded', function() {
             tab.addEventListener('click', function() {
                 const targetFormId = this.getAttribute('data-form');
                 
-                // Deactivate all tabs and forms
                 authTabs.forEach(t => t.classList.remove('active'));
                 authForms.forEach(f => f.classList.remove('active'));
                 
-                // Activate clicked tab and corresponding form
                 this.classList.add('active');
                 document.getElementById(targetFormId).classList.add('active');
             });
         });
     }
 });
-// Replace your existing mobile sidebar toggle code with this improved version
 document.addEventListener('DOMContentLoaded', function() {
-    // Mobile sidebar toggle - improved
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggle-sidebar');
     const toggleIcon = toggleBtn.querySelector('i');
     
     function handleMobileView() {
         if (window.innerWidth <= 450) {
-            // Reset any inline styles that might be causing issues
             sidebar.style.width = '';
             
-            // For mobile view
             toggleBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 
-                // Toggle expanded class
                 sidebar.classList.toggle('expanded');
                 
-                // Update icon
                 if (sidebar.classList.contains('expanded')) {
                     toggleIcon.classList.remove('fa-chevron-right');
                     toggleIcon.classList.add('fa-chevron-left');
@@ -2838,11 +3079,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     toggleIcon.classList.add('fa-chevron-right');
                 }
                 
-                // Force a reflow to ensure transitions work properly
                 void sidebar.offsetWidth;
             });
             
-            // Close sidebar when clicking elsewhere
             document.addEventListener('click', function(e) {
                 if (!sidebar.contains(e.target) && sidebar.classList.contains('expanded')) {
                     sidebar.classList.remove('expanded');
@@ -2851,12 +3090,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Prevent sidebar from closing when clicking inside it
             sidebar.addEventListener('click', function(e) {
                 e.stopPropagation();
             });
         } else {
-            // For desktop view, ensure proper icon state
             if (sidebar.classList.contains('collapsed')) {
                 toggleIcon.classList.remove('fa-chevron-left');
                 toggleIcon.classList.add('fa-chevron-right');
@@ -2867,7 +3104,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Run on load
     handleMobileView();
     
     // Run on resize with debounce
@@ -2878,7 +3114,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Add this JavaScript to replace the existing form handling code
 document.addEventListener('DOMContentLoaded', function() {
     const dragDropArea = document.getElementById('drag-drop-area');
     const fileUpload = document.getElementById('file-upload');
@@ -2897,7 +3132,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!isLoggedIn) {
             e.preventDefault();
             alert('Please log in to upload files and create flashcards.');
-            // Show the auth modal
             if (authModal) {
                 authModal.style.display = 'flex';
             }
@@ -2911,7 +3145,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!isLoggedIn) {
             alert('Please log in to upload files and create flashcards.');
             this.value = '';
-            // Show the auth modal
             if (authModal) {
                 authModal.style.display = 'flex';
             }
@@ -2926,7 +3159,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Submit the form automatically when file is selected
             notesForm.submit();
             showLoading();
         }
@@ -2965,7 +3197,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleDrop(e) {
         if (!isLoggedIn) {
             alert('Please log in to upload files and create flashcards.');
-            // Show the auth modal
             if (authModal) {
                 authModal.style.display = 'flex';
             }
@@ -2982,7 +3213,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Set the file input value and submit the form
             fileUpload.files = files;
             notesForm.submit();
             showLoading();
@@ -2990,10 +3220,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function showLoading() {
-        // Show loading overlay
         loadingOverlay.style.display = 'flex';
         
-        // Simulate loading progress
         updateLoadingStage('Processing your notes...', 20);
         
         setTimeout(() => {
@@ -3015,7 +3243,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Add this to your existing JavaScript section
 document.addEventListener('DOMContentLoaded', function() {
     // Password validation
     const passwordInput = document.getElementById('reg_password');
@@ -3027,7 +3254,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (passwordInput) {
         passwordInput.addEventListener('input', validatePassword);
         
-        // Add check icons to requirements
         document.querySelectorAll('.requirement').forEach(req => {
             const icon = req.querySelector('i');
             if (icon) {
@@ -3041,28 +3267,24 @@ document.addEventListener('DOMContentLoaded', function() {
     function validatePassword() {
         const password = passwordInput.value;
         
-        // Check length requirement
         if (password.length >= 8) {
             lengthReq.classList.add('valid');
         } else {
             lengthReq.classList.remove('valid');
         }
         
-        // Check capital letter requirement
         if (/[A-Z]/.test(password)) {
             capitalReq.classList.add('valid');
         } else {
             capitalReq.classList.remove('valid');
         }
         
-        // Check number requirement
         if (/[0-9]/.test(password)) {
             numberReq.classList.add('valid');
         } else {
             numberReq.classList.remove('valid');
         }
         
-        // Update register button state
         if (password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password)) {
             registerBtn.disabled = false;
         } else {
@@ -3071,7 +3293,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Add this to your existing JavaScript section
 document.addEventListener('DOMContentLoaded', function() {
     // Shared sets toggle functionality
     const sharedSetsToggle = document.getElementById('shared-sets-toggle');
@@ -3081,19 +3302,17 @@ document.addEventListener('DOMContentLoaded', function() {
         sharedSetsToggle.addEventListener('click', function(e) {
             e.preventDefault();
             
-            // Toggle visibility of shared sets section
             if (sharedSetsSection.style.display === 'block') {
                 sharedSetsSection.style.display = 'none';
             } else {
                 sharedSetsSection.style.display = 'block';
             }
             
-            // Optional: Add visual indicator that the section is expanded
             this.classList.toggle('active');
         });
     }
 });
-// Add or update this in your JavaScript section
+
 document.addEventListener('DOMContentLoaded', function() {
     const fileUpload = document.getElementById('file-upload');
     const notesForm = document.getElementById('notes-form');
@@ -3112,10 +3331,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
-                // Show loading overlay before form submission
                 showLoadingProgress();
                 
-                // Submit the form after a short delay to allow the loading overlay to appear
                 setTimeout(() => {
                     notesForm.submit();
                 }, 100);
@@ -3123,7 +3340,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Also update the drag and drop handler to show loading progress
     const dragDropArea = document.getElementById('drag-drop-area');
     if (dragDropArea) {
         dragDropArea.addEventListener('drop', function(e) {
@@ -3140,40 +3356,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
-                // Set the file input value
                 fileUpload.files = files;
                 
-                // Show loading overlay
                 showLoadingProgress();
                 
-                // Submit the form after a short delay
                 setTimeout(() => {
                     notesForm.submit();
                 }, 100);
             }
             
-            // Remove highlight
             this.classList.remove('active');
         });
     }
     
-    // Replace your existing showLoadingProgress function with this simplified version
 function showLoadingProgress() {
-    // Show loading overlay
     loadingOverlay.style.display = 'flex';
     
-    // Submit the form after a short delay to ensure the overlay is visible
     setTimeout(() => {
         notesForm.submit();
     }, 100);
-}
-
-// No need for updateProgress function anymore since we're using a simple spinner
-
-    
-    
+}  
 });
-// Add to your existing JavaScript section
+
 document.addEventListener('DOMContentLoaded', function() {
     // Username availability check
     const usernameInput = document.getElementById('reg_username');
@@ -3182,20 +3386,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (usernameInput) {
         usernameInput.addEventListener('input', function() {
-            // Clear any existing timeout
             clearTimeout(usernameCheckTimeout);
             
-            // Get the username value
             const username = this.value.trim();
             
-            // Reset validation state
             this.classList.remove('invalid');
             usernameValidationMessage.classList.remove('visible');
             
-            // Don't check if username is empty
             if (!username) return;
             
-            // Set a timeout to avoid too many requests while typing
             usernameCheckTimeout = setTimeout(function() {
                 checkUsernameAvailability(username);
             }, 500);
@@ -3203,11 +3402,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function checkUsernameAvailability(username) {
-        // Create form data
         const formData = new FormData();
-        formData.append('username', username);
-        
-        // Send AJAX request
+        formData.append('username', username);    
         fetch('check_username.php', {
             method: 'POST',
             body: formData
@@ -3215,7 +3411,6 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.exists) {
-                // Username exists, show error
                 usernameInput.classList.add('invalid');
                 usernameValidationMessage.classList.add('visible');
                 
@@ -3229,10 +3424,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 usernameInput.classList.remove('invalid');
                 usernameValidationMessage.classList.remove('visible');
                 
-                // Re-enable register button if other conditions are met
                 const registerBtn = document.querySelector('button[name="register_submit"]');
                 if (registerBtn) {
-                    // Only enable if password requirements are met
                     const passwordInput = document.getElementById('reg_password');
                     if (passwordInput && passwordInput.value.length >= 8 && 
                         /[A-Z]/.test(passwordInput.value) && 
@@ -3247,20 +3440,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-// Add to your existing JavaScript section
 document.addEventListener('DOMContentLoaded', function() {
     // Password toggle functionality for all password fields
     const togglePasswordButtons = document.querySelectorAll('.toggle-password');
     
     togglePasswordButtons.forEach(button => {
         button.addEventListener('click', function(e) {
-            e.preventDefault(); // Prevent form submission
-            
-            // Find the password input that is a sibling of this button
+            e.preventDefault();        
             const passwordInput = this.previousElementSibling;
             const icon = this.querySelector('i');
             
-            // Toggle password visibility
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
                 icon.classList.remove('fa-eye');
@@ -3273,94 +3462,100 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-// Add to your existing JavaScript
+
 document.addEventListener('DOMContentLoaded', function() {
     const video = document.getElementById('demo-video');
     
     if (video) {
-        // Add play button overlay
         const videoContainer = video.parentElement;
         const playButton = document.createElement('div');
         playButton.className = 'video-play-button';
         playButton.innerHTML = '<i class="fa fa-play"></i>';
         videoContainer.appendChild(playButton);
         
-        // Play video when clicking the play button
         playButton.addEventListener('click', function() {
             video.play();
             playButton.style.display = 'none';
         });
         
-        // Show play button when video is paused
         video.addEventListener('pause', function() {
             playButton.style.display = 'flex';
         });
         
-        // Hide play button when video is playing
         video.addEventListener('play', function() {
             playButton.style.display = 'none';
         });
     }
 });
-// Add this to your existing JavaScript section
+// Floating Menu Functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Mobile navigation functionality
-    const sidebar = document.getElementById('sidebar');
-    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-    const mobileAccountBtn = document.getElementById('mobile-account-btn');
+
+    const floatingMenuBtn = document.getElementById('floating-menu-btn');
+    const navModal = document.getElementById('nav-modal');
+    const closeNavModal = document.getElementById('close-nav-modal');
+    const navModalAccount = document.getElementById('nav-modal-account');
     const authModal = document.getElementById('auth-modal');
     
-    // Create overlay element for mobile sidebar
-    const overlay = document.createElement('div');
-    overlay.className = 'sidebar-overlay';
-    document.body.appendChild(overlay);
-    
-    // Toggle sidebar on mobile
-    if (mobileMenuBtn) {
-        mobileMenuBtn.addEventListener('click', function() {
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('active');
-            document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+    if (floatingMenuBtn) {
+        floatingMenuBtn.addEventListener('click', function() {
+            navModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; 
         });
     }
     
-    // Close sidebar when clicking on overlay
-    overlay.addEventListener('click', function() {
-        sidebar.classList.remove('open');
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
-    });
+    if (closeNavModal) {
+        closeNavModal.addEventListener('click', function() {
+            navModal.style.display = 'none';
+            document.body.style.overflow = ''; 
+        });
+    }
     
-    // Open auth modal from mobile account button
-    if (mobileAccountBtn) {
-        mobileAccountBtn.addEventListener('click', function() {
+    if (navModal) {
+        navModal.addEventListener('click', function(e) {
+            if (e.target === navModal) {
+                navModal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        });
+    }
+    
+    if (navModalAccount) {
+        navModalAccount.addEventListener('click', function() {
+            navModal.style.display = 'none';
             if (authModal) {
                 authModal.style.display = 'flex';
             }
         });
     }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    const libraryToggle = document.getElementById('library-toggle');
+    const libraryContent = document.getElementById('library-content');
+    const sharedToggle = document.getElementById('shared-toggle');
+    const sharedContent = document.getElementById('shared-content');
     
-    // Close sidebar when clicking on a nav item (on mobile)
-    const navItems = document.querySelectorAll('.sidebar .nav-item');
-    navItems.forEach(item => {
-        item.addEventListener('click', function() {
-            if (window.innerWidth <= 768) {
-                sidebar.classList.remove('open');
-                overlay.classList.remove('active');
-                document.body.style.overflow = '';
-            }
+    function toggleSection(header, content) {
+        header.classList.toggle('active');
+        content.classList.toggle('active');
+    }
+    
+
+    if (libraryToggle && libraryContent) {
+        libraryToggle.classList.add('active');
+        libraryContent.classList.add('active');
+        
+        libraryToggle.addEventListener('click', function() {
+            toggleSection(libraryToggle, libraryContent);
         });
-    });
+    }
     
-    // Handle window resize
-    window.addEventListener('resize', function() {
-        if (window.innerWidth > 768) {
-            // Reset styles for desktop view
-            sidebar.classList.remove('open');
-            overlay.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-    });
+    if (sharedToggle && sharedContent) {
+        sharedToggle.addEventListener('click', function() {
+            toggleSection(sharedToggle, sharedContent);
+        });
+    }
 });
 
     </script>

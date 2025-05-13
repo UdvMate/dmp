@@ -14,7 +14,11 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("dmp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+<<<<<<< HEAD
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bf6e57a88f3a2e3ff907cf73a22f83940d584300")]
+=======
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bf3d03151f0e5d896f46d7953dcec507e8321476")]
+>>>>>>> 016376161f10e7f7b1e6c9a4676a10fce89aa198
 [assembly: System.Reflection.AssemblyProductAttribute("dmp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("dmp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

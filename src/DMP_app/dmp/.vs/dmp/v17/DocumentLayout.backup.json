@@ -3,10 +3,6 @@
   "WorkspaceRootPath": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\src\\DMP_app\\dmp\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{1911D73F-AAF5-4772-AD1C-89D333F2799F}|dmp\\dmp.csproj|c:\\users\\dan\\documents\\github\\dmp\\src\\dmp_app\\dmp\\dmp\\registerwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1911D73F-AAF5-4772-AD1C-89D333F2799F}|dmp\\dmp.csproj|solutionrelative:dmp\\registerwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{1911D73F-AAF5-4772-AD1C-89D333F2799F}|dmp\\dmp.csproj|c:\\users\\dan\\documents\\github\\dmp\\src\\dmp_app\\dmp\\dmp\\loginwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1911D73F-AAF5-4772-AD1C-89D333F2799F}|dmp\\dmp.csproj|solutionrelative:dmp\\loginwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -15,16 +11,16 @@
       "RelativeMoniker": "D:0:0:{1911D73F-AAF5-4772-AD1C-89D333F2799F}|dmp\\dmp.csproj|solutionrelative:dmp\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1911D73F-AAF5-4772-AD1C-89D333F2799F}|dmp\\dmp.csproj|c:\\users\\dan\\documents\\github\\dmp\\src\\dmp_app\\dmp\\dmp\\assemblyinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1911D73F-AAF5-4772-AD1C-89D333F2799F}|dmp\\dmp.csproj|solutionrelative:dmp\\assemblyinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1911D73F-AAF5-4772-AD1C-89D333F2799F}|dmp\\dmp.csproj|c:\\users\\dan\\documents\\github\\dmp\\src\\dmp_app\\dmp\\dmp\\adminwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1911D73F-AAF5-4772-AD1C-89D333F2799F}|dmp\\dmp.csproj|solutionrelative:dmp\\adminwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{1911D73F-AAF5-4772-AD1C-89D333F2799F}|dmp\\dmp.csproj|c:\\users\\dan\\documents\\github\\dmp\\src\\dmp_app\\dmp\\dmp\\registerwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1911D73F-AAF5-4772-AD1C-89D333F2799F}|dmp\\dmp.csproj|solutionrelative:dmp\\registerwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1911D73F-AAF5-4772-AD1C-89D333F2799F}|dmp\\dmp.csproj|c:\\users\\dan\\documents\\github\\dmp\\src\\dmp_app\\dmp\\dmp\\adminwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{1911D73F-AAF5-4772-AD1C-89D333F2799F}|dmp\\dmp.csproj|solutionrelative:dmp\\adminwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1911D73F-AAF5-4772-AD1C-89D333F2799F}|dmp\\dmp.csproj|c:\\users\\dan\\documents\\github\\dmp\\src\\dmp_app\\dmp\\dmp\\adminwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1911D73F-AAF5-4772-AD1C-89D333F2799F}|dmp\\dmp.csproj|solutionrelative:dmp\\adminwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1911D73F-AAF5-4772-AD1C-89D333F2799F}|dmp\\dmp.csproj|c:\\users\\dan\\documents\\github\\dmp\\src\\dmp_app\\dmp\\dmp\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
@@ -54,7 +50,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
@@ -63,6 +59,7 @@
             {
               "$type": "Document",
               "DocumentIndex": 3,
+<<<<<<< HEAD
               "Title": "AssemblyInfo.cs",
               "DocumentMoniker": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\src\\DMP_app\\dmp\\dmp\\AssemblyInfo.cs",
               "RelativeDocumentMoniker": "dmp\\AssemblyInfo.cs",
@@ -71,41 +68,54 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-05-12T21:05:55.278Z"
+=======
+              "Title": "AdminWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\src\\DMP_app\\dmp\\dmp\\AdminWindow.xaml",
+              "RelativeDocumentMoniker": "dmp\\AdminWindow.xaml",
+              "ToolTip": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\src\\DMP_app\\dmp\\dmp\\AdminWindow.xaml",
+              "RelativeToolTip": "dmp\\AdminWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-05-02T14:38:11.091Z"
+>>>>>>> 016376161f10e7f7b1e6c9a4676a10fce89aa198
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "LoginWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\src\\DMP_app\\dmp\\dmp\\LoginWindow.xaml.cs",
               "RelativeDocumentMoniker": "dmp\\LoginWindow.xaml.cs",
               "ToolTip": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\src\\DMP_app\\dmp\\dmp\\LoginWindow.xaml.cs",
               "RelativeToolTip": "dmp\\LoginWindow.xaml.cs",
-              "ViewState": "AgIAACEAAAAAAAAAAAAmwDIAAAARAAAAAAAAAA==",
+              "ViewState": "AgIAACkAAAAAAAAAAAAQwC0AAAA9AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-03-27T13:49:58.204Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "RegisterWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\src\\DMP_app\\dmp\\dmp\\RegisterWindow.xaml.cs",
               "RelativeDocumentMoniker": "dmp\\RegisterWindow.xaml.cs",
               "ToolTip": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\src\\DMP_app\\dmp\\dmp\\RegisterWindow.xaml.cs",
               "RelativeToolTip": "dmp\\RegisterWindow.xaml.cs",
+<<<<<<< HEAD
               "ViewState": "AgIAACQAAAAAAAAAAAAIwDEAAAA3AAAAAAAAAA==",
+=======
+              "ViewState": "AgIAAA0AAAAAAAAAAAAAwC4AAABvAAAAAAAAAA==",
+>>>>>>> 016376161f10e7f7b1e6c9a4676a10fce89aa198
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-05-02T14:41:53.412Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\src\\DMP_app\\dmp\\dmp\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "dmp\\MainWindow.xaml.cs",
               "ToolTip": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\src\\DMP_app\\dmp\\dmp\\MainWindow.xaml.cs",
               "RelativeToolTip": "dmp\\MainWindow.xaml.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAMUAAAAMAAAAAAAAAA==",
+              "ViewState": "AgIAABwAAAAAAAAAAAAAwEwAAABWAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-04-07T14:55:20.909Z"
             },
@@ -117,24 +127,13 @@
               "RelativeDocumentMoniker": "dmp\\AdminWindow.xaml.cs",
               "ToolTip": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\src\\DMP_app\\dmp\\dmp\\AdminWindow.xaml.cs",
               "RelativeToolTip": "dmp\\AdminWindow.xaml.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAADEAAAAdAAAAAAAAAA==",
+              "ViewState": "AgIAAFAAAAAAAAAAAADgvzEAAAAdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-05-11T13:32:20.163Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 5,
-              "Title": "AdminWindow.xaml",
-              "DocumentMoniker": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\src\\DMP_app\\dmp\\dmp\\AdminWindow.xaml",
-              "RelativeDocumentMoniker": "dmp\\AdminWindow.xaml",
-              "ToolTip": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\src\\DMP_app\\dmp\\dmp\\AdminWindow.xaml",
-              "RelativeToolTip": "dmp\\AdminWindow.xaml",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-05-02T14:38:11.091Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
               "Title": "MainWindow.xaml",
               "DocumentMoniker": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\src\\DMP_app\\dmp\\dmp\\MainWindow.xaml",
               "RelativeDocumentMoniker": "dmp\\MainWindow.xaml",
@@ -145,7 +144,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 6,
               "Title": "RegisterWindow.xaml",
               "DocumentMoniker": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\src\\DMP_app\\dmp\\dmp\\RegisterWindow.xaml",
               "RelativeDocumentMoniker": "dmp\\RegisterWindow.xaml",
@@ -156,7 +155,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 7,
               "Title": "LoginWindow.xaml",
               "DocumentMoniker": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\src\\DMP_app\\dmp\\dmp\\LoginWindow.xaml",
               "RelativeDocumentMoniker": "dmp\\LoginWindow.xaml",
@@ -167,7 +166,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 8,
               "Title": "User.cs",
               "DocumentMoniker": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\src\\DMP_app\\dmp\\dmp\\Models\\User.cs",
               "RelativeDocumentMoniker": "dmp\\Models\\User.cs",
@@ -179,7 +178,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 9,
               "Title": "dmp",
               "DocumentMoniker": "C:\\Users\\Dan\\Documents\\GitHub\\dmp\\src\\DMP_app\\dmp\\dmp\\dmp.csproj",
               "RelativeDocumentMoniker": "dmp\\dmp.csproj",
