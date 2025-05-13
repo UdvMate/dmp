@@ -21,16 +21,13 @@ if (isset($_POST['login_submit'])) {
     $password = $_POST['password'];
 
     try {
-        // Get stored hash from database
         $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch();
 
         if ($user) {
-            // Hash input password using SHA-256 + Base64
             $hashedInput = base64_encode(hash('sha256', $password, true));
             
-            // Compare hashes
             if (hash_equals($user['password'], $hashedInput)) {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
@@ -50,34 +47,28 @@ if (isset($_POST['login_submit'])) {
 
 // Register logic
 if (isset($_POST['register_submit'])) {
-    // Retrieve and sanitize inputs
     $username = trim($_POST['reg_username']);
     $email = trim($_POST['reg_email']);
     $password = $_POST['reg_password'];
     $passwordConfirm = $_POST['reg_passwordConfirm'];
 
-    // Validate required fields
     if (empty($username) || empty($email) || empty($password)) {
         $register_error = "All fields are required!";
     } elseif ($password !== $passwordConfirm) {
         $register_error = "Passwords do not match!";
     } else {
-        // Hash password using SHA-256 + Base64
         $hashedPassword = base64_encode(hash('sha256', $password, true));
 
         try {
-            // Insert into database
             $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
             $stmt->execute([$username, $email, $hashedPassword]);
 
-            // Set session and redirect
             $_SESSION['user_id'] = $pdo->lastInsertId();
             $_SESSION['username'] = $username;
             $_SESSION['success'] = "Registration successful!";
             header("Location: welcome.php");
             exit();
         } catch (PDOException $e) {
-            // Handle duplicate entries or other errors
             if ($e->getCode() == '23000') { // MySQL duplicate entry error code
                 $register_error = "Username or email already exists!";
             } else {
@@ -104,14 +95,11 @@ function searchUsers($pdo, $searchTerm, $currentUserId) {
 // Function to display flashcard sets from database (keeping this from welcome.php for sidebar)
 function displayFlashcardSetsFromDatabase($pdo, $userId) {
     try {
-        // Prepare and execute the query to fetch sets for the logged-in user
         $stmt = $pdo->prepare("SELECT set_id, title FROM sets WHERE user_id = ? ORDER BY generated_at DESC");
         $stmt->execute([$userId]);
         
-        // Fetch all results
         $sets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Check if any sets were found
         if (!empty($sets)) {
             foreach ($sets as $set) {
                 echo '<div class="library-item-container">';
@@ -141,7 +129,6 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
 // Add this function to display shared sets
 function displaySharedFlashcardSets($pdo, $userId) {
     try {
-        // Prepare and execute the query to fetch sets shared with the logged-in user
         $stmt = $pdo->prepare("
             SELECT s.set_id, s.title, u.username as owner_name 
             FROM sets s
@@ -738,7 +725,7 @@ function displaySharedFlashcardSets($pdo, $userId) {
             background-color: var(--success-color);
             color: var(--text-color);
         }
-        /* Add these styles to your connect.php file if they're not already there */
+        
 .search-results {
     margin-top: 10px;
     background-color: var(--secondary-color);
@@ -778,7 +765,6 @@ function displaySharedFlashcardSets($pdo, $userId) {
     color: #8b949e;
 }
 
-/* Add these styles to your connect.php file */
 #searchResults {
     margin-top: 10px;
     background-color: var(--secondary-color);
@@ -822,7 +808,7 @@ function displaySharedFlashcardSets($pdo, $userId) {
     text-align: center;
     color: #8b949e;
 }
-/* Friends system styles */
+
 .friends-container {
     max-width: 800px;
     margin: 0 auto;
@@ -875,7 +861,6 @@ function displaySharedFlashcardSets($pdo, $userId) {
     display: block;
 }
 
-/* Search results styles */
 .search-container {
     margin-bottom: 20px;
 }
@@ -953,7 +938,6 @@ function displaySharedFlashcardSets($pdo, $userId) {
     color: #8b949e;
 }
 
-/* Friend requests and friends list styles */
 .friend-requests, .friends-list {
     background-color: var(--secondary-color);
     border: 1px solid var(--border-color);
@@ -1007,7 +991,6 @@ function displaySharedFlashcardSets($pdo, $userId) {
     color: #8b949e;
 }
 
-/* Friends system styles */
 .friends-container {
     max-width: 800px;
     margin: 0 auto;
@@ -1060,7 +1043,6 @@ function displaySharedFlashcardSets($pdo, $userId) {
     display: block;
 }
 
-/* Search results styles */
 .search-container {
     margin-bottom: 20px;
 }
@@ -1138,7 +1120,6 @@ function displaySharedFlashcardSets($pdo, $userId) {
     color: #8b949e;
 }
 
-/* Friend requests and friends list styles */
 .friend-requests, .friends-list {
     background-color: var(--secondary-color);
     border: 1px solid var(--border-color);
@@ -1192,7 +1173,6 @@ function displaySharedFlashcardSets($pdo, $userId) {
     color: #8b949e;
 }
 
-/* Add or update these styles in the <style> section of connect.php */
 
 .remove-friend-btn {
     background-color: transparent;
@@ -1217,7 +1197,6 @@ function displaySharedFlashcardSets($pdo, $userId) {
     font-size: 12px;
 }
 
-/* Update the friend-item styling to better align elements */
 .friend-item {
     display: flex;
     align-items: center;
@@ -1239,157 +1218,148 @@ function displaySharedFlashcardSets($pdo, $userId) {
     margin-right: 15px;
 }
 
-/* Mobile responsiveness - for screens under 450px */
-/* Update the mobile sidebar styles in your media query */
 @media (max-width: 450px) {
-    /* Sidebar adjustments - updated */
     .sidebar {
-        width: 100%;
-        height: auto;
-        max-height: 60px;
-        overflow: hidden;
-        transition: max-height 0.3s ease, width 0s;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 100;
-    }
-    
-    .sidebar.expanded {
-        max-height: 100vh;
-        overflow-y: auto;
-        width: 100% !important; /* Force full width */
-    }
-    
-    /* Force sidebar content to be visible when expanded */
-    .sidebar.expanded .sidebar-content,
-    .sidebar.expanded .library-section,
-    .sidebar.expanded .sidebar-bottom {
-        display: block;
-        opacity: 1;
-        visibility: visible;
-    }
-    
-    /* Hide text in collapsed state */
-    .sidebar:not(.expanded) .logo span,
-    .sidebar:not(.expanded) .nav-item span,
-    .sidebar:not(.expanded) .account span,
-    .sidebar:not(.expanded) .library-section {
         display: none;
     }
     
-    /* Show text in expanded state */
-    .sidebar.expanded .logo span,
-    .sidebar.expanded .nav-item span,
-    .sidebar.expanded .account span {
-        display: inline;
-    }
-    
-    /* Ensure toggle button is visible and properly positioned */
-    .toggle-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 30px;
-        height: 30px;
-    }
-    .sidebar-top {
-        padding: 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: relative;
-    }
-    
-    /* Logo positioning for collapsed state (centered) */
-    .sidebar:not(.expanded) .logo {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        justify-content: center;
-    }
-    
-    /* Logo positioning for expanded state (left aligned) */
-    .sidebar.expanded .logo {
-        position: relative;
-        left: 0;
-        transform: none;
-    }
-    
-    /* Title text styling */
-    .logo-title {
-        display: none;
-        font-weight: bold;
-        text-align: center;
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        white-space: nowrap;
-    }
-    
-    /* Show title in expanded state */
-    .sidebar.expanded .logo-title {
-        display: block;
-    }
-    
-    /* Hide logo text in collapsed state */
-    .sidebar:not(.expanded) .logo span {
-        display: none;
-    }
-    
-    /* Toggle button positioning */
-    .toggle-btn {
-        z-index: 10;
-    }
-    body {
-        padding-top: 0; /* Remove any existing padding */
-    }
-    
-    /* Adjust main content positioning */
     .main-content {
-        margin-top: 60px; /* Match the height of the collapsed sidebar/navbar */
+        margin-top: 0;
         width: 100%;
         position: relative;
-        z-index: 1; /* Ensure it's below the sidebar but above other content */
+        z-index: 1;
     }
     
-    /* When sidebar is expanded, push content further down or hide it */
-    .sidebar.expanded + .main-content {
-        margin-top: 60px; /* Keep the same margin when expanded */
-        opacity: 0.3; /* Optional: dim the content when sidebar is expanded */
-        pointer-events: none; /* Optional: prevent interaction with content when sidebar is expanded */
-    }
-    
-    /* Ensure content area has proper padding */
     .content-area {
         padding: 12px;
-        padding-top: 15px; /* Add a bit more padding at the top */
     }
-    
-    /* Ensure the input area at bottom doesn't overlap with content */
-    .input-area {
-        padding: 10px;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        z-index: 90;
-    }
-    
-    /* Add padding at the bottom to prevent content from being hidden behind the input area */
-    .content-area {
-        padding-bottom: 70px; /* Adjust based on the height of your input area */
-    }
-    
-    /* Quick questions section needs margin to not be hidden by input area */
-    .quick-questions {
-        margin-bottom: 60px; /* Space for fixed input area */
-    }
-
 }
 
-/* Add this to your existing CSS */
+/* Floating menu button */
+.floating-menu-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    z-index: 999;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.floating-menu-btn:hover {
+    transform: scale(1.05);
+    background-color: #4a8ede;
+}
+
+.floating-menu-btn:active {
+    transform: scale(0.95);
+}
+
+/* Navigation modal */
+.nav-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-modal-content {
+    background-color: var(--secondary-color);
+    border-radius: 8px;
+    width: 90%;
+    max-width: 350px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.nav-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.nav-modal-header h3 {
+    margin: 0;
+    color: var(--text-color);
+}
+
+.close-nav-modal {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.nav-modal-body {
+    padding: 16px;
+}
+
+.nav-modal-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    color: var(--text-color);
+    text-decoration: none;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    transition: background-color 0.2s;
+}
+
+.nav-modal-item:hover {
+    background-color: var(--hover-color);
+    text-decoration: none;
+}
+
+.nav-modal-item i {
+    margin-right: 12px;
+    font-size: 20px;
+    width: 24px;
+    text-align: center;
+}
+
+.nav-modal-account {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin-top: 16px;
+    border-top: 1px solid var(--border-color);
+    cursor: pointer;
+}
+
+.nav-modal-account img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 12px;
+}
+
+/* Only show floating button on mobile */
+@media (min-width: 769px) {
+    .floating-menu-btn {
+        display: none;
+    }
+}
+
+
 #shared-sets-section {
     display: none; /* Hidden by default, will be toggled with JS */
 }
@@ -1412,7 +1382,6 @@ function displaySharedFlashcardSets($pdo, $userId) {
     font-size: 14px;
 }
 
-/* Shared set indicator */
 .shared-item::before {
     content: '\f064';
     font-family: 'Font Awesome 5 Free';
@@ -1425,7 +1394,6 @@ function displaySharedFlashcardSets($pdo, $userId) {
     font-size: 12px;
 }
 
-/* Add this to your existing CSS section */
 .sidebar.collapsed .nav-item {
     justify-content: center;
     padding: 10px 0;
@@ -1438,7 +1406,6 @@ function displaySharedFlashcardSets($pdo, $userId) {
     width: 100%;
 }
 
-/* Ensure all icons have consistent width/alignment */
 .nav-item i {
     min-width: 24px;
     text-align: center;
@@ -1446,10 +1413,113 @@ function displaySharedFlashcardSets($pdo, $userId) {
     font-size: 18px;
 }
 
-/* Specifically target the shared sets icon if needed */
 #shared-sets-toggle i {
     min-width: 24px;
     text-align: center;
+}
+/* Navigation modal section styles */
+.nav-modal-section {
+    margin-bottom: 12px;
+}
+
+.nav-modal-section-header {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    color: var(--text-color);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    position: relative;
+}
+
+.nav-modal-section-header:hover {
+    background-color: var(--hover-color);
+}
+
+.nav-modal-section-header i:first-child {
+    margin-right: 12px;
+    font-size: 20px;
+    width: 24px;
+    text-align: center;
+}
+
+.toggle-icon {
+    margin-left: auto;
+    transition: transform 0.3s;
+}
+
+.nav-modal-section-header.active .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.nav-modal-section-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.nav-modal-section-content.active {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.nav-modal-subitem {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 10px 10px 42px;
+    color: #8b949e;
+    text-decoration: none;
+    font-size: 14px;
+    border-left: 2px solid var(--border-color);
+    margin-left: 24px;
+    transition: all 0.2s;
+}
+
+.nav-modal-subitem:hover {
+    color: var(--text-color);
+    background-color: var(--hover-color);
+    border-left-color: var(--accent-color);
+    text-decoration: none;
+}
+
+.nav-modal-subitem.shared {
+    position: relative;
+}
+
+.nav-modal-subitem.shared:before {
+    content: '\f064';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    left: 24px;
+    top: 10px;
+    color: var(--accent-color);
+    font-size: 12px;
+}
+
+.nav-modal-subitem .owner {
+    font-size: 12px;
+    color: #8b949e;
+    margin-top: 2px;
+}
+
+.nav-modal-subitem-empty {
+    padding: 10px 10px 10px 42px;
+    color: #8b949e;
+    font-size: 14px;
+    font-style: italic;
+    margin-left: 24px;
+}
+
+.nav-modal-content {
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.nav-modal-body {
+    padding: 16px;
+    overflow-y: visible;
 }
 
     </style>
@@ -1499,7 +1569,6 @@ function displaySharedFlashcardSets($pdo, $userId) {
                     }
                     ?>
                 </div>
-                <!-- Add this after the Library nav item in welcome.php -->
 <a href="#" class="nav-item" id="shared-sets-toggle">
     <i class="fa fa-share-alt"></i>
     <span>Shared Sets</span>
@@ -1527,7 +1596,6 @@ function displaySharedFlashcardSets($pdo, $userId) {
         <div class="sidebar-bottom">
             <div class="account" id="account-btn">
                 <img src="<?php 
-                    // Get profile picture URL from database or use default
                     if (isset($_SESSION['user_id'])) {
                         try {
                             $stmt = $pdo->prepare("SELECT profile_picture_url FROM users WHERE id = ?");
@@ -1553,20 +1621,7 @@ function displaySharedFlashcardSets($pdo, $userId) {
     <!-- Main Content -->
     <div class="main-content">
         <?php if (isset($_SESSION['user_id'])): ?>
-            <!--<div class="search-container">
-                <div class="search-header">
-                    <h2>Find Friends</h2>
-                    <p>Connect with other users to share flashcards and study together</p>
-                </div>
-                
-                <div class="search-box">
-                    <input type="text" id="friendSearch" class="search-input" placeholder="Search for users by username...">
-                    <i class="fa fa-search search-icon"></i>
-                </div>
-                
-                <div id="searchResults" class="search-results" style="display: none;">
-                </div>
-            </div> -->
+            
             <div class="friends-container">
     <!-- Tabs navigation -->
     <div class="friends-tabs">
@@ -1735,6 +1790,134 @@ function displaySharedFlashcardSets($pdo, $userId) {
             </div>
         </div>
     </div>
+<!-- Floating menu button for mobile -->
+<div class="floating-menu-btn" id="floating-menu-btn">
+    <i class="fa fa-bars"></i>
+</div>
+
+<!-- Add navigation modal -->
+<div class="nav-modal" id="nav-modal">
+    <div class="nav-modal-content">
+        <div class="nav-modal-header">
+            <h3>Navigation</h3>
+            <button class="close-nav-modal" id="close-nav-modal">&times;</button>
+        </div>
+        <div class="nav-modal-body">
+            <a href="welcome.php" class="nav-modal-item">
+                <i class="fa fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="https://docs.google.com/document/d/1rvKo156DPou6UD3AZTfpJEa7ZuKD_uafZSG2bJSty6A/edit?pli=1&tab=t.0" class="nav-modal-item" target="_blank">
+                <i class="fa fa-file-alt"></i>
+                <span>Documentation</span>
+            </a>
+            <a href="connect.php" class="nav-modal-item">
+                <i class="fa fa-users"></i>
+                <span>Friends</span>
+            </a>
+            
+            <!-- Library section with collapsible sets -->
+            <div class="nav-modal-section">
+                <div class="nav-modal-section-header" id="library-toggle">
+                    <i class="fa fa-book"></i>
+                    <span>Library</span>
+                    <i class="fa fa-chevron-down toggle-icon"></i>
+                </div>
+                
+                <div class="nav-modal-section-content" id="library-content">
+                    <?php 
+                    if (isset($_SESSION['user_id'])) {
+                        try {
+                            $stmt = $pdo->prepare("SELECT set_id, title FROM sets WHERE user_id = ? ORDER BY generated_at DESC");
+                            $stmt->execute([$_SESSION['user_id']]);
+                            $sets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            
+                            if (!empty($sets)) {
+                                foreach ($sets as $set) {
+                                    echo '<a href="flashcard.php?set_id=' . $set['set_id'] . '" class="nav-modal-subitem">';
+                                    echo htmlspecialchars($set['title']);
+                                    echo '</a>';
+                                }
+                            } else {
+                                echo '<div class="nav-modal-subitem-empty">No sets found</div>';
+                            }
+                        } catch (PDOException $e) {
+                            echo '<div class="nav-modal-subitem-empty">Error loading sets</div>';
+                        }
+                    } else {
+                        echo '<div class="nav-modal-subitem-empty">Please log in to view sets</div>';
+                    }
+                    ?>
+                </div>
+            </div>
+            
+            <!-- Shared Sets section -->
+            <div class="nav-modal-section">
+                <div class="nav-modal-section-header" id="shared-toggle">
+                    <i class="fa fa-share-alt"></i>
+                    <span>Shared Sets</span>
+                    <i class="fa fa-chevron-down toggle-icon"></i>
+                </div>
+                
+                <div class="nav-modal-section-content" id="shared-content">
+                    <?php 
+                    if (isset($_SESSION['user_id'])) {
+                        try {
+                            $stmt = $pdo->prepare("
+                                SELECT s.set_id, s.title, u.username as owner_name 
+                                FROM sets s
+                                JOIN shared_sets ss ON s.set_id = ss.set_id
+                                JOIN users u ON ss.owner_id = u.id
+                                WHERE ss.user_id = ? 
+                                ORDER BY ss.shared_at DESC
+                            ");
+                            $stmt->execute([$_SESSION['user_id']]);
+                            $sharedSets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            
+                            if (!empty($sharedSets)) {
+                                foreach ($sharedSets as $set) {
+                                    echo '<a href="flashcard.php?set_id=' . $set['set_id'] . '&shared=1" class="nav-modal-subitem shared">';
+                                    echo htmlspecialchars($set['title']) . ' <span class="owner">by ' . htmlspecialchars($set['owner_name']) . '</span>';
+                                    echo '</a>';
+                                }
+                            } else {
+                                echo '<div class="nav-modal-subitem-empty">No shared sets found</div>';
+                            }
+                        } catch (PDOException $e) {
+                            echo '<div class="nav-modal-subitem-empty">Error loading shared sets</div>';
+                        }
+                    } else {
+                        echo '<div class="nav-modal-subitem-empty">Please log in to view shared sets</div>';
+                    }
+                    ?>
+                </div>
+            </div>
+            
+            <div class="nav-modal-account" id="nav-modal-account">
+                <img src="<?php 
+                    if (isset($_SESSION['user_id'])) {
+                        try {
+                            $stmt = $pdo->prepare("SELECT profile_picture_url FROM users WHERE id = ?");
+                            $stmt->execute([$_SESSION['user_id']]);
+                            $user = $stmt->fetch();
+                            echo !empty($user['profile_picture_url']) ? htmlspecialchars($user['profile_picture_url']) : 'media/images/pfp.png';
+                        } catch (PDOException $e) {
+                            echo 'media/images/pfp.png';
+                        }
+                    } else {
+                        echo 'media/images/pfp.png';
+                    }
+                ?>" alt="User">
+                <span>
+                    <?php 
+                    echo isset($_SESSION['username']) ? $_SESSION['username'] : 'Guest'; 
+                    ?>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
 
     <script>
       document.addEventListener('DOMContentLoaded', function() {
@@ -1763,39 +1946,33 @@ function displaySharedFlashcardSets($pdo, $userId) {
     const closeAuthModal = document.getElementById('close-auth-modal');
     const loginPromptBtn = document.getElementById('login-prompt-btn');
     
-    // Open modal on account click
     if (accountBtn) {
         accountBtn.addEventListener('click', function() {
             authModal.style.display = 'flex';
         });
     }
             
-            // Open modal on login prompt click
             if (loginPromptBtn) {
                 loginPromptBtn.addEventListener('click', function() {
                     authModal.style.display = 'flex';
                 });
             }
             
-            // Close modal on X click
             if (closeAuthModal) {
                 closeAuthModal.addEventListener('click', function() {
                     authModal.style.display = 'none';
                 });
             }
             
-            // Tab switching for auth forms
             const authTabs = document.querySelectorAll('.auth-tab');
             
             authTabs.forEach(tab => {
                 tab.addEventListener('click', function() {
                     const targetFormId = this.getAttribute('data-form');
                     
-                    // Deactivate all tabs and forms
                     document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
                     document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
                     
-                    // Activate clicked tab and corresponding form
                     this.classList.add('active');
                     document.getElementById(targetFormId).classList.add('active');
                 });
@@ -1869,15 +2046,12 @@ if (friendSearch) {
         fetch(`search_users.php?q=${encodeURIComponent(searchTerm)}`)
             .then(response => response.json())
             .then(users => {
-                // Clear previous results
                 searchResults.innerHTML = '';
                 
                 if (users && users.length > 0) {
-                    // Create a container for the results
                     const resultsContainer = document.createElement('div');
                     resultsContainer.className = 'search-results-container';
                     
-                    // Add each user to the results
                     users.forEach(user => {
     const userItem = document.createElement('div');
     userItem.className = 'user-item';
@@ -1949,7 +2123,6 @@ if (friendSearch) {
                 });
             }
             
-            // Close search results when clicking outside
             document.addEventListener('click', function(e) {
                 if (searchResults && friendSearch && !searchResults.contains(e.target) && e.target !== friendSearch) {
                     searchResults.style.display = 'none';
@@ -1963,16 +2136,13 @@ if (friendSearch) {
     
     tabBtns.forEach(btn => {
         btn.addEventListener('click', function() {
-            // Remove active class from all buttons and panes
             tabBtns.forEach(b => b.classList.remove('active'));
             tabPanes.forEach(p => p.classList.remove('active'));
             
-            // Add active class to clicked button and corresponding pane
             this.classList.add('active');
             const tabId = this.getAttribute('data-tab');
             document.getElementById(tabId).classList.add('active');
             
-            // Load content for the tab if needed
             if (tabId === 'requests-tab') {
                 loadFriendRequests();
             } else if (tabId === 'friends-tab') {
@@ -1995,23 +2165,17 @@ if (friendSearch) {
                 return;
             }
             
-            // Create an XMLHttpRequest object
             const xhr = new XMLHttpRequest();
             
-            // Configure it to GET from search_users.php
             xhr.open('GET', 'search_users.php?q=' + encodeURIComponent(searchTerm), true);
             
-            // Set up what happens on successful data submission
             xhr.onload = function() {
                 if (xhr.status === 200) {
-                    // Get the search results
                     const results = xhr.responseText;
                     
-                    // Update the search results container
                     searchResults.innerHTML = results;
                     searchResults.style.display = 'block';
                     
-                    // Add friend request buttons to each user item
                     addFriendRequestButtons();
                 } else {
                     searchResults.innerHTML = '<div class="no-results">Error searching for users</div>';
@@ -2028,24 +2192,20 @@ if (friendSearch) {
         const userItems = document.querySelectorAll('.user-item');
         
         userItems.forEach(item => {
-            // Check if button already exists
             if (item.querySelector('button')) return;
             
             const username = item.querySelector('.user-name').textContent;
             
-            // Create button
             const addButton = document.createElement('button');
             addButton.className = 'add-friend-btn';
             addButton.textContent = 'Add Friend';
             addButton.setAttribute('data-username', username);
             
-            // Add click event to send friend request
             addButton.addEventListener('click', function(e) {
                 e.preventDefault();
                 sendFriendRequest(username, this);
             });
             
-            // Append button to user item
             item.appendChild(addButton);
         });
     }
@@ -2061,7 +2221,6 @@ if (friendSearch) {
                 const response = JSON.parse(xhr.responseText);
                 
                 if (response.success) {
-                    // Update button to show pending
                     button.textContent = 'Request Sent';
                     button.className = 'add-friend-btn pending-btn';
                     button.disabled = true;
@@ -2076,7 +2235,6 @@ if (friendSearch) {
         xhr.send('username=' + encodeURIComponent(username));
     }
     
-    // Function to load friend requests
     // Function to load friend requests
 function loadFriendRequests() {
     console.log("Loading friend requests");
@@ -2123,7 +2281,6 @@ function loadFriendRequests() {
                         
                         requestsContainer.innerHTML = html;
                         
-                        // Add event listeners to accept/reject buttons
                         document.querySelectorAll('.accept-btn').forEach(btn => {
                             btn.addEventListener('click', function() {
                                 respondToRequest(this.getAttribute('data-id'), 'accept', this.closest('.request-item'));
@@ -2159,7 +2316,6 @@ function loadFriendRequests() {
 }
 
     
-    // Function to respond to friend request
     function respondToRequest(requestId, action, requestItem) {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', 'respond_to_request.php', true);
@@ -2171,10 +2327,8 @@ function loadFriendRequests() {
                     const response = JSON.parse(xhr.responseText);
                     
                     if (response.success) {
-                        // Remove the request item from the list
                         requestItem.remove();
                         
-                        // If no more requests, show empty state
                         if (document.querySelectorAll('.request-item').length === 0) {
                             document.getElementById('friendRequests').innerHTML = 
                                 '<div class="empty-state">No friend requests at the moment</div>';
@@ -2193,7 +2347,6 @@ function loadFriendRequests() {
         xhr.send('request_id=' + encodeURIComponent(requestId) + '&action=' + encodeURIComponent(action));
     }
     
-    // Function to load friends list
     // Function to load friends list
 function loadFriends() {
     console.log("Loading friends list");
@@ -2236,7 +2389,6 @@ function loadFriends() {
                         
                         friendsContainer.innerHTML = html;
                         
-                        // Add event listeners to remove buttons
                         document.querySelectorAll('.remove-friend-btn').forEach(btn => {
                             btn.addEventListener('click', function() {
                                 removeFriend(this.getAttribute('data-id'), this.closest('.friend-item'));
@@ -2282,10 +2434,8 @@ function loadFriends() {
                     const response = JSON.parse(xhr.responseText);
                     
                     if (response.success) {
-                        // Remove the friend item from the list
                         friendItem.remove();
                         
-                        // If no more friends, show empty state
                         if (document.querySelectorAll('.friend-item').length === 0) {
                             document.getElementById('friendsList').innerHTML = 
                                 '<div class="empty-state">You don\'t have any friends yet</div>';
@@ -2304,7 +2454,6 @@ function loadFriends() {
         xhr.send('friend_id=' + encodeURIComponent(friendId));
     }
     
-    // Load the initial tab content
     const activeTab = document.querySelector('.tab-btn.active');
     if (activeTab) {
         const tabId = activeTab.getAttribute('data-tab');
@@ -2325,16 +2474,13 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             console.log("Tab clicked: " + this.getAttribute('data-tab'));
             
-            // Remove active class from all buttons and panes
             tabBtns.forEach(b => b.classList.remove('active'));
             tabPanes.forEach(p => p.classList.remove('active'));
             
-            // Add active class to clicked button and corresponding pane
             this.classList.add('active');
             const tabId = this.getAttribute('data-tab');
             document.getElementById(tabId).classList.add('active');
             
-            // Load content for the tab if needed
             if (tabId === 'requests-tab') {
                 loadFriendRequests();
             } else if (tabId === 'friends-tab') {
@@ -2360,24 +2506,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Create an XMLHttpRequest object
             const xhr = new XMLHttpRequest();
             
-            // Configure it to GET from search_users.php
             xhr.open('GET', 'search_users.php?q=' + encodeURIComponent(searchTerm), true);
             
-            // Set up what happens on successful data submission
             xhr.onload = function() {
                 if (xhr.status === 200) {
-                    // Get the search results
                     const results = xhr.responseText;
                     console.log("Search results received");
                     
-                    // Update the search results container
                     searchResults.innerHTML = results;
                     searchResults.style.display = 'block';
                     
-                    // Add event listeners to the Add Friend buttons
                     const addFriendButtons = searchResults.querySelectorAll('.add-friend-btn');
                     console.log("Found " + addFriendButtons.length + " Add Friend buttons");
                     
@@ -2419,7 +2559,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log("Parsed response:", response);
                     
                     if (response.success) {
-                        // Update button to show pending
                         button.textContent = 'Request Sent';
                         button.className = 'add-friend-btn pending-btn';
                         button.disabled = true;
@@ -2465,10 +2604,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     const response = JSON.parse(xhr.responseText);
                     
                     if (response.success) {
-                        // Remove the request item from the list
                         requestItem.remove();
                         
-                        // If no more requests, show empty state
                         if (document.querySelectorAll('.request-item').length === 0) {
                             document.getElementById('friendRequests').innerHTML = 
                                 '<div class="empty-state">No friend requests at the moment</div>';
@@ -2553,7 +2690,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Replace the existing sidebar toggle code in connect.php with this improved version
 document.addEventListener('DOMContentLoaded', function() {
     // Sidebar toggle functionality
     const sidebar = document.getElementById('sidebar');
@@ -2565,14 +2701,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e) e.stopPropagation();
         
         if (window.innerWidth <= 450) {
-            // Mobile behavior - expand/collapse vertically
             sidebar.classList.toggle('expanded');
         } else {
-            // Desktop behavior - collapse/expand horizontally
             sidebar.classList.toggle('collapsed');
         }
         
-        // Update icon based on sidebar state
         if ((window.innerWidth <= 450 && sidebar.classList.contains('expanded')) || 
             (window.innerWidth > 450 && !sidebar.classList.contains('collapsed'))) {
             toggleIcon.classList.remove('fa-chevron-right');
@@ -2586,51 +2719,44 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize sidebar state based on screen size
     function initSidebar() {
         if (window.innerWidth <= 450) {
-            // Mobile view - start collapsed (not expanded)
             sidebar.classList.remove('collapsed', 'expanded');
             toggleIcon.classList.remove('fa-chevron-left');
             toggleIcon.classList.add('fa-chevron-right');
             
-            // Add click outside to close for mobile
             document.addEventListener('click', function(e) {
                 if (!sidebar.contains(e.target) && sidebar.classList.contains('expanded')) {
                     handleSidebarToggle();
                 }
             });
-            
-            // Prevent clicks inside sidebar from closing it
-            sidebar.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
         } else {
-            // Desktop view - check if it should be collapsed
-            if (sidebar.classList.contains('collapsed')) {
-                toggleIcon.classList.remove('fa-chevron-left');
-                toggleIcon.classList.add('fa-chevron-right');
-            } else {
-                toggleIcon.classList.remove('fa-chevron-right');
-                toggleIcon.classList.add('fa-chevron-left');
-            }
+            sidebar.classList.remove('expanded');
+            toggleIcon.classList.remove('fa-chevron-right');
+            toggleIcon.classList.add('fa-chevron-left');
         }
     }
     
-    // Add toggle button event listener
-    toggleBtn.addEventListener('click', handleSidebarToggle);
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', handleSidebarToggle);
+    }
     
-    // Initialize on page load
+
     initSidebar();
     
-    // Handle window resize
+
     let resizeTimer;
     window.addEventListener('resize', function() {
         clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(initSidebar, 250);
+        resizeTimer = setTimeout(function() {
+            initSidebar();
+        }, 250);
     });
 });
 
-// Add this to your existing JavaScript
+
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Toggle shared sets section
+
     const sharedSetsToggle = document.getElementById('shared-sets-toggle');
     const sharedSetsSection = document.getElementById('shared-sets-section');
     
@@ -2638,12 +2764,83 @@ document.addEventListener('DOMContentLoaded', function() {
         sharedSetsToggle.addEventListener('click', function(e) {
             e.preventDefault();
             
-            // Toggle display
+
             if (sharedSetsSection.style.display === 'none' || sharedSetsSection.style.display === '') {
                 sharedSetsSection.style.display = 'block';
             } else {
                 sharedSetsSection.style.display = 'none';
             }
+        });
+    }
+});
+
+// Floating menu button functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const floatingMenuBtn = document.getElementById('floating-menu-btn');
+    const navModal = document.getElementById('nav-modal');
+    const closeNavModal = document.getElementById('close-nav-modal');
+    const navModalAccount = document.getElementById('nav-modal-account');
+    const authModal = document.getElementById('auth-modal');
+    
+    if (floatingMenuBtn) {
+        floatingMenuBtn.addEventListener('click', function() {
+            navModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; 
+        });
+    }
+    
+    if (closeNavModal) {
+        closeNavModal.addEventListener('click', function() {
+            navModal.style.display = 'none';
+            document.body.style.overflow = '';
+        });
+    }
+    
+
+    if (navModal) {
+        navModal.addEventListener('click', function(e) {
+            if (e.target === navModal) {
+                navModal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        });
+    }
+    
+
+    if (navModalAccount) {
+        navModalAccount.addEventListener('click', function() {
+            navModal.style.display = 'none'; 
+            if (authModal) {
+                authModal.style.display = 'flex'; 
+            }
+        });
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle collapsible sections in navigation modal
+    const libraryToggle = document.getElementById('library-toggle');
+    const libraryContent = document.getElementById('library-content');
+    const sharedToggle = document.getElementById('shared-toggle');
+    const sharedContent = document.getElementById('shared-content');
+    
+    function toggleSection(header, content) {
+        header.classList.toggle('active');
+        content.classList.toggle('active');
+    }
+    
+    if (libraryToggle && libraryContent) {
+        libraryToggle.classList.add('active');
+        libraryContent.classList.add('active');
+        
+        libraryToggle.addEventListener('click', function() {
+            toggleSection(libraryToggle, libraryContent);
+        });
+    }
+    
+    if (sharedToggle && sharedContent) {
+        sharedToggle.addEventListener('click', function() {
+            toggleSection(sharedToggle, sharedContent);
         });
     }
 });

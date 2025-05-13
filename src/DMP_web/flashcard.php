@@ -52,35 +52,29 @@ if (isset($_POST['login_submit'])) {
 
 // Register logic
 if (isset($_POST['register_submit'])) {
-    // Retrieve and sanitize inputs
     $username = trim($_POST['reg_username']);
     $email = trim($_POST['reg_email']);
     $password = $_POST['reg_password'];
     $passwordConfirm = $_POST['reg_passwordConfirm'];
 
-    // Validate required fields
     if (empty($username) || empty($email) || empty($password)) {
         $register_error = "All fields are required!";
     } elseif ($password !== $passwordConfirm) {
         $register_error = "Passwords do not match!";
     } else {
-        // Hash password using SHA-256 + Base64
         $hashedPassword = base64_encode(hash('sha256', $password, true));
 
         try {
-            // Insert into database
             $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
             $stmt->execute([$username, $email, $hashedPassword]);
 
-            // Set session and redirect
             $_SESSION['user_id'] = $pdo->lastInsertId();
             $_SESSION['username'] = $username;
             $_SESSION['success'] = "Registration successful!";
             header("Location: welcome.php");
             exit();
         } catch (PDOException $e) {
-            // Handle duplicate entries or other errors
-            if ($e->getCode() == '23000') { // MySQL duplicate entry error code
+            if ($e->getCode() == '23000') {
                 $register_error = "Username or email already exists!";
             } else {
                 $register_error = "Registration failed: " . $e->getMessage();
@@ -99,7 +93,6 @@ $isShared = isset($_GET['shared']) && $_GET['shared'] == '1';
 if (isset($_GET['set_id']) && is_numeric($_GET['set_id'])) {
     try {
         if ($isShared) {
-            // Verify the set is shared with the user
             $stmt = $pdo->prepare("
                 SELECT s.* 
                 FROM sets s
@@ -108,7 +101,6 @@ if (isset($_GET['set_id']) && is_numeric($_GET['set_id'])) {
             ");
             $stmt->execute([$_GET['set_id'], $_SESSION['user_id']]);
         } else {
-            // Verify the set belongs to the user
             $stmt = $pdo->prepare("SELECT * FROM sets WHERE set_id = ? AND user_id = ?");
             $stmt->execute([$_GET['set_id'], $_SESSION['user_id']]);
         }
@@ -116,7 +108,6 @@ if (isset($_GET['set_id']) && is_numeric($_GET['set_id'])) {
         $currentSet = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($currentSet) {
-            // Get all flashcards in this set
             $stmt = $pdo->prepare("SELECT * FROM flashcards WHERE set_id = ?");
             $stmt->execute([$_GET['set_id']]);
             $_SESSION['current_flashcards'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -131,14 +122,11 @@ if (isset($_GET['set_id']) && is_numeric($_GET['set_id'])) {
 
 function displayFlashcardSetsFromDatabase($pdo, $userId) {
     try {
-        // Prepare and execute the query to fetch sets for the logged-in user
         $stmt = $pdo->prepare("SELECT set_id, title FROM sets WHERE user_id = ? ORDER BY generated_at DESC");
         $stmt->execute([$userId]);
         
-        // Fetch all results
         $sets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Check if any sets were found
         if (!empty($sets)) {
             foreach ($sets as $set) {
                 echo '<div class="library-item-container">';
@@ -156,22 +144,18 @@ function displayFlashcardSetsFromDatabase($pdo, $userId) {
                 echo '</div>';
             }
         } else {
-            // Display static examples if no sets are found
             echo '<div class="library-item"><span>PHP Strings</span></div>';
             echo '<div class="library-item"><span>Server Requests</span></div>';
             echo '<div class="library-item"><span>Examples</span></div>';
         }
     } catch (PDOException $e) {
-        // Handle database errors
         error_log("Error fetching flashcard sets: " . $e->getMessage());
         echo '<p style="color:red;">Error loading library items.</p>';
     }
 }
 
-// Add this function to display shared sets
 function displaySharedFlashcardSets($pdo, $userId) {
     try {
-        // Prepare and execute the query to fetch sets shared with the logged-in user
         $stmt = $pdo->prepare("
             SELECT s.set_id, s.title, u.username as owner_name 
             FROM sets s
@@ -182,10 +166,8 @@ function displaySharedFlashcardSets($pdo, $userId) {
         ");
         $stmt->execute([$userId]);
         
-        // Fetch all results
         $sharedSets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Check if any shared sets were found
         if (!empty($sharedSets)) {
             foreach ($sharedSets as $set) {
                 echo '<div class="library-item-container">';
@@ -199,7 +181,6 @@ function displaySharedFlashcardSets($pdo, $userId) {
             echo '<p class="no-sets-message">No sets have been shared with you yet.</p>';
         }
     } catch (PDOException $e) {
-        // Handle database errors
         error_log("Error fetching shared flashcard sets: " . $e->getMessage());
         echo '<p style="color:red;">Error loading shared sets.</p>';
     }
@@ -598,16 +579,16 @@ function displaySharedFlashcardSets($pdo, $userId) {
         /* Library Section Styling */
         .library-section {
             padding: 10px;
-            background-color: #161B22; /* Dark background */
+            background-color: #161B22; 
             border-radius: 8px;
-            color: #e6edf3; /* Light text color */
+            color: #e6edf3; 
         }
 
         .library-header {
             font-size: 16px;
             font-weight: bold;
             margin-bottom: 10px;
-            color: #e6edf3; /* Ensure header matches text color */
+            color: #e6edf3; 
         }
 
         #library-items {
@@ -618,30 +599,30 @@ function displaySharedFlashcardSets($pdo, $userId) {
         .library-item {
             padding: 8px 12px;
             font-size: 14px;
-            color: #8b949e; /* Slightly muted text color */
+            color: #8b949e; 
             cursor: pointer;
-            border-left: 2px solid #30363d; /* Left border for visual separation */
+            border-left: 2px solid #30363d;
             transition: all 0.2s ease-in-out;
         }
 
         .library-item:hover {
-            color: #e6edf3; /* Highlighted text color on hover */
-            border-left-color: #58a6ff; /* Change left border to accent color */
-            background-color: #21262d; /* Slight hover background for better visibility */
+            color: #e6edf3; 
+            border-left-color: #58a6ff;
+            background-color: #21262d;
         }
         /* Library Section Styling */
 .library-section {
     padding: 10px;
-    background-color: #161B22; /* Dark background */
+    background-color: #161B22; 
     border-radius: 8px;
-    color: #e6edf3; /* Light text color */
+    color: #e6edf3;
 }
 
 .library-header {
     font-size: 16px;
     font-weight: bold;
     margin-bottom: 10px;
-    color: #e6edf3; /* Ensure header matches text color */
+    color: #e6edf3; 
 }
 
 #library-items {
@@ -652,16 +633,16 @@ function displaySharedFlashcardSets($pdo, $userId) {
 .library-item {
     padding: 8px 12px;
     font-size: 14px;
-    color: #8b949e; /* Slightly muted text color */
+    color: #8b949e; 
     cursor: pointer;
-    border-left: 2px solid #30363d; /* Left border for visual separation */
+    border-left: 2px solid #30363d; 
     transition: all 0.2s ease-in-out;
 }
 
 .library-item:hover {
-    color: #e6edf3; /* Highlighted text color on hover */
-    border-left-color: #58a6ff; /* Change left border to accent color */
-    background-color: #21262d; /* Slight hover background for better visibility */
+    color: #e6edf3; 
+    border-left-color: #58a6ff; 
+    background-color: #21262d;
 }
 
 .library-item-container {
@@ -1085,7 +1066,7 @@ input:checked + .toggle-slider:before {
 #review-again-btn, #reset-all-btn {
     margin: 0 5px;
 }
-/* Make sure these CSS rules are included */
+
 .flashcard-inner {
     position: relative;
     width: 100%;
@@ -1105,7 +1086,7 @@ input:checked + .toggle-slider:before {
     width: 100%;
     height: 100%;
     backface-visibility: hidden;
-    -webkit-backface-visibility: hidden; /* For Safari */
+    -webkit-backface-visibility: hidden; 
 }
 
 .flashcard-back {
@@ -1113,7 +1094,7 @@ input:checked + .toggle-slider:before {
 }
 
 
-/* Action buttons styling */
+
 .card-actions {
     display: flex;
     justify-content: center;
@@ -1204,7 +1185,6 @@ input:checked + .toggle-slider:before {
     width: 100%;
 }
 
-/* Auth modal styles - ensure these are updated */
 .auth-modal {
     display: none;
     position: fixed;
@@ -1231,7 +1211,6 @@ input:checked + .toggle-slider:before {
     overflow-y: auto;
 }
 
-/* Fallback to ensure modal visibility */
 .auth-modal[style*="display: flex"] {
     display: flex !important;
 }
@@ -1335,9 +1314,8 @@ input:checked + .toggle-slider:before {
         
     }
 
-    /* Add this to your existing CSS */
 #shared-sets-section {
-    display: none; /* Hidden by default, will be toggled with JS */
+    display: none; 
 }
 
 .shared-item {
@@ -1358,7 +1336,6 @@ input:checked + .toggle-slider:before {
     font-size: 14px;
 }
 
-/* Shared set indicator */
 .shared-item::before {
     content: '\f064';
     font-family: 'Font Awesome 5 Free';
@@ -1370,7 +1347,6 @@ input:checked + .toggle-slider:before {
     color: var(--accent-color);
     font-size: 12px;
 }
-/* Add this to your existing CSS */
 .shared-set-notice {
     padding: 10px;
     background-color: rgba(88, 166, 255, 0.1);
@@ -1381,189 +1357,279 @@ input:checked + .toggle-slider:before {
     text-align: center;
 }
 
-/* Add this to your existing CSS */
 .shared-by {
     margin-left: 10px;
     font-size: 14px;
     color: #8b949e;
     font-style: italic;
 }
-/* Mobile responsiveness - for screens under 450px */
-/* Update the mobile sidebar styles in your media query */
+
 @media (max-width: 450px) {
-    /* Sidebar adjustments - updated */
     .sidebar {
-        width: 100%;
-        height: auto;
-        max-height: 60px;
-        overflow: hidden;
-        transition: max-height 0.3s ease, width 0s;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 100;
-    }
-    
-    .sidebar.expanded {
-        max-height: 100vh;
-        overflow-y: auto;
-        width: 100% !important; /* Force full width */
-    }
-    
-    /* Force sidebar content to be visible when expanded */
-    .sidebar.expanded .sidebar-content,
-    .sidebar.expanded .library-section,
-    .sidebar.expanded .sidebar-bottom {
-        display: block;
-        opacity: 1;
-        visibility: visible;
-    }
-    
-    /* Hide text in collapsed state */
-    .sidebar:not(.expanded) .logo span,
-    .sidebar:not(.expanded) .nav-item span,
-    .sidebar:not(.expanded) .account span,
-    .sidebar:not(.expanded) .library-section {
         display: none;
     }
     
-    /* Show text in expanded state */
-    .sidebar.expanded .logo span,
-    .sidebar.expanded .nav-item span,
-    .sidebar.expanded .account span {
-        display: inline;
-    }
-    
-    /* Ensure toggle button is visible and properly positioned */
-    .toggle-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 30px;
-        height: 30px;
-    }
-    .sidebar-top {
-        padding: 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: relative;
-    }
-    
-    /* Logo positioning for collapsed state (centered) */
-    .sidebar:not(.expanded) .logo {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        justify-content: center;
-    }
-    
-    /* Logo positioning for expanded state (left aligned) */
-    .sidebar.expanded .logo {
-        position: relative;
-        left: 0;
-        transform: none;
-    }
-    
-    /* Title text styling */
-    .logo-title {
-        display: none;
-        font-weight: bold;
-        text-align: center;
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        white-space: nowrap;
-    }
-    
-    /* Show title in expanded state */
-    .sidebar.expanded .logo-title {
-        display: block;
-    }
-    
-    /* Hide logo text in collapsed state */
-    .sidebar:not(.expanded) .logo span {
-        display: none;
-    }
-    
-    /* Toggle button positioning */
-    .toggle-btn {
-        z-index: 10;
-    }
-    body {
-        padding-top: 0; /* Remove any existing padding */
-    }
-    
-    /* Adjust main content positioning */
     .main-content {
-        margin-top: 60px; /* Match the height of the collapsed sidebar/navbar */
+        margin-top: 0;
         width: 100%;
         position: relative;
-        z-index: 1; /* Ensure it's below the sidebar but above other content */
+        z-index: 1;
     }
     
-    /* When sidebar is expanded, push content further down or hide it */
-    .sidebar.expanded + .main-content {
-        margin-top: 60px; 
-        opacity: 0.3; 
-        pointer-events: none;
-    }
-    
-    /* Ensure content area has proper padding */
     .content-area {
         padding: 12px;
-        padding-top: 15px; /* Add a bit more padding at the top */
     }
-    
-    /* Ensure the input area at bottom doesn't overlap with content */
-    .input-area {
-        padding: 10px;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        z-index: 90;
-    }
-    
-    /* Add padding at the bottom to prevent content from being hidden behind the input area */
-    .content-area {
-        padding-bottom: 70px; /* Adjust based on the height of your input area */
-    }
-    
-    /* Quick questions section needs margin to not be hidden by input area */
-    .quick-questions {
-        margin-bottom: 60px; /* Space for fixed input area */
-    }
-
 }
-/* Add this to your existing CSS section */
-.sidebar.collapsed .nav-item {
+
+/* Floating menu button */
+.floating-menu-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    color: white;
+    display: flex;
+    align-items: center;
     justify-content: center;
-    padding: 10px 0;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    z-index: 999;
+    transition: transform 0.2s, background-color 0.2s;
 }
 
-.sidebar.collapsed .nav-item i {
-    margin-right: 0;
-    margin-left: 0;
-    text-align: center;
+.floating-menu-btn:hover {
+    transform: scale(1.05);
+    background-color: #4a8ede;
+}
+
+.floating-menu-btn:active {
+    transform: scale(0.95);
+}
+
+/* Navigation modal */
+.nav-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Ensure all icons have consistent width/alignment */
-.nav-item i {
-    min-width: 24px;
+.nav-modal-content {
+    background-color: var(--secondary-color);
+    border-radius: 8px;
+    width: 90%;
+    max-width: 350px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.nav-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.nav-modal-header h3 {
+    margin: 0;
+    color: var(--text-color);
+}
+
+.close-nav-modal {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.nav-modal-body {
+    padding: 16px;
+}
+
+.nav-modal-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    color: var(--text-color);
+    text-decoration: none;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    transition: background-color 0.2s;
+}
+
+.nav-modal-item:hover {
+    background-color: var(--hover-color);
+    text-decoration: none;
+}
+
+.nav-modal-item i {
+    margin-right: 12px;
+    font-size: 20px;
+    width: 24px;
     text-align: center;
-    margin-right: 10px;
-    font-size: 18px;
 }
 
-/* Specifically target the shared sets icon if needed */
-#shared-sets-toggle i {
-    min-width: 24px;
+.nav-modal-account {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin-top: 16px;
+    border-top: 1px solid var(--border-color);
+    cursor: pointer;
+}
+
+.nav-modal-account img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 12px;
+}
+
+/* Only show floating button on mobile */
+@media (min-width: 769px) {
+    .floating-menu-btn {
+        display: none;
+    }
+}
+
+/* Navigation modal section styles */
+.nav-modal-section {
+    margin-bottom: 12px;
+}
+
+.nav-modal-section-header {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    color: var(--text-color);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    position: relative;
+}
+
+.nav-modal-section-header:hover {
+    background-color: var(--hover-color);
+}
+
+.nav-modal-section-header i:first-child {
+    margin-right: 12px;
+    font-size: 20px;
+    width: 24px;
     text-align: center;
 }
 
+.toggle-icon {
+    margin-left: auto;
+    transition: transform 0.3s;
+}
+
+.nav-modal-section-header.active .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.nav-modal-section-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.nav-modal-section-content.active {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.nav-modal-subitem {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 10px 10px 42px;
+    color: #8b949e;
+    text-decoration: none;
+    font-size: 14px;
+    border-left: 2px solid var(--border-color);
+    margin-left: 24px;
+    transition: all 0.2s;
+}
+
+.nav-modal-subitem:hover {
+    color: var(--text-color);
+    background-color: var(--hover-color);
+    border-left-color: var(--accent-color);
+    text-decoration: none;
+}
+
+.nav-modal-subitem.shared {
+    position: relative;
+}
+
+.nav-modal-subitem.shared:before {
+    content: '\f064';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    left: 24px;
+    top: 10px;
+    color: var(--accent-color);
+    font-size: 12px;
+}
+
+.nav-modal-subitem .owner {
+    font-size: 12px;
+    color: #8b949e;
+    margin-top: 2px;
+}
+
+.nav-modal-subitem-empty {
+    padding: 10px 10px 10px 42px;
+    color: #8b949e;
+    font-size: 14px;
+    font-style: italic;
+    margin-left: 24px;
+}
+
+/* Adjust modal content for better scrolling with many items */
+.nav-modal-content {
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.nav-modal-body {
+    padding: 16px;
+    overflow-y: visible;
+}
+
+/* Fix for horizontal scrollbar */
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.main-content {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.content-area {
+    max-width: 100%;
+    overflow-x: hidden;
+}
 
 
     </style>
@@ -1583,7 +1649,6 @@ input:checked + .toggle-slider:before {
             
         </div>
         
-        <!-- Add this to the sidebar-content div, after the existing Library nav item -->
 <div class="sidebar-content">
     <a href="welcome.php" class="nav-item">
         <i class="fa fa-home"></i>
@@ -1613,7 +1678,6 @@ input:checked + .toggle-slider:before {
             }
             ?>
         </div>
-        <!-- Add Shared Sets section -->
     <a href="#" class="nav-item" id="shared-sets-toggle">
         <i class="fa fa-share-alt"></i>
         <span>Shared Sets</span>
@@ -1679,7 +1743,6 @@ input:checked + .toggle-slider:before {
     <?php else: ?>
         <span class="shared-by">
             Shared by: <?php 
-                // Get the owner's username
                 try {
                     $stmt = $pdo->prepare("
                         SELECT u.username 
@@ -1700,8 +1763,6 @@ input:checked + .toggle-slider:before {
 </div>
 
     <div class="flashcard-container">
-        <!-- Add this div for the card action buttons above the flashcard -->
-        <!-- Modify the card actions div to check if it's a shared set -->
 <div class="card-actions" style="text-align: center; margin-bottom: 15px;">
     <?php if (!isset($_SESSION['is_shared_set']) || !$_SESSION['is_shared_set']): ?>
         <button id="edit-current-card-btn" class="action-btn">
@@ -1746,10 +1807,6 @@ input:checked + .toggle-slider:before {
             <button id="next-card" class="nav-btn">Next <i class="fa fa-arrow-right"></i></button>
         </div>
 
-        <!-- Add this div for the edit button -->
-        
-        <!-- End of added div -->
-
         <div class="progress-tracking">
             <label class="toggle-switch">
                 <input type="checkbox" id="progress-toggle">
@@ -1789,7 +1846,6 @@ input:checked + .toggle-slider:before {
     <button class="close-modal" id="close-auth-modal">&times;</button>
     <div class="auth-container">
         <?php if (isset($_SESSION['user_id'])): ?>
-            <!-- Logged in view -->
             <div class="auth-form active" id="logout-form">
                 <div class="form-group" style="text-align: center; margin-bottom: 20px;">
                     <h3>Account</h3>
@@ -1925,7 +1981,7 @@ input:checked + .toggle-slider:before {
             <div class="form-group" style="text-align: center; margin-bottom: 20px;">
                 <h3>Edit Flashcard</h3>
             </div>
-            <input type="hidden" id="edit-card-id"> <!-- To store the ID of the card being edited -->
+            <input type="hidden" id="edit-card-id">
             <div class="form-group">
                 <label for="edit-card-question">Question</label>
                 <textarea id="edit-card-question" name="edit_card_question" rows="4" required></textarea>
@@ -1961,12 +2017,12 @@ input:checked + .toggle-slider:before {
 
 <!-- Add Card Modal -->
 <div id="add-card-modal" class="auth-modal" style="display: none;">
-    <div class="auth-container" style="width: 450px;"> <!-- Wider modal for textareas -->
+    <div class="auth-container" style="width: 450px;">
         <div class="auth-form active">
             <div class="form-group" style="text-align: center; margin-bottom: 20px;">
                 <h3>Add New Flashcard</h3>
             </div>
-            <input type="hidden" id="add-card-set-id"> <!-- To store the set ID -->
+            <input type="hidden" id="add-card-set-id">
             <div class="form-group">
                 <label for="add-card-question">Question</label>
                 <textarea id="add-card-question" name="add_card_question" rows="4" required></textarea>
@@ -2000,7 +2056,6 @@ input:checked + .toggle-slider:before {
                 <div class="loading-indicator">
                     <i class="fa fa-spinner fa-spin"></i> Loading friends...
                 </div>
-                <!-- Friends will be loaded here dynamically -->
             </div>
             
             <div class="selected-friends-count" id="selected-friends-count">
@@ -2017,15 +2072,141 @@ input:checked + .toggle-slider:before {
         </div>
     </div>
 </div>
+<!-- Floating menu button for mobile -->
+<div class="floating-menu-btn" id="floating-menu-btn">
+    <i class="fa fa-bars"></i>
+</div>
+
+<!-- Add navigation modal -->
+<div class="nav-modal" id="nav-modal">
+    <div class="nav-modal-content">
+        <div class="nav-modal-header">
+            <h3>Navigation</h3>
+            <button class="close-nav-modal" id="close-nav-modal">&times;</button>
+        </div>
+        <div class="nav-modal-body">
+            <a href="welcome.php" class="nav-modal-item">
+                <i class="fa fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="https://docs.google.com/document/d/1rvKo156DPou6UD3AZTfpJEa7ZuKD_uafZSG2bJSty6A/edit?pli=1&tab=t.0" class="nav-modal-item" target="_blank">
+                <i class="fa fa-file-alt"></i>
+                <span>Documentation</span>
+            </a>
+            <a href="connect.php" class="nav-modal-item">
+                <i class="fa fa-users"></i>
+                <span>Friends</span>
+            </a>
+            
+            <!-- Library section with collapsible sets -->
+            <div class="nav-modal-section">
+                <div class="nav-modal-section-header" id="library-toggle">
+                    <i class="fa fa-book"></i>
+                    <span>Library</span>
+                    <i class="fa fa-chevron-down toggle-icon"></i>
+                </div>
+                
+                <div class="nav-modal-section-content" id="library-content">
+                    <?php 
+                    if (isset($_SESSION['user_id'])) {
+                        try {
+                            $stmt = $pdo->prepare("SELECT set_id, title FROM sets WHERE user_id = ? ORDER BY generated_at DESC");
+                            $stmt->execute([$_SESSION['user_id']]);
+                            $sets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            
+                            if (!empty($sets)) {
+                                foreach ($sets as $set) {
+                                    echo '<a href="flashcard.php?set_id=' . $set['set_id'] . '" class="nav-modal-subitem">';
+                                    echo htmlspecialchars($set['title']);
+                                    echo '</a>';
+                                }
+                            } else {
+                                echo '<div class="nav-modal-subitem-empty">No sets found</div>';
+                            }
+                        } catch (PDOException $e) {
+                            echo '<div class="nav-modal-subitem-empty">Error loading sets</div>';
+                        }
+                    } else {
+                        echo '<div class="nav-modal-subitem-empty">Please log in to view sets</div>';
+                    }
+                    ?>
+                </div>
+            </div>
+            
+            <!-- Shared Sets section -->
+            <div class="nav-modal-section">
+                <div class="nav-modal-section-header" id="shared-toggle">
+                    <i class="fa fa-share-alt"></i>
+                    <span>Shared Sets</span>
+                    <i class="fa fa-chevron-down toggle-icon"></i>
+                </div>
+                
+                <div class="nav-modal-section-content" id="shared-content">
+                    <?php 
+                    if (isset($_SESSION['user_id'])) {
+                        try {
+                            $stmt = $pdo->prepare("
+                                SELECT s.set_id, s.title, u.username as owner_name 
+                                FROM sets s
+                                JOIN shared_sets ss ON s.set_id = ss.set_id
+                                JOIN users u ON ss.owner_id = u.id
+                                WHERE ss.user_id = ? 
+                                ORDER BY ss.shared_at DESC
+                            ");
+                            $stmt->execute([$_SESSION['user_id']]);
+                            $sharedSets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            
+                            if (!empty($sharedSets)) {
+                                foreach ($sharedSets as $set) {
+                                    echo '<a href="flashcard.php?set_id=' . $set['set_id'] . '&shared=1" class="nav-modal-subitem shared">';
+                                    echo htmlspecialchars($set['title']) . ' <span class="owner">by ' . htmlspecialchars($set['owner_name']) . '</span>';
+                                    echo '</a>';
+                                }
+                            } else {
+                                echo '<div class="nav-modal-subitem-empty">No shared sets found</div>';
+                            }
+                        } catch (PDOException $e) {
+                            echo '<div class="nav-modal-subitem-empty">Error loading shared sets</div>';
+                        }
+                    } else {
+                        echo '<div class="nav-modal-subitem-empty">Please log in to view shared sets</div>';
+                    }
+                    ?>
+                </div>
+            </div>
+            
+            <div class="nav-modal-account" id="nav-modal-account">
+                <img src="<?php 
+                    if (isset($_SESSION['user_id'])) {
+                        try {
+                            $stmt = $pdo->prepare("SELECT profile_picture_url FROM users WHERE id = ?");
+                            $stmt->execute([$_SESSION['user_id']]);
+                            $user = $stmt->fetch();
+                            echo !empty($user['profile_picture_url']) ? htmlspecialchars($user['profile_picture_url']) : 'media/images/pfp.png';
+                        } catch (PDOException $e) {
+                            echo 'media/images/pfp.png';
+                        }
+                    } else {
+                        echo 'media/images/pfp.png';
+                    }
+                ?>" alt="User">
+                <span>
+                    <?php 
+                    echo isset($_SESSION['username']) ? $_SESSION['username'] : 'Guest'; 
+                    ?>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 
     <script>
 
         
  document.addEventListener('DOMContentLoaded', function() {
-    // ... (existing sidebar, auth modal, delete/edit set, download modal, flashcard navigation code) ...
 
-    // --- Start: Edit Card Functionality ---
     const editCardModal = document.getElementById('edit-card-modal');
     const editCardBtn = document.getElementById('edit-current-card-btn');
     const cancelEditCardBtn = document.getElementById('cancel-edit-card');
@@ -2034,7 +2215,7 @@ input:checked + .toggle-slider:before {
     const editCardQuestionTextarea = document.getElementById('edit-card-question');
     const editCardAnswerTextarea = document.getElementById('edit-card-answer');
     const editCardErrorDiv = document.getElementById('edit-card-error');
-    const flashcardsWrapper = document.querySelector('.flashcards-wrapper'); // Get the container
+    const flashcardsWrapper = document.querySelector('.flashcards-wrapper'); 
 
     // Show edit card modal
     if (editCardBtn) {
@@ -2049,15 +2230,13 @@ input:checked + .toggle-slider:before {
             const question = activeCard.querySelector('.flashcard-front p').textContent;
             const answer = activeCard.querySelector('.flashcard-back p').textContent;
 
-            // Populate the modal
             editCardIdInput.value = cardId;
             editCardQuestionTextarea.value = question;
             editCardAnswerTextarea.value = answer;
-            editCardErrorDiv.textContent = ''; // Clear previous errors
+            editCardErrorDiv.textContent = ''; 
 
-            // Show the modal
             editCardModal.style.display = 'flex';
-            editCardQuestionTextarea.focus(); // Focus the first field
+            editCardQuestionTextarea.focus(); 
         });
     }
 
@@ -2074,14 +2253,13 @@ input:checked + .toggle-slider:before {
             const cardId = editCardIdInput.value;
             const newQuestion = editCardQuestionTextarea.value.trim();
             const newAnswer = editCardAnswerTextarea.value.trim();
-            editCardErrorDiv.textContent = ''; // Clear previous errors
+            editCardErrorDiv.textContent = ''; 
 
             if (!newQuestion || !newAnswer) {
                 editCardErrorDiv.textContent = 'Question and Answer cannot be empty.';
                 return;
             }
 
-            // Send AJAX request to update the card
             const xhr = new XMLHttpRequest();
             xhr.open('POST', 'edit_card.php', true);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -2091,19 +2269,13 @@ input:checked + .toggle-slider:before {
                     try {
                         const response = JSON.parse(this.responseText);
                         if (response.success) {
-                            // Update the card display on the page
                             const cardElement = flashcardsWrapper.querySelector(`.flashcard[data-card-id="${cardId}"]`);
                             if (cardElement) {
                                 cardElement.querySelector('.flashcard-front p').textContent = newQuestion;
                                 cardElement.querySelector('.flashcard-back p').textContent = newAnswer;
                             }
 
-                            // Optional: Update the session data if needed for other features
-                            // This requires more complex logic to find and update the specific card
-                            // in the PHP session array, potentially needing another AJAX call or page reload.
-                            // For simplicity, we'll just update the visual display for now.
-
-                            editCardModal.style.display = 'none'; // Hide modal on success
+                            editCardModal.style.display = 'none';
                         } else {
                             editCardErrorDiv.textContent = response.message || 'An unknown error occurred.';
                         }
@@ -2133,9 +2305,8 @@ input:checked + .toggle-slider:before {
             }
         });
     }
-    // --- End: Edit Card Functionality ---
 
-}); // End of DOMContentLoaded
+});
 
 document.addEventListener('DOMContentLoaded', function() {
     // Toggle sidebar
@@ -2176,24 +2347,20 @@ document.addEventListener('DOMContentLoaded', function() {
         tab.addEventListener('click', function() {
             const targetFormId = this.getAttribute('data-form');
             
-            // Deactivate all tabs and forms
             document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
             
-            // Activate clicked tab and corresponding form
             this.classList.add('active');
             document.getElementById(targetFormId).classList.add('active');
         });
     });
     
-    // Close modal on outside click
     window.addEventListener('click', function(e) {
         if (e.target === authModal) {
             authModal.style.display = 'none';
         }
     });
     
-    // Toggle flashcard answers
     const flashcards = document.querySelectorAll('.flashcard');
     flashcards.forEach(card => {
         card.addEventListener('click', function() {
@@ -2221,13 +2388,11 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.delete-set-btn').forEach(button => {
         button.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation(); // Prevent triggering the parent link
+            e.stopPropagation(); 
             
-            // Store the set ID and title for deletion
             currentSetId = this.dataset.setId;
             setTitleToDelete.textContent = this.dataset.setTitle;
             
-            // Show confirmation dialog
             confirmationModal.style.display = 'flex';
         });
     });
@@ -2236,35 +2401,28 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.edit-set-btn').forEach(button => {
         button.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation(); // Prevent triggering the parent link
+            e.stopPropagation(); 
             
-            // Store the set ID for editing
             currentSetId = this.dataset.setId;
             
-            // Pre-fill the input with current title
             newSetTitleInput.value = this.dataset.setTitle;
             
-            // Show edit dialog
             editModal.style.display = 'flex';
             newSetTitleInput.focus();
             newSetTitleInput.select();
         });
     });
     
-    // Cancel deletion
     cancelDelete.addEventListener('click', function() {
         confirmationModal.style.display = 'none';
     });
     
-    // Confirm deletion
     confirmDelete.addEventListener('click', function() {
-        // Send AJAX request to delete the set
         const xhr = new XMLHttpRequest();
         xhr.open('POST', 'delete_set.php', true);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
         xhr.onload = function() {
             if (this.status === 200) {
-                // Reload the page to refresh the library
                 window.location.reload();
             } else {
                 alert('Error deleting set: ' + this.responseText);
@@ -2272,7 +2430,6 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         xhr.send('set_id=' + currentSetId);
         
-        // Hide the confirmation modal
         confirmationModal.style.display = 'none';
     });
     
@@ -2296,7 +2453,6 @@ document.addEventListener('DOMContentLoaded', function() {
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
         xhr.onload = function() {
             if (this.status === 200) {
-                // Reload the page to refresh the library
                 window.location.reload();
             } else {
                 alert('Error updating set title: ' + this.responseText);
@@ -2304,11 +2460,9 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         xhr.send('set_id=' + currentSetId + '&title=' + encodeURIComponent(newTitle));
         
-        // Hide the edit modal
         editModal.style.display = 'none';
     });
     
-    // Handle Enter key in edit input
     newSetTitleInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -2316,7 +2470,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Close modals when clicking outside
     window.addEventListener('click', function(e) {
         if (e.target === confirmationModal) {
             confirmationModal.style.display = 'none';
@@ -2327,25 +2480,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// MODIFIED: Removed this standalone keyboard event listener that was causing the issue
-// Add keyboard navigation
-// document.addEventListener('keydown', function(e) {
-//     if (e.key === 'ArrowLeft' && !prevBtn.disabled) {
-//         prevBtn.click();
-//     } else if (e.key === 'ArrowRight' && !nextBtn.disabled) {
-//         nextBtn.click();
-//     } else if (e.key === ' ' || e.key === 'Spacebar') {
-//         // Flip current card on spacebar
-//         const currentCard = document.querySelector('.flashcard.active');
-//         if (currentCard) {
-//             currentCard.classList.toggle('flipped');
-//         }
-//         e.preventDefault(); // Prevent page scrolling on spacebar
-//     }
-// });
-
-
-
 document.addEventListener('DOMContentLoaded', function() {
     // Flashcard navigation
     const flashcards = document.querySelectorAll('.flashcard');
@@ -2353,15 +2487,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const nextBtn = document.getElementById('next-card');
     const cardCounter = document.getElementById('card-counter');
     
-    if (flashcards.length === 0) return; // Exit if no flashcards
+    if (flashcards.length === 0) return;
     
     let currentIndex = 0;
     const totalCards = flashcards.length;
     
-    // Initialize buttons state
     updateNavButtons();
     
-    // Previous card button
     if (prevBtn) {
         prevBtn.addEventListener('click', function() {
             if (currentIndex > 0) {
@@ -2370,7 +2502,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Next card button
     if (nextBtn) {
         nextBtn.addEventListener('click', function() {
             if (currentIndex < totalCards - 1) {
@@ -2388,19 +2519,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to show a specific card
     function showCard(index) {
-        // Hide current card
+
         flashcards[currentIndex].classList.remove('active');
-        // Reset flip state
+
         flashcards[currentIndex].classList.remove('flipped');
         
-        // Show new card
         currentIndex = index;
         flashcards[currentIndex].classList.add('active');
         
-        // Update counter
         cardCounter.textContent = `Card ${currentIndex + 1} of ${totalCards}`;
         
-        // Update buttons state
         updateNavButtons();
     }
     
@@ -2410,13 +2538,9 @@ document.addEventListener('DOMContentLoaded', function() {
             prevBtn.disabled = currentIndex === 0;
             nextBtn.disabled = currentIndex === totalCards - 1;
         }
-    }
-    
-    // MODIFIED: Removed duplicate keyboard navigation code here
+    } 
 });
 
-// Add this to your JavaScript
-// Add this to your JavaScript
 document.querySelectorAll('.flashcard').forEach(card => {
     card.addEventListener('click', function() {
         console.log('Card clicked');
@@ -2442,17 +2566,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const resetAllBtn = document.getElementById('reset-all-btn');
     const reviewCompleteMsg = document.getElementById('review-complete-msg');
     
-    if (flashcards.length === 0) return; // Exit if no flashcards
+    if (flashcards.length === 0) return;
     
     let currentIndex = 0;
     const totalCards = flashcards.length;
-    let cardsToReview = []; // Array to store indices of cards to review again
-    let reviewMode = false; // Flag to track if we're in review mode
+    let cardsToReview = [];
+    let reviewMode = false;
     
-    // Initialize buttons state
     updateNavButtons();
     
-    // Previous card button
     if (prevBtn) {
         prevBtn.addEventListener('click', function() {
             if (currentIndex > 0) {
@@ -2461,7 +2583,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Next card button
     if (nextBtn) {
         nextBtn.addEventListener('click', function() {
             if (currentIndex < totalCards - 1) {
@@ -2470,33 +2591,29 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Flip card on click
     flashcards.forEach(card => {
         card.addEventListener('click', function() {
             this.classList.toggle('flipped');
         });
     });
     
-    // Progress tracking toggle
     progressToggle.addEventListener('change', function() {
         reviewMode = this.checked;
         
         if (reviewMode) {
-            // Switch to review mode
             prevBtn.style.display = 'none';
             nextBtn.style.display = 'none';
             reviewButtons.style.display = 'flex';
-            // Reset cards to review
+
             cardsToReview = Array.from({ length: totalCards }, (_, i) => i);
-            // Start from the first card
             showCard(0);
         } else {
-            // Switch back to normal mode
+
             prevBtn.style.display = 'block';
             nextBtn.style.display = 'block';
             reviewButtons.style.display = 'none';
             againContainer.style.display = 'none';
-            // Keep current card
+
             showCard(currentIndex);
         }
     });
@@ -2508,36 +2625,33 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Move to next card or show completion
         if (cardsToReview.length > 0) {
-            // Find the next card to review
             const nextReviewIndex = cardsToReview.find(index => index > currentIndex);
             if (nextReviewIndex !== undefined) {
                 showCard(nextReviewIndex);
             } else {
-                showCard(cardsToReview[0]); // Wrap around to the first card to review
+                showCard(cardsToReview[0]);
             }
         } else {
-            // All cards reviewed
+
             showReviewComplete();
         }
     });
     
-    // "Still learning" button
     dontKnowBtn.addEventListener('click', function() {
-        // Keep the card in the review list but move to the next one
         if (cardsToReview.length > 1) {
-            // Find the next card to review
+
             let nextReviewIndex;
             const currentPosition = cardsToReview.indexOf(currentIndex);
             
             if (currentPosition < cardsToReview.length - 1) {
                 nextReviewIndex = cardsToReview[currentPosition + 1];
             } else {
-                nextReviewIndex = cardsToReview[0]; // Wrap around to the first card
+                nextReviewIndex = cardsToReview[0]; 
             }
             
             showCard(nextReviewIndex);
         } else if (cardsToReview.length === 1) {
-            // Only one card left, show completion
+
             showReviewComplete();
         }
     });
@@ -2553,7 +2667,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // "Reset all" button
     resetAllBtn.addEventListener('click', function() {
-        // Reset to include all cards
         cardsToReview = Array.from({ length: totalCards }, (_, i) => i);
         againContainer.style.display = 'none';
         reviewButtons.style.display = 'flex';
@@ -2562,23 +2675,20 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to show a specific card
     function showCard(index) {
-        // Hide current card
+
         flashcards[currentIndex].classList.remove('active');
-        // Reset flip state
+
         flashcards[currentIndex].classList.remove('flipped');
         
-        // Show new card
         currentIndex = index;
         flashcards[currentIndex].classList.add('active');
         
-        // Update counter
         if (reviewMode) {
             cardCounter.textContent = `Card ${cardsToReview.indexOf(currentIndex) + 1} of ${cardsToReview.length}`;
         } else {
             cardCounter.textContent = `Card ${currentIndex + 1} of ${totalCards}`;
         }
         
-        // Update buttons state
         updateNavButtons();
     }
     
@@ -2607,10 +2717,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add keyboard navigation (Updated to allow spaces in inputs/textareas)
     document.addEventListener('keydown', function(e) {
         const targetElement = e.target;
-        // Check if the event target is an input field or textarea
         const isTypingInInput = targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA';
 
-        // Handle navigation and review keys ONLY if not typing in an input/textarea
         if (!isTypingInInput) {
             if (!reviewMode) {
                 if (e.key === 'ArrowLeft' && prevBtn && !prevBtn.disabled) {
@@ -2618,46 +2726,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (e.key === 'ArrowRight' && nextBtn && !nextBtn.disabled) {
                     nextBtn.click();
                 }
-            } else { // In review mode
-                // Check if review buttons are visible before triggering click
+            } else {
+
                 if ((e.key === 'ArrowRight' || e.key === 'y' || e.key === 'Y') && knowBtn && knowBtn.offsetParent !== null) {
                     knowBtn.click(); // "I know this"
                 } else if ((e.key === 'ArrowLeft' || e.key === 'n' || e.key === 'N') && dontKnowBtn && dontKnowBtn.offsetParent !== null) {
                     dontKnowBtn.click(); // "Still learning"
                 }
             }
-        } // End of check for not typing
+        }
 
         // Handle spacebar: Flip card ONLY if not typing in an input/textarea
         if ((e.key === ' ' || e.key === 'Spacebar') && !isTypingInInput) {
-            // Flip current card on spacebar
             const currentCard = document.querySelector('.flashcard.active');
             if (currentCard) {
                 currentCard.classList.toggle('flipped');
             }
-            // Prevent page scrolling ONLY when flipping the card
             e.preventDefault();
         }
-        // If isTypingInInput is true, the spacebar event is not handled here,
-        // allowing the default behavior (inserting a space) in the input/textarea.
     });
-}); // Make sure this closing }); matches the outer DOMContentLoaded listener
+});
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Find all flashcards and add click event listeners
+
     const flashcards = document.querySelectorAll('.flashcard');
     
     flashcards.forEach(card => {
-        // Remove any existing click event listeners (to avoid duplicates)
+
         card.removeEventListener('click', flipCard);
         
-        // Add a new click event listener
         card.addEventListener('click', flipCard);
     });
     
-    // Function to flip a card
     function flipCard(event) {
-        // Make sure we're not clicking on a button inside the card
+
         if (event.target.closest('button') === null) {
             console.log('Card clicked');
             this.classList.toggle('flipped');
@@ -2667,17 +2769,15 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Existing edit card button functionality
+
     const editCardBtn = document.getElementById('edit-current-card-btn');
     
-    // New buttons
     const deleteCardBtn = document.getElementById('delete-current-card-btn');
     const addCardBtn = document.getElementById('add-new-card-btn');
     
-    // Add event listeners for the new buttons
     if (deleteCardBtn) {
         deleteCardBtn.addEventListener('click', function(event) {
-            event.stopPropagation(); // Prevent card flipping
+            event.stopPropagation(); 
             
             const activeCard = document.querySelector('.flashcard.active');
             if (!activeCard) {
@@ -2685,33 +2785,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Show the delete confirmation modal
             const deleteCardModal = document.getElementById('delete-card-modal');
             deleteCardModal.style.display = 'flex';
             
-            // Store the card ID and index in variables accessible to the confirm handler
             const cardId = activeCard.dataset.cardId;
             const cardIndex = parseInt(activeCard.dataset.index);
             
-            // Set up the confirm delete button
             const confirmDeleteCardBtn = document.getElementById('confirm-delete-card');
             const cancelDeleteCardBtn = document.getElementById('cancel-delete-card');
             
-            // Remove any existing event listeners to prevent duplicates
             const newConfirmBtn = confirmDeleteCardBtn.cloneNode(true);
             confirmDeleteCardBtn.parentNode.replaceChild(newConfirmBtn, confirmDeleteCardBtn);
             
             const newCancelBtn = cancelDeleteCardBtn.cloneNode(true);
             cancelDeleteCardBtn.parentNode.replaceChild(newCancelBtn, cancelDeleteCardBtn);
             
-            // Add event listener for cancel button
             newCancelBtn.addEventListener('click', function() {
                 deleteCardModal.style.display = 'none';
             });
             
-            // Add event listener for confirm button
             newConfirmBtn.addEventListener('click', function() {
-                // Send AJAX request to delete the card
+
                 const xhr = new XMLHttpRequest();
                 xhr.open('POST', 'delete_card.php', true);
                 xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -2722,57 +2816,47 @@ document.addEventListener('DOMContentLoaded', function() {
                             const response = JSON.parse(this.responseText);
                             
                             if (response.success) {
-                                // Get all flashcards and the total count
                                 const flashcards = document.querySelectorAll('.flashcard');
                                 const totalCards = flashcards.length;
                                 
                                 if (totalCards <= 1) {
-                                    // If this was the last card, reload the page
                                     alert('Last card deleted. Returning to set view.');
                                     window.location.reload();
                                     return;
                                 }
                                 
-                                // Remove the deleted card from the DOM
                                 activeCard.remove();
                                 
-                                // Update the remaining cards' indices
                                 document.querySelectorAll('.flashcard').forEach((card, idx) => {
                                     card.dataset.index = idx;
                                 });
                                 
-                                // Show the next card or the previous if this was the last
                                 const newTotalCards = totalCards - 1;
                                 let newIndex = cardIndex;
                                 if (newIndex >= newTotalCards) {
                                     newIndex = newTotalCards - 1;
                                 }
                                 
-                                // Find the card with the new index
                                 const nextCard = document.querySelector(`.flashcard[data-index="${newIndex}"]`);
                                 if (nextCard) {
                                     nextCard.classList.add('active');
                                 }
                                 
-                                // Update the card counter
                                 const cardCounter = document.getElementById('card-counter');
                                 if (cardCounter) {
                                     cardCounter.textContent = `Card ${newIndex + 1} of ${newTotalCards}`;
                                 }
                                 
-                                // Update navigation buttons state
                                 const prevBtn = document.getElementById('prev-card');
                                 const nextBtn = document.getElementById('next-card');
                                 if (prevBtn) prevBtn.disabled = newIndex === 0;
                                 if (nextBtn) nextBtn.disabled = newIndex === newTotalCards - 1;
                                 
-                                // Update the set header to reflect the new count
                                 const totalCardsElement = document.querySelector('.flashcard-set-header p');
                                 if (totalCardsElement) {
                                     totalCardsElement.textContent = `Total cards: ${newTotalCards}`;
                                 }
                                 
-                                // Hide the modal
                                 deleteCardModal.style.display = 'none';
                             } else {
                                 alert(response.message || 'Error deleting flashcard.');
@@ -2797,9 +2881,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (addCardBtn) {
     addCardBtn.addEventListener('click', function(event) {
-        event.stopPropagation(); // Prevent card flipping
+        event.stopPropagation(); 
         
-        // Get the current set ID from the URL or session
         let setId;
         const urlParams = new URLSearchParams(window.location.search);
         setId = urlParams.get('set_id');
@@ -2809,40 +2892,33 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Show the add card modal
         const addCardModal = document.getElementById('add-card-modal');
         const addCardSetIdInput = document.getElementById('add-card-set-id');
         const addCardQuestionTextarea = document.getElementById('add-card-question');
         const addCardAnswerTextarea = document.getElementById('add-card-answer');
         const addCardErrorDiv = document.getElementById('add-card-error');
         
-        // Reset form and set the set ID
         addCardSetIdInput.value = setId;
         addCardQuestionTextarea.value = '';
         addCardAnswerTextarea.value = '';
         addCardErrorDiv.textContent = '';
         
-        // Show the modal
         addCardModal.style.display = 'flex';
         addCardQuestionTextarea.focus();
         
-        // Set up the buttons
         const confirmAddCardBtn = document.getElementById('confirm-add-card');
         const cancelAddCardBtn = document.getElementById('cancel-add-card');
         
-        // Remove any existing event listeners to prevent duplicates
         const newConfirmBtn = confirmAddCardBtn.cloneNode(true);
         confirmAddCardBtn.parentNode.replaceChild(newConfirmBtn, confirmAddCardBtn);
         
         const newCancelBtn = cancelAddCardBtn.cloneNode(true);
         cancelAddCardBtn.parentNode.replaceChild(newCancelBtn, cancelAddCardBtn);
         
-        // Add event listener for cancel button
         newCancelBtn.addEventListener('click', function() {
             addCardModal.style.display = 'none';
         });
         
-        // Add event listener for confirm button
         newConfirmBtn.addEventListener('click', function() {
             const question = addCardQuestionTextarea.value.trim();
             const answer = addCardAnswerTextarea.value.trim();
@@ -2853,27 +2929,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Send AJAX request to add the card
             const xhr = new XMLHttpRequest();
             xhr.open('POST', 'add_card.php', true);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
             
             xhr.onload = function() {
-                if (this.status === 201) { // Created
+                if (this.status === 201) { 
                     try {
                         const response = JSON.parse(this.responseText);
                         
                         if (response.success) {
-                            // Get the new card data
                             const newCard = response.card;
                             
-                            // Get all existing flashcards and the flashcards wrapper
                             const flashcardsWrapper = document.querySelector('.flashcards-wrapper');
                             const existingCards = document.querySelectorAll('.flashcard');
                             const totalCards = existingCards.length;
-                            const newIndex = totalCards; // New card will be at the end
+                            const newIndex = totalCards;
                             
-                            // Create the new flashcard HTML
                             const newCardHTML = `
                                 <div class="flashcard" data-index="${newIndex}" data-card-id="${newCard.flashcard_id}">
                                     <div class="flashcard-inner">
@@ -2891,58 +2963,44 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </div>
                             `;
                             
-                            // Add the new card to the DOM
                             flashcardsWrapper.insertAdjacentHTML('beforeend', newCardHTML);
                             
-                            // Add click event to the new card
                             const newCardElement = flashcardsWrapper.querySelector(`.flashcard[data-index="${newIndex}"]`);
                             newCardElement.addEventListener('click', function() {
                                 this.classList.toggle('flipped');
                             });
                             
-                            // Update the total cards count in the header
                             const newTotalCards = totalCards + 1;
                             const totalCardsElement = document.querySelector('.flashcard-set-header p');
                             if (totalCardsElement) {
                                 totalCardsElement.textContent = `Total cards: ${newTotalCards}`;
                             }
                             
-                            // Hide the modal
                             addCardModal.style.display = 'none';
                             
-                            // Get navigation elements
                             const prevBtn = document.getElementById('prev-card');
                             const nextBtn = document.getElementById('next-card');
                             const cardCounter = document.getElementById('card-counter');
                             
-                            // Hide all cards first
                             document.querySelectorAll('.flashcard').forEach(card => {
                                 card.classList.remove('active');
                             });
                             
-                            // Show the new card
                             newCardElement.classList.add('active');
                             
-                            // Update the card counter
                             if (cardCounter) {
                                 cardCounter.textContent = `Card ${newIndex + 1} of ${newTotalCards}`;
                             }
                             
-                            // Update navigation buttons state
                             if (prevBtn) prevBtn.disabled = newIndex === 0;
                             if (nextBtn) nextBtn.disabled = newIndex === newTotalCards - 1;
-                            
-                            // IMPORTANT: Update the currentIndex variable in the outer scope
-                            // This is crucial for navigation to work properly
+                                                       
                             currentIndex = newIndex;
-                            
-                            // IMPORTANT: Refresh the navigation button event listeners
-                            // Remove existing listeners
+                                                      
                             if (prevBtn) {
                                 const newPrevBtn = prevBtn.cloneNode(true);
                                 prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
                                 
-                                // Add new listener
                                 newPrevBtn.addEventListener('click', function() {
                                     if (currentIndex > 0) {
                                         showCard(currentIndex - 1);
@@ -2954,7 +3012,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 const newNextBtn = nextBtn.cloneNode(true);
                                 nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
                                 
-                                // Add new listener
                                 newNextBtn.addEventListener('click', function() {
                                     if (currentIndex < newTotalCards - 1) {
                                         showCard(currentIndex + 1);
@@ -2995,9 +3052,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (editCardBtn) {
         const originalClickHandler = editCardBtn.onclick;
         editCardBtn.onclick = function(event) {
-            // Prevent the event from bubbling up to the card
             event.stopPropagation();
-            // Call the original handler if it exists
             if (typeof originalClickHandler === 'function') {
                 originalClickHandler.call(this, event);
             }
@@ -3036,20 +3091,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.files && this.files[0]) {
                 const file = this.files[0];
                 
-                // Check file type
                 const fileType = file.type;
                 if (!fileType.match('image.*')) {
                     alert('Please select an image file');
                     return;
                 }
                 
-                // Check file size (max 5MB)
                 if (file.size > 5 * 1024 * 1024) {
                     alert('File size should be less than 5MB');
                     return;
                 }
                 
-                // Preview the image
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     profilePicture.src = e.target.result;
@@ -3071,13 +3123,10 @@ document.addEventListener('DOMContentLoaded', function() {
         accountBtn.addEventListener('click', function(e) {
             e.preventDefault();
             if (authModal) {
-                // Force layout recalculation before showing the modal
                 void authModal.offsetWidth;
                 
-                // Show the modal
                 authModal.style.display = 'flex';
                 
-                // Force the browser to repaint
                 setTimeout(function() {
                     authModal.style.opacity = '1';
                 }, 10);
@@ -3106,11 +3155,9 @@ document.addEventListener('DOMContentLoaded', function() {
         tab.addEventListener('click', function() {
             const targetFormId = this.getAttribute('data-form');
             
-            // Deactivate all tabs and forms
             document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
             
-            // Activate clicked tab and corresponding form
             this.classList.add('active');
             document.getElementById(targetFormId).classList.add('active');
         });
@@ -3129,22 +3176,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const shareErrorDiv = document.getElementById('share-error');
         const shareSuccessDiv = document.getElementById('share-success');
         
-        let friends = []; // Will store all friends
-        let selectedFriends = []; // Will store selected friend IDs
+        let friends = []; 
+        let selectedFriends = []; 
         
         // Show share modal when share button is clicked
         if (shareSetBtn) {
             shareSetBtn.addEventListener('click', function() {
-                // Reset state
+
                 selectedFriends = [];
                 shareErrorDiv.textContent = '';
                 shareSuccessDiv.textContent = '';
                 updateSelectedCount();
                 
-                // Show the modal
                 shareSetModal.style.display = 'flex';
                 
-                // Load friends
                 loadFriends();
             });
         }
@@ -3174,7 +3219,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 shareErrorDiv.textContent = '';
                 shareSuccessDiv.textContent = '';
                 
-                // Get the current set ID
                 const urlParams = new URLSearchParams(window.location.search);
                 const setId = urlParams.get('set_id');
                 
@@ -3183,7 +3227,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
-                // Send AJAX request to share the set
                 const xhr = new XMLHttpRequest();
                 xhr.open('POST', 'share_set.php', true);
                 xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -3195,12 +3238,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             
                             if (response.success) {
                                 shareSuccessDiv.textContent = response.message;
-                                // Clear selection after successful share
                                 selectedFriends = [];
                                 updateSelectedCount();
                                 renderFriendsList(friends);
                                 
-                                // Close modal after a delay
                                 setTimeout(function() {
                                     shareSetModal.style.display = 'none';
                                 }, 2000);
@@ -3220,7 +3261,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     shareErrorDiv.textContent = 'Network error occurred while trying to share the set.';
                 };
                 
-                // Format the friend IDs as a comma-separated list
                 const friendIdsParam = selectedFriends.map(id => `friend_ids[]=${encodeURIComponent(id)}`).join('&');
                 const params = `set_id=${encodeURIComponent(setId)}&${friendIdsParam}`;
                 xhr.send(params);
@@ -3229,9 +3269,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Load friends from server
         function loadFriends(searchTerm = '') {
-            // Show loading indicator
+
             friendsList.innerHTML = '<div class="loading-indicator"><i class="fa fa-spinner fa-spin"></i> Loading friends...</div>';
-            // Send AJAX request to get friends
+
             const xhr = new XMLHttpRequest();
             xhr.open('GET', `get_friends.php${searchTerm ? '?search=' + encodeURIComponent(searchTerm) : ''}`, true);
             
@@ -3284,13 +3324,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             friendsList.innerHTML = html;
             
-            // Add click event to friend items
             document.querySelectorAll('.friend-item').forEach(item => {
                 item.addEventListener('click', function() {
                     const friendId = this.dataset.friendId;
                     const checkbox = this.querySelector('.friend-checkbox');
                     
-                    // Toggle selection
                     if (selectedFriends.includes(friendId)) {
                         selectedFriends = selectedFriends.filter(id => id !== friendId);
                         this.classList.remove('selected');
@@ -3306,21 +3344,19 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        // Update selected friends count
         function updateSelectedCount() {
             selectedFriendsCount.textContent = `${selectedFriends.length} friend${selectedFriends.length !== 1 ? 's' : ''} selected`;
         }
         
-        // Close share modal when clicking outside
         shareSetModal.addEventListener('click', function(e) {
             if (e.target === shareSetModal) {
                 shareSetModal.style.display = 'none';
             }
         });
     });
-// Add this to your existing JavaScript
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Toggle shared sets section
+
     const sharedSetsToggle = document.getElementById('shared-sets-toggle');
     const sharedSetsSection = document.getElementById('shared-sets-section');
     
@@ -3328,7 +3364,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sharedSetsToggle.addEventListener('click', function(e) {
             e.preventDefault();
             
-            // Toggle display
+
             if (sharedSetsSection.style.display === 'none' || sharedSetsSection.style.display === '') {
                 sharedSetsSection.style.display = 'block';
             } else {
@@ -3337,102 +3373,105 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-// Replace your existing mobile sidebar toggle code with this improved version
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Mobile sidebar toggle - improved
-    const sidebar = document.getElementById('sidebar');
-    const toggleBtn = document.getElementById('toggle-sidebar');
-    const toggleIcon = toggleBtn.querySelector('i');
-    
-    function handleMobileView() {
-        if (window.innerWidth <= 450) {
-            // Reset any inline styles that might be causing issues
-            sidebar.style.width = '';
-            
-            // For mobile view
-            toggleBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                
-                // Toggle expanded class
-                sidebar.classList.toggle('expanded');
-                
-                // Update icon
-                if (sidebar.classList.contains('expanded')) {
-                    toggleIcon.classList.remove('fa-chevron-right');
-                    toggleIcon.classList.add('fa-chevron-left');
-                } else {
-                    toggleIcon.classList.remove('fa-chevron-left');
-                    toggleIcon.classList.add('fa-chevron-right');
-                }
-                
-                // Force a reflow to ensure transitions work properly
-                void sidebar.offsetWidth;
-            });
-            
-            // Close sidebar when clicking elsewhere
-            document.addEventListener('click', function(e) {
-                if (!sidebar.contains(e.target) && sidebar.classList.contains('expanded')) {
-                    sidebar.classList.remove('expanded');
-                    toggleIcon.classList.remove('fa-chevron-left');
-                    toggleIcon.classList.add('fa-chevron-right');
-                }
-            });
-            
-            // Prevent sidebar from closing when clicking inside it
-            sidebar.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
-        } else {
-            // For desktop view, ensure proper icon state
-            if (sidebar.classList.contains('collapsed')) {
-                toggleIcon.classList.remove('fa-chevron-left');
-                toggleIcon.classList.add('fa-chevron-right');
-            } else {
-                toggleIcon.classList.remove('fa-chevron-right');
-                toggleIcon.classList.add('fa-chevron-left');
-            }
-        }
-    }
-    
-    // Run on load
-    handleMobileView();
-    
-    // Run on resize with debounce
-    let resizeTimer;
-    window.addEventListener('resize', function() {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(handleMobileView, 250);
-    });
-});
-document.addEventListener('DOMContentLoaded', function() {
-    // Fix flashcard flipping without breaking other functionality
+
     const flashcards = document.querySelectorAll('.flashcard');
     
     flashcards.forEach(card => {
-        // Get the inner part that should trigger flipping
+
         const cardInner = card.querySelector('.flashcard-inner');
         
         if (cardInner) {
-            // Add click event specifically to the inner part
+
             cardInner.addEventListener('click', function(event) {
-                // Only flip if we're not clicking on a button
+
                 if (!event.target.closest('button')) {
                     card.classList.toggle('flipped');
-                    // Don't stop propagation completely, but prevent default
+
                     event.preventDefault();
                 }
             });
         }
     });
     
-    // Make sure buttons inside cards don't trigger flipping
     document.querySelectorAll('.card-actions button, .flashcard button').forEach(button => {
         button.addEventListener('click', function(event) {
-            // Just prevent this click from bubbling to the card
             event.stopPropagation();
         });
     });
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    const floatingMenuBtn = document.getElementById('floating-menu-btn');
+    const navModal = document.getElementById('nav-modal');
+    const closeNavModal = document.getElementById('close-nav-modal');
+    const navModalAccount = document.getElementById('nav-modal-account');
+    const authModal = document.getElementById('auth-modal');
+    
+    if (floatingMenuBtn) {
+        floatingMenuBtn.addEventListener('click', function() {
+            navModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; 
+        });
+    }
+    
+    if (closeNavModal) {
+        closeNavModal.addEventListener('click', function() {
+            navModal.style.display = 'none';
+            document.body.style.overflow = '';
+        });
+    }
+    
+    if (navModal) {
+        navModal.addEventListener('click', function(e) {
+            if (e.target === navModal) {
+                navModal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        });
+    }
+    
+    if (navModalAccount) {
+        navModalAccount.addEventListener('click', function() {
+            navModal.style.display = 'none'; 
+            if (authModal) {
+                authModal.style.display = 'flex';
+            }
+        });
+    }
+    
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    const libraryToggle = document.getElementById('library-toggle');
+    const libraryContent = document.getElementById('library-content');
+    const sharedToggle = document.getElementById('shared-toggle');
+    const sharedContent = document.getElementById('shared-content');
+    
+    function toggleSection(header, content) {
+        header.classList.toggle('active');
+        content.classList.toggle('active');
+    }
+    
+    if (libraryToggle && libraryContent) {
+        libraryToggle.classList.add('active');
+        libraryContent.classList.add('active');
+        
+        libraryToggle.addEventListener('click', function() {
+            toggleSection(libraryToggle, libraryContent);
+        });
+    }
+    
+    if (sharedToggle && sharedContent) {
+        sharedToggle.addEventListener('click', function() {
+            toggleSection(sharedToggle, sharedContent);
+        });
+    }
+});
+
     </script>
 </body>
 </html>
