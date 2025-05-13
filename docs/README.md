@@ -27,15 +27,16 @@ A program telepítéséhez futtassa ezt a fájlt.
 **Elérési út:**  
 `/database/dmp_dump.sql`  
 Ez a fájl tartalmazza a MySQL adatbázis exportját.
++
+- `adatbazis_diagram.png` – Az adatbázis szerkezetének vizuális ábrája (ER-diagram)
 
 # 📚 Dokumentáció
 **Elérési út:**  
 `/docs/`
 A dokumentáció az alábbi fájlokat tartalmazza:
 
-- `dokumentacio.md` – A szoftver működésének részletes leírása  
-- `tesztek.md` – A tesztekhez kapcsolódó kódrészletek és eredmények  
-- `adatbazis_diagram.png` – Az adatbázis szerkezetének vizuális ábrája (ER-diagram)
+- `dokumentacio.pdf` – A szoftver működésének részletes leírása  
+- `tesztek.pdf` – A tesztekhez kapcsolódó kódrészletek és eredmények  
 
 ---
 
