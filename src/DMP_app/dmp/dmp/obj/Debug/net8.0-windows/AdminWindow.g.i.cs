@@ -60,7 +60,7 @@ namespace dmp {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/dmp;component/adminwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/dmp;V1.0.0.0;component/adminwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\AdminWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
