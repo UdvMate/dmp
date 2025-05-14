@@ -20,7 +20,7 @@ A teljes forráskód a `src` mappában található.
 
 # 🖥️ Telepítőkészlet (Windows)
 **Elérési út:**  
-`/release/DMP_Setup.exe`  
+`/release/DMP_Setup/Debug/setup.exe`  
 A program telepítéséhez futtassa ezt a fájlt.
 
 # 🗄️ Adatbázis export (dump)
@@ -35,8 +35,8 @@ Ez a fájl tartalmazza a MySQL adatbázis exportját.
 `/docs/`
 A dokumentáció az alábbi fájlokat tartalmazza:
 
-- `dokumentacio.pdf` – A szoftver működésének részletes leírása  
-- `tesztek.pdf` – A tesztekhez kapcsolódó kódrészletek és eredmények  
+- `_2025_TőzsérDániel_UdvarhelyiMáté_FlashcardAi` – A szoftver működésének részletes leírása  
+- `app_testing.png`/`web_testing.png` – A tesztekhez kapcsolódó kódrészletek és eredmények  
 
 ---
 
@@ -50,6 +50,6 @@ A dokumentáció az alábbi fájlokat tartalmazza:
 
 ### Telepítés lépései
 
-1. Klónozd a tárolót:
-   ```bash
-   git clone https://github.com/UdvMate/dmp.git
+1. Web:Klónozd a tárolót:
+   ``git clone https://github.com/UdvMate/dmp.git``
+2. App:Futtasd a telepítőt a fentebb említett módon.
